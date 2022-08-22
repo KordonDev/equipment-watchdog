@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/kordondev/equipment-watchdog/security"
 )
 
 type member struct {
@@ -32,13 +33,24 @@ func addMember(c *gin.Context) {
 
 	members = append(members, newMember)
 	c.JSON(http.StatusCreated, newMember)
-
 }
 
 func main() {
 	router := gin.Default()
 	router.GET("/members", getMembers)
 	router.POST("/members", addMember)
+
+	router.GET("/register/:username", security.StartRegister)
+	router.POST("registe/:usernamer", security.FinishRegistration)
+
+	router.LoadHTMLGlob("templates/*.html")
+
+	router.GET("/index/:name", func(c *gin.Context) {
+		name := c.Param("name")
+		c.HTML(http.StatusOK, "index.html", gin.H{
+			"name": name,
+		})
+	})
 
 	router.Run("localhost:8080")
 }

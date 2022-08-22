@@ -1,6 +1,7 @@
 package security
 
 import (
+	"encoding/binary"
 	"fmt"
 	"log"
 	"net/http"
@@ -36,19 +37,15 @@ func init() {
 	}
 }
 
-func startRegister(c *gin.Context) {
-	var userRequest UserRequest
+func StartRegister(c *gin.Context) {
+	username := c.Param("username")
 
-	if err := c.BindJSON(&userRequest); err != nil {
-		c.AbortWithStatus(http.StatusBadRequest)
-		return
-	}
 	db := getUserDB()
 
-	user, err := db.GetUser(userRequest.username)
+	user, err := db.GetUser(username)
 	if err != nil {
 		user = &User{
-			name:        userRequest.username,
+			name:        username,
 			credentials: []webauthn.Credential{},
 		}
 		db.AddUser(user)
@@ -69,13 +66,72 @@ func startRegister(c *gin.Context) {
 	}
 
 	// store options
+	err = sessinoStore.SaveWebauthnSession("registration", sessionData, c.Request, c.Writer)
+	if err != nil {
+		c.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
 
 	c.JSON(http.StatusOK, options)
 }
 
+func FinishRegistration(c *gin.Context) {
+	username := c.Param("username")
+
+	user, err := db.GetUser(username)
+	if err != nil {
+		c.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+
+	sessionData, err := sessinoStore.GetWebauthnSession("registration", c.Request)
+	if err != nil {
+		c.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+
+	credential, err := webAuthn.FinishRegistration(user, sessionData, c.Request)
+	if err != nil {
+		c.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+
+	user.AddCredential(*credential)
+
+	c.Status(http.StatusOK)
+}
+
 type User struct {
+	id          uint64
 	name        string
 	credentials []webauthn.Credential
+}
+
+func (u User) WebAuthnID() []byte {
+	buf := make([]byte, binary.MaxVarintLen64)
+	binary.PutUvarint(buf, uint64(u.id))
+	binary.LittleEndian.Uint64(buf)
+	return buf
+}
+
+func (u User) WebAuthnName() string {
+	return u.name
+}
+
+func (u User) WebAuthnDisplayName() string {
+	return u.name
+}
+
+func (u User) WebAuthnIcon() string {
+	return ""
+}
+
+func (u User) WebAuthnCredentials() []webauthn.Credential {
+	return u.credentials
+}
+
+func (u *User) AddCredential(c webauthn.Credential) {
+	u.credentials = append(u.credentials, c)
 }
 
 func (u User) ExcludedCredentials() []protocol.CredentialDescriptor {
@@ -84,7 +140,7 @@ func (u User) ExcludedCredentials() []protocol.CredentialDescriptor {
 	for _, cred := range u.credentials {
 		descriptor := protocol.CredentialDescriptor{
 			Type:         protocol.PublicKeyCredentialType,
-			CredentialId: cred.ID,
+			CredentialID: cred.ID,
 		}
 		excludeList = append(excludeList, descriptor)
 	}
