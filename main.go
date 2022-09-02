@@ -41,7 +41,7 @@ func main() {
 	router.POST("/members", addMember)
 
 	router.GET("/register/:username", security.StartRegister)
-	router.POST("registe/:usernamer", security.FinishRegistration)
+	router.POST("register/:username", security.FinishRegistration)
 
 	router.LoadHTMLGlob("templates/*.html")
 

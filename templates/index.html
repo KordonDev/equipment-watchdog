@@ -9,7 +9,7 @@
 <body>
     <h1>Hallo {{.name}}</h1>
 
-    <form onsubmit="register()">
+    <form id="register_form">
         <label>
             Name:
             <input type="text" id="register_name">
@@ -18,11 +18,69 @@
     </form>
 </body>
 <script>
-    function register() {
+     function bufferDecode(value) {
+      return Uint8Array.from(atob(value), c => c.charCodeAt(0));
+    }
+
+    function bufferEncode(value) {
+      return btoa(String.fromCharCode.apply(null, new Uint8Array(value)))
+        .replace(/\+/g, "-")
+        .replace(/\//g, "_")
+        .replace(/=/g, "");;
+    }
+
+
+    function register(e) {
+        e.preventDefault();
         const name = document.querySelector('#register_name')
         if (name !== undefined) {
             const username = name.value
+            console.log(username)
+
+            fetch(`/register/${username}`)
+                .then(res => res.json())
+                .then(credentialCreationOptions => {
+                    console.log("register server response:", credentialCreationOptions)
+
+                    credentialCreationOptions.publicKey.challenge = bufferDecode(credentialCreationOptions.publicKey.challenge);
+                    credentialCreationOptions.publicKey.user.id = bufferDecode(credentialCreationOptions.publicKey.user.id);
+                    if (credentialCreationOptions.publicKey.excludeCredentials) {
+                        for (var i = 0; i < credentialCreationOptions.publicKey.excludeCredentials.length; i++) {
+                            credentialCreationOptions.publicKey.excludeCredentials[i].id = bufferDecode(credentialCreationOptions.publicKey.excludeCredentials[i].id);
+                        }
+                    }
+                    return navigator.credentials.create({
+                        publicKey: credentialCreationOptions.publicKey
+                    })
+                }).then(credential => {
+                    console.log("register credentials", credential)
+
+                    let attestationObject = credential.response.attestationObject;
+                    let clientDataJSON = credential.response.clientDataJSON;
+                    let rawId = credential.rawId;
+
+                    const body = {
+                        id: credential.id,
+                        rawId: bufferEncode(rawId),
+                        type: credential.type,
+                        response: {
+                            attestationObject: bufferEncode(attestationObject),
+                            clientDataJSON: bufferEncode(clientDataJSON),
+                        }
+                    }
+
+                    return fetch(`/register/${username}`, {
+                        method: 'POST',
+                        body: JSON.stringify(body)
+                    })
+                })
+                .then(res => res.json())
+                .then(succ => alert("registered ", username, succ))
+                .catch(err => console.error(err))
         }
     }
+
+    const registerForm = document.getElementById('register_form');
+    registerForm.addEventListener('submit', register)
 </script>
 </html>
