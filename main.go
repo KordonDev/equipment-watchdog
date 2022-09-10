@@ -43,6 +43,9 @@ func main() {
 	router.GET("/register/:username", security.StartRegister)
 	router.POST("register/:username", security.FinishRegistration)
 
+	router.GET("/login/:username", security.StartLogin)
+	router.POST("login/:username", security.FinishLogin)
+
 	router.LoadHTMLGlob("templates/*.html")
 
 	router.GET("/index/:name", func(c *gin.Context) {

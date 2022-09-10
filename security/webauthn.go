@@ -17,7 +17,7 @@ type UserRequest struct {
 }
 
 var webAuthn *webauthn.WebAuthn
-var sessinoStore *session.Store
+var sessionStore *session.Store
 
 func init() {
 	var err error
@@ -31,7 +31,7 @@ func init() {
 		log.Fatal("Error creating webAuthn", err)
 	}
 
-	sessinoStore, err = session.NewStore()
+	sessionStore, err = session.NewStore()
 	if err != nil {
 		log.Fatal("Error creating sessionStore", err)
 	}
@@ -66,7 +66,7 @@ func StartRegister(c *gin.Context) {
 	}
 
 	// store options
-	err = sessinoStore.SaveWebauthnSession("registration", sessionData, c.Request, c.Writer)
+	err = sessionStore.SaveWebauthnSession("registration", sessionData, c.Request, c.Writer)
 	if err != nil {
 		c.AbortWithError(http.StatusInternalServerError, err)
 		return
@@ -84,7 +84,7 @@ func FinishRegistration(c *gin.Context) {
 		return
 	}
 
-	sessionData, err := sessinoStore.GetWebauthnSession("registration", c.Request)
+	sessionData, err := sessionStore.GetWebauthnSession("registration", c.Request)
 	if err != nil {
 		c.AbortWithError(http.StatusBadRequest, err)
 		return
@@ -99,6 +99,52 @@ func FinishRegistration(c *gin.Context) {
 	user.AddCredential(*credential)
 
 	c.Status(http.StatusOK)
+}
+
+func StartLogin(c *gin.Context) {
+	username := c.Param("username")
+
+	user, err := db.GetUser(username)
+	if err != nil {
+		c.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+	options, sessionData, err := webAuthn.BeginLogin(user)
+	if err != nil {
+		c.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
+	err = sessionStore.SaveWebauthnSession("authentication", sessionData, c.Request, c.Writer)
+	if err != nil {
+		c.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
+
+	c.JSON(http.StatusOK, options)
+}
+
+func FinishLogin(c *gin.Context) {
+	username := c.Param("username")
+
+	user, err := db.GetUser(username)
+	if err != nil {
+		c.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+
+	sessionData, err := sessionStore.GetWebauthnSession("authentication", c.Request)
+	if err != nil {
+		c.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+
+	_, err = webAuthn.FinishLogin(user, sessionData, c.Request)
+	if err != nil {
+		c.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+
+	c.JSON(http.StatusOK, "successfull login")
 }
 
 type User struct {
