@@ -28,8 +28,14 @@
         </label>
         <button type="submit">Login</button>
     </form>
+
+    <form id="get_member">
+        <button type="submit">GetMember</button>
+    </form>
 </body>
 <script>
+
+    window.token = "abc"
     function bufferDecode(value) {
         return Uint8Array.from(atob(value), c => c.charCodeAt(0));
     }
@@ -140,9 +146,22 @@
                     })
                 })
                 .then(resp => resp.json())
-                .then(succ => alert(succ))
+                .then(succ => {
+                    window.token = succ.token
+                    alert("Success")
+                })
                 .catch(console.err)
         }
+    }
+
+    function getMembers(e) {
+        e.preventDefault()
+        fetch(`/members/`, {
+            headers: {
+                "Authorization": `Bearer ${window.token}`
+            }
+        })
+        .then(res => res.json())
     }
 
     const registerForm = document.getElementById('register_form');
@@ -150,6 +169,9 @@
 
     const loginForm = document.getElementById('login_form');
     loginForm.addEventListener('submit', login)
+
+    const getMembersForm = document.getElementById('get_member')
+    getMembersForm.addEventListener('submit', getMembers)
 </script>
 
 </html>

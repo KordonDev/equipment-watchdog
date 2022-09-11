@@ -37,8 +37,10 @@ func addMember(c *gin.Context) {
 
 func main() {
 	router := gin.Default()
-	router.GET("/members", getMembers)
-	router.POST("/members", addMember)
+
+	members := router.Group("/members", security.AuthorizeJWTMiddleware())
+	members.GET("/", getMembers)
+	members.POST("/", addMember)
 
 	router.GET("/register/:username", security.StartRegister)
 	router.POST("register/:username", security.FinishRegistration)

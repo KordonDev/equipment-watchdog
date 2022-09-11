@@ -18,6 +18,7 @@ type UserRequest struct {
 
 var webAuthn *webauthn.WebAuthn
 var sessionStore *session.Store
+var jwtService JWTService
 
 func init() {
 	var err error
@@ -35,6 +36,8 @@ func init() {
 	if err != nil {
 		log.Fatal("Error creating sessionStore", err)
 	}
+
+	jwtService = JWTAuthService()
 }
 
 func StartRegister(c *gin.Context) {
@@ -144,7 +147,11 @@ func FinishLogin(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, "successfull login")
+	token := jwtService.GenerateToken(username, true)
+
+	c.JSON(http.StatusOK, gin.H{
+		"token": token,
+	})
 }
 
 type User struct {
