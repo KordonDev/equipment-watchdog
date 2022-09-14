@@ -150,6 +150,7 @@ func (w *WebAuthNService) FinishLogin(c *gin.Context) {
 
 	token := w.jwtService.GenerateToken(username, true)
 
+	c.SetCookie("Authorization2", token, 60*100, "/", "/", true, true)
 	c.JSON(http.StatusOK, gin.H{
 		"token": token,
 	})
