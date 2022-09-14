@@ -1,8 +1,6 @@
 package security
 
 import (
-	"encoding/binary"
-	"fmt"
 	"log"
 	"net/http"
 
@@ -13,16 +11,19 @@ import (
 )
 
 type UserRequest struct {
-	username string `json:username`
+	username string `json:"username"`
 }
 
-var webAuthn *webauthn.WebAuthn
-var sessionStore *session.Store
-var jwtService JWTService
+type WebAuthNService struct {
+	webAuthn     *webauthn.WebAuthn
+	sessionStore *session.Store
+	jwtService   JWTService
+	userDB       *userDB
+}
 
-func init() {
+func NewWebAuthNService(userDB *userDB) *WebAuthNService {
 	var err error
-	webAuthn, err = webauthn.New(&webauthn.Config{
+	webAuthn, err := webauthn.New(&webauthn.Config{
 		RPDisplayName: "equipment watchdog",    // Display Name for your site
 		RPID:          "localhost",             // Generally the domain name for your site
 		RPOrigin:      "http://localhost:8080", // The origin URL for WebAuthn requests
@@ -32,26 +33,26 @@ func init() {
 		log.Fatal("Error creating webAuthn", err)
 	}
 
-	sessionStore, err = session.NewStore()
+	sessionStore, err := session.NewStore()
 	if err != nil {
 		log.Fatal("Error creating sessionStore", err)
 	}
 
-	jwtService = JWTAuthService()
+	jwtService := JWTAuthService()
+
+	return &WebAuthNService{webAuthn: webAuthn, sessionStore: sessionStore, jwtService: jwtService, userDB: userDB}
 }
 
-func StartRegister(c *gin.Context) {
+func (w *WebAuthNService) StartRegister(c *gin.Context) {
 	username := c.Param("username")
 
-	db := getUserDB()
-
-	user, err := db.GetUser(username)
+	user, err := w.userDB.GetUser(username)
 	if err != nil {
 		user = &User{
 			name:        username,
 			credentials: []webauthn.Credential{},
 		}
-		db.AddUser(user)
+		w.userDB.AddUser(user)
 	}
 
 	// TODO: go PublicKeyCredentialCreationOptions
@@ -59,7 +60,7 @@ func StartRegister(c *gin.Context) {
 		credOptions.CredentialExcludeList = user.ExcludedCredentials()
 	}
 
-	options, sessionData, err := webAuthn.BeginRegistration(
+	options, sessionData, err := w.webAuthn.BeginRegistration(
 		user,
 		registerOpts,
 	)
@@ -69,7 +70,7 @@ func StartRegister(c *gin.Context) {
 	}
 
 	// store options
-	err = sessionStore.SaveWebauthnSession("registration", sessionData, c.Request, c.Writer)
+	err = w.sessionStore.SaveWebauthnSession("registration", sessionData, c.Request, c.Writer)
 	if err != nil {
 		c.AbortWithError(http.StatusInternalServerError, err)
 		return
@@ -78,22 +79,22 @@ func StartRegister(c *gin.Context) {
 	c.JSON(http.StatusOK, options)
 }
 
-func FinishRegistration(c *gin.Context) {
+func (w WebAuthNService) FinishRegistration(c *gin.Context) {
 	username := c.Param("username")
 
-	user, err := db.GetUser(username)
+	user, err := w.userDB.GetUser(username)
 	if err != nil {
 		c.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
 
-	sessionData, err := sessionStore.GetWebauthnSession("registration", c.Request)
+	sessionData, err := w.sessionStore.GetWebauthnSession("registration", c.Request)
 	if err != nil {
 		c.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
 
-	credential, err := webAuthn.FinishRegistration(user, sessionData, c.Request)
+	credential, err := w.webAuthn.FinishRegistration(user, sessionData, c.Request)
 	if err != nil {
 		c.AbortWithError(http.StatusBadRequest, err)
 		return
@@ -104,20 +105,20 @@ func FinishRegistration(c *gin.Context) {
 	c.Status(http.StatusOK)
 }
 
-func StartLogin(c *gin.Context) {
+func (w *WebAuthNService) StartLogin(c *gin.Context) {
 	username := c.Param("username")
 
-	user, err := db.GetUser(username)
+	user, err := w.userDB.GetUser(username)
 	if err != nil {
 		c.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
-	options, sessionData, err := webAuthn.BeginLogin(user)
+	options, sessionData, err := w.webAuthn.BeginLogin(user)
 	if err != nil {
 		c.AbortWithError(http.StatusInternalServerError, err)
 		return
 	}
-	err = sessionStore.SaveWebauthnSession("authentication", sessionData, c.Request, c.Writer)
+	err = w.sessionStore.SaveWebauthnSession("authentication", sessionData, c.Request, c.Writer)
 	if err != nil {
 		c.AbortWithError(http.StatusInternalServerError, err)
 		return
@@ -126,105 +127,30 @@ func StartLogin(c *gin.Context) {
 	c.JSON(http.StatusOK, options)
 }
 
-func FinishLogin(c *gin.Context) {
+func (w *WebAuthNService) FinishLogin(c *gin.Context) {
 	username := c.Param("username")
 
-	user, err := db.GetUser(username)
+	user, err := w.userDB.GetUser(username)
 	if err != nil {
 		c.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
 
-	sessionData, err := sessionStore.GetWebauthnSession("authentication", c.Request)
+	sessionData, err := w.sessionStore.GetWebauthnSession("authentication", c.Request)
 	if err != nil {
 		c.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
 
-	_, err = webAuthn.FinishLogin(user, sessionData, c.Request)
+	_, err = w.webAuthn.FinishLogin(user, sessionData, c.Request)
 	if err != nil {
 		c.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
 
-	token := jwtService.GenerateToken(username, true)
+	token := w.jwtService.GenerateToken(username, true)
 
 	c.JSON(http.StatusOK, gin.H{
 		"token": token,
 	})
-}
-
-type User struct {
-	id          uint64
-	name        string
-	credentials []webauthn.Credential
-}
-
-func (u User) WebAuthnID() []byte {
-	buf := make([]byte, binary.MaxVarintLen64)
-	binary.PutUvarint(buf, uint64(u.id))
-	binary.LittleEndian.Uint64(buf)
-	return buf
-}
-
-func (u User) WebAuthnName() string {
-	return u.name
-}
-
-func (u User) WebAuthnDisplayName() string {
-	return u.name
-}
-
-func (u User) WebAuthnIcon() string {
-	return ""
-}
-
-func (u User) WebAuthnCredentials() []webauthn.Credential {
-	return u.credentials
-}
-
-func (u *User) AddCredential(c webauthn.Credential) {
-	u.credentials = append(u.credentials, c)
-}
-
-func (u User) ExcludedCredentials() []protocol.CredentialDescriptor {
-	excludeList := []protocol.CredentialDescriptor{}
-
-	for _, cred := range u.credentials {
-		descriptor := protocol.CredentialDescriptor{
-			Type:         protocol.PublicKeyCredentialType,
-			CredentialID: cred.ID,
-		}
-		excludeList = append(excludeList, descriptor)
-	}
-	return excludeList
-}
-
-type userDB struct {
-	users map[string]*User
-}
-
-var db *userDB
-
-func getUserDB() *userDB {
-	if db == nil {
-		db = &userDB{
-			users: make(map[string]*User),
-		}
-	}
-	return db
-}
-
-func (db *userDB) GetUser(username string) (*User, error) {
-	user, ok := db.users[username]
-
-	if !ok {
-		return &User{}, fmt.Errorf("error getting user: %s", username)
-	}
-
-	return user, nil
-}
-
-func (db *userDB) AddUser(user *User) {
-	db.users[user.name] = user
 }

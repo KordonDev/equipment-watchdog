@@ -42,11 +42,14 @@ func main() {
 	members.GET("/", getMembers)
 	members.POST("/", addMember)
 
-	router.GET("/register/:username", security.StartRegister)
-	router.POST("register/:username", security.FinishRegistration)
+	userDB := security.NewUserDB()
+	webAuthNService := security.NewWebAuthNService(userDB)
 
-	router.GET("/login/:username", security.StartLogin)
-	router.POST("login/:username", security.FinishLogin)
+	router.GET("/register/:username", webAuthNService.StartRegister)
+	router.POST("register/:username", webAuthNService.FinishRegistration)
+
+	router.GET("/login/:username", webAuthNService.StartLogin)
+	router.POST("login/:username", webAuthNService.FinishLogin)
 
 	router.LoadHTMLGlob("templates/*.html")
 
