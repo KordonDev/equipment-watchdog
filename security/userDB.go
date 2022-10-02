@@ -1,27 +1,39 @@
 package security
 
-import "fmt"
+import (
+	"fmt"
+
+	"gorm.io/driver/sqlite"
+	"gorm.io/gorm"
+)
 
 type userDB struct {
-	users map[string]*User
+	db *gorm.DB
 }
 
 func NewUserDB() *userDB {
+	db, err := gorm.Open(sqlite.Open("test.db"), &gorm.Config{})
+	if err != nil {
+		panic("failed to connect database")
+	}
+	db.AutoMigrate(&User{})
+
 	return &userDB{
-		users: make(map[string]*User),
+		db: db,
 	}
 }
 
-func (db *userDB) GetUser(username string) (*User, error) {
-	user, ok := db.users[username]
+func (u *userDB) GetUser(username string) (*User, error) {
+	var user User
+	err := u.db.First(&user, "name = ?", username).Error
 
-	if !ok {
+	if err != nil {
 		return &User{}, fmt.Errorf("error getting user: %s", username)
 	}
 
-	return user, nil
+	return &user, nil
 }
 
-func (db *userDB) AddUser(user *User) {
-	db.users[user.name] = user
+func (u *userDB) AddUser(user *User) {
+	u.db.Create(user)
 }

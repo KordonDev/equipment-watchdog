@@ -49,8 +49,8 @@ func (w *WebAuthNService) StartRegister(c *gin.Context) {
 	user, err := w.userDB.GetUser(username)
 	if err != nil {
 		user = &User{
-			name:        username,
-			credentials: []webauthn.Credential{},
+			Name:        username,
+			Credentials: []webauthn.Credential{},
 		}
 		w.userDB.AddUser(user)
 	}

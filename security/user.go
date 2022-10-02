@@ -5,27 +5,35 @@ import (
 
 	"github.com/duo-labs/webauthn/protocol"
 	"github.com/duo-labs/webauthn/webauthn"
+	"gorm.io/gorm"
 )
 
 type User struct {
-	id          uint64
-	name        string
-	credentials []webauthn.Credential
+	gorm.Model
+	Name        string
+	Credentials []webauthn.Credential `gorm:"embedded"`
+}
+
+func NewUser(name string) *User {
+	return &User{
+		Name:        name,
+		Credentials: []webauthn.Credential{},
+	}
 }
 
 func (u User) WebAuthnID() []byte {
 	buf := make([]byte, binary.MaxVarintLen64)
-	binary.PutUvarint(buf, uint64(u.id))
+	binary.PutUvarint(buf, uint64(u.ID))
 	binary.LittleEndian.Uint64(buf)
 	return buf
 }
 
 func (u User) WebAuthnName() string {
-	return u.name
+	return u.Name
 }
 
 func (u User) WebAuthnDisplayName() string {
-	return u.name
+	return u.Name
 }
 
 func (u User) WebAuthnIcon() string {
@@ -33,17 +41,17 @@ func (u User) WebAuthnIcon() string {
 }
 
 func (u User) WebAuthnCredentials() []webauthn.Credential {
-	return u.credentials
+	return u.Credentials
 }
 
 func (u *User) AddCredential(c webauthn.Credential) {
-	u.credentials = append(u.credentials, c)
+	u.Credentials = append(u.Credentials, c)
 }
 
 func (u User) ExcludedCredentials() []protocol.CredentialDescriptor {
 	excludeList := []protocol.CredentialDescriptor{}
 
-	for _, cred := range u.credentials {
+	for _, cred := range u.Credentials {
 		descriptor := protocol.CredentialDescriptor{
 			Type:         protocol.PublicKeyCredentialType,
 			CredentialID: cred.ID,
