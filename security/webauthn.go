@@ -52,7 +52,11 @@ func (w *WebAuthNService) StartRegister(c *gin.Context) {
 			Name:        username,
 			Credentials: []webauthn.Credential{},
 		}
-		w.userDB.AddUser(user)
+		user, err = w.userDB.AddUser(user)
+		if err != nil {
+			c.AbortWithError(http.StatusBadRequest, err)
+			return
+		}
 	}
 
 	registerOpts := func(credOptions *protocol.PublicKeyCredentialCreationOptions) {
@@ -100,7 +104,7 @@ func (w WebAuthNService) FinishRegistration(c *gin.Context) {
 	}
 
 	user.AddCredential(*credential)
-
+	w.userDB.SaveUser(user)
 	c.Status(http.StatusOK)
 }
 
@@ -122,6 +126,8 @@ func (w *WebAuthNService) StartLogin(c *gin.Context) {
 		c.AbortWithError(http.StatusInternalServerError, err)
 		return
 	}
+
+	w.userDB.SaveUser(user)
 
 	c.JSON(http.StatusOK, options)
 }
@@ -148,6 +154,7 @@ func (w *WebAuthNService) FinishLogin(c *gin.Context) {
 	}
 
 	token := w.jwtService.GenerateToken(username, true)
+	w.userDB.SaveUser(user)
 
 	c.SetCookie("Authorization", token, 60*100, "/", "/", true, true)
 	c.JSON(http.StatusOK, gin.H{})

@@ -2,7 +2,12 @@ module github.com/kordondev/equipment-watchdog
 
 go 1.18
 
-require github.com/gin-gonic/gin v1.8.1
+require (
+	github.com/dgrijalva/jwt-go v3.2.0+incompatible
+	github.com/gin-gonic/gin v1.8.1
+	gorm.io/driver/sqlite v1.3.6
+	gorm.io/gorm v1.23.10
+)
 
 require (
 	cloud.google.com/go v0.81.0 // indirect
@@ -15,7 +20,6 @@ require (
 	github.com/coreos/go-semver v0.3.0 // indirect
 	github.com/coreos/go-systemd/v22 v22.3.2 // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.0 // indirect
-	github.com/dgrijalva/jwt-go v3.2.0+incompatible // indirect
 	github.com/dustin/go-humanize v1.0.0 // indirect
 	github.com/envoyproxy/go-control-plane v0.9.9-0.20210217033140-668b12f5399d // indirect
 	github.com/envoyproxy/protoc-gen-validate v0.6.1 // indirect
@@ -83,8 +87,6 @@ require (
 	google.golang.org/genproto v0.0.0-20210510173355-fb37daa5cd7a // indirect
 	google.golang.org/grpc v1.37.0 // indirect
 	gopkg.in/cheggaaa/pb.v1 v1.0.28 // indirect
-	gorm.io/driver/sqlite v1.3.6 // indirect
-	gorm.io/gorm v1.23.10 // indirect
 	sigs.k8s.io/yaml v1.2.0 // indirect
 )
 

@@ -5,13 +5,12 @@ import (
 
 	"github.com/duo-labs/webauthn/protocol"
 	"github.com/duo-labs/webauthn/webauthn"
-	"gorm.io/gorm"
 )
 
 type User struct {
-	gorm.Model
+	ID          uint64
 	Name        string
-	Credentials []webauthn.Credential `gorm:"embedded"`
+	Credentials []webauthn.Credential
 }
 
 func NewUser(name string) *User {

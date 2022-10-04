@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"net/http"
 
@@ -36,22 +37,15 @@ func addMember(c *gin.Context) {
 }
 
 func main() {
+	arguments := parseArguments()
+
 	router := gin.Default()
-	test()
 
 	members := router.Group("/members", security.AuthorizeJWTMiddleware())
 	members.GET("/", getMembers)
 	members.POST("/", addMember)
 
-	userDB := security.NewUserDB()
-	u := security.NewUser("Arne")
-
-	userDB.AddUser(u)
-	dbU1, _ := userDB.GetUser("Arne")
-	fmt.Printf("found: %v\n", dbU1)
-	dbU2, _ := userDB.GetUser("Arne2")
-	fmt.Printf("found: %v\n", dbU2)
-
+	userDB := security.NewUserDB(arguments.Debug)
 	webAuthNService := security.NewWebAuthNService(userDB)
 
 	router.GET("/register/:username", webAuthNService.StartRegister)
@@ -72,5 +66,20 @@ func main() {
 	router.Run("localhost:8080")
 }
 
-func test() {
+type CmdArgs struct {
+	Debug  bool
+	Domain string
+	Origin string
+}
+
+func parseArguments() *CmdArgs {
+	debug := flag.Bool("debug", false, "log debug information")
+	domain := flag.String("domain", "localhost", "Generally the domain name for your site with webAuthn")
+	origin := flag.String("origin", "http://localhost:8080", "The origin URL for WebAuthn requests")
+	flag.Parse()
+	return &CmdArgs{
+		Debug:  *debug,
+		Domain: *domain,
+		Origin: *origin,
+	}
 }
