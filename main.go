@@ -3,10 +3,16 @@ package main
 import (
 	"flag"
 	"fmt"
+	"log"
 	"net/http"
+	"os"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/kordondev/equipment-watchdog/security"
+	"gorm.io/driver/sqlite"
+	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
 )
 
 type member struct {
@@ -45,7 +51,8 @@ func main() {
 	members.GET("/", getMembers)
 	members.POST("/", addMember)
 
-	userDB := security.NewUserDB(arguments.Debug)
+	db := createDB(arguments.Debug)
+	userDB := security.NewUserDB(db)
 	webAuthNService := security.NewWebAuthNService(userDB)
 
 	router.GET("/register/:username", webAuthNService.StartRegister)
@@ -64,6 +71,27 @@ func main() {
 	})
 
 	router.Run("localhost:8080")
+}
+
+func createDB(debug bool) *gorm.DB {
+	logLevel := logger.Error
+	if debug {
+		logLevel = logger.Info
+	}
+	newLogger := logger.New(
+		log.New(os.Stdout, "\r\n", log.LstdFlags), // io writer
+		logger.Config{
+			SlowThreshold:             time.Second, // Slow SQL threshold
+			LogLevel:                  logLevel,    // Log level
+			IgnoreRecordNotFoundError: false,       // Ignore ErrRecordNotFound error for logger
+			Colorful:                  true,        // Disable color
+		},
+	)
+	db, err := gorm.Open(sqlite.Open("test.db"), &gorm.Config{Logger: newLogger})
+	if err != nil {
+		panic("failed to connect database")
+	}
+	return db
 }
 
 type CmdArgs struct {

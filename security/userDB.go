@@ -2,14 +2,10 @@ package security
 
 import (
 	"fmt"
-	"log"
-	"os"
 	"time"
 
 	"github.com/duo-labs/webauthn/webauthn"
-	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
-	"gorm.io/gorm/logger"
 )
 
 type userDB struct {
@@ -39,24 +35,7 @@ type DbUser struct {
 	Credentials []DbCredential `gorm:"foreignKey:UserID"`
 }
 
-func NewUserDB(debug bool) *userDB {
-	logLevel := logger.Error
-	if debug {
-		logLevel = logger.Info
-	}
-	newLogger := logger.New(
-		log.New(os.Stdout, "\r\n", log.LstdFlags), // io writer
-		logger.Config{
-			SlowThreshold:             time.Second, // Slow SQL threshold
-			LogLevel:                  logLevel,    // Log level
-			IgnoreRecordNotFoundError: false,       // Ignore ErrRecordNotFound error for logger
-			Colorful:                  true,        // Disable color
-		},
-	)
-	db, err := gorm.Open(sqlite.Open("test.db"), &gorm.Config{Logger: newLogger})
-	if err != nil {
-		panic("failed to connect database")
-	}
+func NewUserDB(db *gorm.DB) *userDB {
 	db.AutoMigrate(&DbUser{}, &DbCredential{}, &DbAuthenticator{})
 
 	return &userDB{
