@@ -11,21 +11,18 @@ import (
 
 func AuthorizeJWTMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		const BEARER_SCHEMA = "Bearer "
-		authHeader := c.GetHeader("Authorization")
 
-		authHeader2 := c.GetHeader("Cookie")
-		cookies := strings.Split(authHeader2, "; ")
+		var jwtCookie string
+		cookie := c.GetHeader("Cookie")
+		cookies := strings.Split(cookie, "; ")
 		for _, c := range cookies {
-			if strings.HasPrefix(c, "Authorization2") {
-				token := strings.Split(c, "=")[1]
-				fmt.Println(token)
+			if strings.HasPrefix(c, "Authorization") {
+				jwtCookie = strings.Split(c, "=")[1]
 			}
 		}
 
-		if len(authHeader) > len(BEARER_SCHEMA) {
-			tokenString := authHeader[len(BEARER_SCHEMA):]
-			token, err := JWTAuthService().ValidateToken(tokenString)
+		if len(jwtCookie) > 0 {
+			token, err := JWTAuthService().ValidateToken(jwtCookie)
 			if token.Valid {
 				claims := token.Claims.(jwt.MapClaims)
 				fmt.Println(claims)
