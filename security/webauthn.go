@@ -10,10 +10,6 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type UserRequest struct {
-	username string `json:"username"`
-}
-
 type WebAuthNService struct {
 	webAuthn     *webauthn.WebAuthn
 	sessionStore *session.Store
@@ -21,12 +17,12 @@ type WebAuthNService struct {
 	userDB       *userDB
 }
 
-func NewWebAuthNService(userDB *userDB) *WebAuthNService {
+func NewWebAuthNService(userDB *userDB, origin string, domain string) *WebAuthNService {
 	var err error
 	webAuthn, err := webauthn.New(&webauthn.Config{
-		RPDisplayName: "equipment watchdog",    // Display Name for your site
-		RPID:          "localhost",             // Generally the domain name for your site
-		RPOrigin:      "http://localhost:8080", // The origin URL for WebAuthn requests
+		RPDisplayName: "equipment watchdog", // Display Name for your site
+		RPID:          domain,               // Generally the domain name for your site
+		RPOrigin:      origin,               // The origin URL for WebAuthn requests
 	})
 
 	if err != nil {
@@ -49,10 +45,14 @@ func (w *WebAuthNService) StartRegister(c *gin.Context) {
 	user, err := w.userDB.GetUser(username)
 	if err != nil {
 		user = &User{
-			name:        username,
-			credentials: []webauthn.Credential{},
+			Name:        username,
+			Credentials: []webauthn.Credential{},
 		}
-		w.userDB.AddUser(user)
+		user, err = w.userDB.AddUser(user)
+		if err != nil {
+			c.AbortWithError(http.StatusBadRequest, err)
+			return
+		}
 	}
 
 	registerOpts := func(credOptions *protocol.PublicKeyCredentialCreationOptions) {
@@ -100,7 +100,7 @@ func (w WebAuthNService) FinishRegistration(c *gin.Context) {
 	}
 
 	user.AddCredential(*credential)
-
+	w.userDB.SaveUser(user)
 	c.Status(http.StatusOK)
 }
 
@@ -122,6 +122,8 @@ func (w *WebAuthNService) StartLogin(c *gin.Context) {
 		c.AbortWithError(http.StatusInternalServerError, err)
 		return
 	}
+
+	w.userDB.SaveUser(user)
 
 	c.JSON(http.StatusOK, options)
 }
@@ -148,6 +150,7 @@ func (w *WebAuthNService) FinishLogin(c *gin.Context) {
 	}
 
 	token := w.jwtService.GenerateToken(username, true)
+	w.userDB.SaveUser(user)
 
 	c.SetCookie("Authorization", token, 60*100, "/", "/", true, true)
 	c.JSON(http.StatusOK, gin.H{})
