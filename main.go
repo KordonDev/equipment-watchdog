@@ -43,7 +43,7 @@ func addMember(c *gin.Context) {
 }
 
 func main() {
-	arguments := parseArguments()
+	args := parseArguments()
 
 	router := gin.Default()
 
@@ -51,9 +51,9 @@ func main() {
 	members.GET("/", getMembers)
 	members.POST("/", addMember)
 
-	db := createDB(arguments.Debug)
+	db := createDB(args.Debug)
 	userDB := security.NewUserDB(db)
-	webAuthNService := security.NewWebAuthNService(userDB)
+	webAuthNService := security.NewWebAuthNService(userDB, args.Origin, args.Domain)
 
 	router.GET("/register/:username", webAuthNService.StartRegister)
 	router.POST("register/:username", webAuthNService.FinishRegistration)

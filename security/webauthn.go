@@ -10,10 +10,6 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type UserRequest struct {
-	username string `json:"username"`
-}
-
 type WebAuthNService struct {
 	webAuthn     *webauthn.WebAuthn
 	sessionStore *session.Store
@@ -21,12 +17,12 @@ type WebAuthNService struct {
 	userDB       *userDB
 }
 
-func NewWebAuthNService(userDB *userDB) *WebAuthNService {
+func NewWebAuthNService(userDB *userDB, origin string, domain string) *WebAuthNService {
 	var err error
 	webAuthn, err := webauthn.New(&webauthn.Config{
-		RPDisplayName: "equipment watchdog",    // Display Name for your site
-		RPID:          "localhost",             // Generally the domain name for your site
-		RPOrigin:      "http://localhost:8080", // The origin URL for WebAuthn requests
+		RPDisplayName: "equipment watchdog", // Display Name for your site
+		RPID:          domain,               // Generally the domain name for your site
+		RPOrigin:      origin,               // The origin URL for WebAuthn requests
 	})
 
 	if err != nil {
