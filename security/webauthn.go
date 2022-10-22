@@ -15,6 +15,7 @@ type WebAuthNService struct {
 	sessionStore *session.Store
 	jwtService   JWTService
 	userDB       *userDB
+	domain       string
 }
 
 func NewWebAuthNService(userDB *userDB, origin string, domain string) *WebAuthNService {
@@ -36,7 +37,7 @@ func NewWebAuthNService(userDB *userDB, origin string, domain string) *WebAuthNS
 
 	jwtService := JWTAuthService()
 
-	return &WebAuthNService{webAuthn: webAuthn, sessionStore: sessionStore, jwtService: jwtService, userDB: userDB}
+	return &WebAuthNService{webAuthn: webAuthn, sessionStore: sessionStore, jwtService: jwtService, userDB: userDB, domain: domain}
 }
 
 func (w *WebAuthNService) StartRegister(c *gin.Context) {
@@ -152,6 +153,11 @@ func (w *WebAuthNService) FinishLogin(c *gin.Context) {
 	token := w.jwtService.GenerateToken(username, true)
 	w.userDB.SaveUser(user)
 
-	c.SetCookie("Authorization", token, 60*100, "/", "/", true, true)
-	c.JSON(http.StatusOK, gin.H{})
+	c.SetCookie("Authorization", token, 60*100, "/", w.domain, true, true)
+	c.Status(http.StatusOK)
+}
+
+func (w *WebAuthNService) Logout(c *gin.Context) {
+	c.SetCookie("Authorization", "", -1, "/", w.domain, true, true)
+	c.Status(http.StatusOK)
 }
