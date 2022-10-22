@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/kordondev/equipment-watchdog/security"
 )
 
 type member struct {
@@ -32,13 +33,32 @@ func addMember(c *gin.Context) {
 
 	members = append(members, newMember)
 	c.JSON(http.StatusCreated, newMember)
-
 }
 
 func main() {
 	router := gin.Default()
-	router.GET("/members", getMembers)
-	router.POST("/members", addMember)
+
+	members := router.Group("/members", security.AuthorizeJWTMiddleware())
+	members.GET("/", getMembers)
+	members.POST("/", addMember)
+
+	userDB := security.NewUserDB()
+	webAuthNService := security.NewWebAuthNService(userDB)
+
+	router.GET("/register/:username", webAuthNService.StartRegister)
+	router.POST("register/:username", webAuthNService.FinishRegistration)
+
+	router.GET("/login/:username", webAuthNService.StartLogin)
+	router.POST("login/:username", webAuthNService.FinishLogin)
+
+	router.LoadHTMLGlob("templates/*.html")
+
+	router.GET("/index/:name", func(c *gin.Context) {
+		name := c.Param("name")
+		c.HTML(http.StatusOK, "index.html", gin.H{
+			"name": name,
+		})
+	})
 
 	router.Run("localhost:8080")
 }
