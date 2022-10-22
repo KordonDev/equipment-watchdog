@@ -56,10 +56,11 @@ func main() {
 	webAuthNService := security.NewWebAuthNService(userDB, args.Origin, args.Domain)
 
 	router.GET("/register/:username", webAuthNService.StartRegister)
-	router.POST("register/:username", webAuthNService.FinishRegistration)
+	router.POST("/register/:username", webAuthNService.FinishRegistration)
 
 	router.GET("/login/:username", webAuthNService.StartLogin)
-	router.POST("login/:username", webAuthNService.FinishLogin)
+	router.POST("/login/:username", webAuthNService.FinishLogin)
+	router.POST("/logout", webAuthNService.Logout)
 
 	router.LoadHTMLGlob("templates/*.html")
 

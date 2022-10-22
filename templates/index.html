@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Equipment Watchdog</title>
 </head>
 
 <body>
@@ -32,10 +32,10 @@
     <form id="get_member">
         <button type="submit">GetMember</button>
     </form>
+
+    <button id="logout">Logout</button>
 </body>
 <script>
-
-    window.token = "abc"
     function bufferDecode(value) {
         return Uint8Array.from(atob(value), c => c.charCodeAt(0));
     }
@@ -147,7 +147,6 @@
                 })
                 .then(resp => resp.json())
                 .then(succ => {
-                    window.token = succ.token
                     alert("Success")
                 })
                 .catch(console.err)
@@ -156,11 +155,7 @@
 
     function getMembers(e) {
         e.preventDefault()
-        fetch(`/members/`, {
-            headers: {
-                "Authorization": `Bearer ${window.token}`
-            }
-        })
+        fetch(`/members/`)
         .then(res => res.json())
     }
 
@@ -172,6 +167,13 @@
 
     const getMembersForm = document.getElementById('get_member')
     getMembersForm.addEventListener('submit', getMembers)
+
+    const logoutButton = document.getElementById('logout');
+    logoutButton.onclick = () => {
+        fetch('/logout', {
+            method: 'POST'
+        })
+    }
 </script>
 
 </html>
