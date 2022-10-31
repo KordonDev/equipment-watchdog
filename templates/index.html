@@ -173,6 +173,14 @@
         fetch('/logout', {
             method: 'POST'
         })
+        .then(res => res.json())
+        .then(res => {
+            const nextLocation = res.redirect;
+            debugger;
+            if (nextLocation) {
+                window.location.replace(nextLocation);
+            }
+        })
     }
 </script>
 

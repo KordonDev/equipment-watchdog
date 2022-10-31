@@ -159,5 +159,7 @@ func (w *WebAuthNService) FinishLogin(c *gin.Context) {
 
 func (w *WebAuthNService) Logout(c *gin.Context) {
 	c.SetCookie("Authorization", "", -1, "/", w.domain, true, true)
-	c.Status(http.StatusOK)
+	c.JSON(http.StatusOK, gin.H{
+		"redirect": "/index/Lisa",
+	})
 }

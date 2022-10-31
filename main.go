@@ -8,6 +8,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/kordondev/equipment-watchdog/security"
 	"gorm.io/driver/sqlite"
@@ -46,6 +47,11 @@ func main() {
 	args := parseArguments()
 
 	router := gin.Default()
+
+	corsConfig := cors.DefaultConfig()
+	corsConfig.AllowOrigins = []string{"http://localhost:5173"}
+	corsConfig.AllowCredentials = true
+	router.Use(cors.New(corsConfig))
 
 	members := router.Group("/members", security.AuthorizeJWTMiddleware())
 	members.GET("/", getMembers)
