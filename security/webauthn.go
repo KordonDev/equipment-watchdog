@@ -18,6 +18,8 @@ type WebAuthNService struct {
 	domain       string
 }
 
+var AUTHORIZATION_COOKIE_KEY = "Authorization"
+
 func NewWebAuthNService(userDB *userDB, origin string, domain string) *WebAuthNService {
 	var err error
 	webAuthn, err := webauthn.New(&webauthn.Config{
@@ -153,13 +155,13 @@ func (w *WebAuthNService) FinishLogin(c *gin.Context) {
 	token := w.jwtService.GenerateToken(username, true)
 	w.userDB.SaveUser(user)
 
-	c.SetCookie("Authorization", token, 60*100, "/", w.domain, true, true)
+	c.SetCookie(AUTHORIZATION_COOKIE_KEY, token, 60*100, "/", w.domain, true, true)
 	c.Status(http.StatusOK)
 }
 
 func (w *WebAuthNService) Logout(c *gin.Context) {
-	c.SetCookie("Authorization", "", -1, "/", w.domain, true, true)
-	c.JSON(http.StatusOK, gin.H{
-		"redirect": "/index/Lisa",
+	c.SetCookie(AUTHORIZATION_COOKIE_KEY, "", -1, "/", w.domain, true, true)
+	c.JSON(http.StatusUnauthorized, gin.H{
+		"redirect": "login",
 	})
 }

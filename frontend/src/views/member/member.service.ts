@@ -1,4 +1,4 @@
-import { BASE_URL } from "../../constants";
+import { fetchApi } from "../apiService";
 
 interface Member {
   id: string;
@@ -6,7 +6,5 @@ interface Member {
 }
 
 export function getMembers(): Promise<Member[]> {
-  return fetch(`${BASE_URL}/members/`, {
-    credentials: "include",
-  }).then((res) => res.json());
+  return fetchApi("/members/");
 }

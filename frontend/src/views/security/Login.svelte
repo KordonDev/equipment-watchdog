@@ -1,10 +1,13 @@
 <script lang="ts">
+  import { routes } from "../../routes";
   import { login } from "./security.service";
 
   let username = "";
   const handleLogin = (e) => {
     e.preventDefault();
-    login(username);
+    login(username).then(() =>
+      window.location.replace(`/#${routes.MemberOverview}`)
+    );
   };
 </script>
 
@@ -12,7 +15,7 @@
 
 <div class="card">
   <form on:submit={handleLogin}>
-    <input bind:value={username} />
+    <input bind:value={username} autofocus />
     <button type="submit">Einloggen</button>
   </form>
 </div>

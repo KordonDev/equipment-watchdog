@@ -1,4 +1,5 @@
 import { BASE_URL } from "../../constants";
+import { fetchApi } from "../apiService";
 
 function bufferDecode(value) {
   return Uint8Array.from(atob(value), (c) => c.charCodeAt(0));
@@ -12,10 +13,7 @@ function bufferEncode(value) {
 }
 
 export function login(username: string) {
-  fetch(`${BASE_URL}/login/${username}`, {
-    credentials: "include",
-  })
-    .then((res) => res.json())
+  return fetchApi(`/login/${username}`)
     .then((credentialRequestOptions) => {
       credentialRequestOptions.publicKey.challenge = bufferDecode(
         credentialRequestOptions.publicKey.challenge
@@ -47,23 +45,15 @@ export function login(username: string) {
         },
       };
 
-      return fetch(`${BASE_URL}/login/${username}`, {
+      return fetchApi(`/login/${username}`, {
         method: "POST",
         body: JSON.stringify(body),
-        credentials: "include",
       });
-    })
-    .then(() => {
-      alert("Success");
-    })
-    .catch(console.error);
+    });
 }
 
 export function register(username: string) {
-  fetch(`${BASE_URL}/register/${username}`, {
-    credentials: "include",
-  })
-    .then((res) => res.json())
+  return fetchApi(`/register/${username}`)
     .then((credentialCreationOptions) => {
       credentialCreationOptions.publicKey.challenge = bufferDecode(
         credentialCreationOptions.publicKey.challenge
@@ -102,12 +92,15 @@ export function register(username: string) {
         },
       };
 
-      return fetch(`${BASE_URL}/register/${username}`, {
+      return fetchApi(`/register/${username}`, {
         method: "POST",
         body: JSON.stringify(body),
-        credentials: "include",
       });
-    })
-    .then((succ) => alert(`registered ${username} ${succ}`))
-    .catch((err) => console.error(err));
+    });
+}
+
+export function logout() {
+  return fetchApi(`/logout`, {
+    method: "POST",
+  });
 }

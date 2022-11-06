@@ -5,6 +5,7 @@
   import Register from "./views/security/Register.svelte";
   import Home from "./views/Home.svelte";
   import MemberOverview from "./views/member/MemberOverview.svelte";
+  import { logout } from "./views/security/security.service";
 </script>
 
 <main>
@@ -13,6 +14,7 @@
     <a href={`/#${routes.Login}`}>Einloggen</a>
     <a href={`/#${routes.Register}`}>Registrieren</a>
     <a href={`/#${routes.MemberOverview}`}>Übersicht</a>
+    <button on:click={logout}>Ausloggen</button>
   </nav>
 
   <Router
