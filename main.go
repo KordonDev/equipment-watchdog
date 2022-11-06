@@ -69,15 +69,6 @@ func main() {
 	api.POST("/login/:username", webAuthNService.FinishLogin)
 	api.POST("/logout", webAuthNService.Logout)
 
-	router.LoadHTMLGlob("templates/*.html")
-
-	router.GET("/index/:name", func(c *gin.Context) {
-		name := c.Param("name")
-		c.HTML(http.StatusOK, "index.html", gin.H{
-			"name": name,
-		})
-	})
-
 	router.Run("localhost:8080")
 }
 
