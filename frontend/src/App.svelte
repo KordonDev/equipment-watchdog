@@ -1,23 +1,26 @@
 <script lang="ts">
-  import Counter from "./lib/Counter.svelte";
-  import Hello from "./lib/Hello.svelte";
   import Router from "svelte-spa-router";
+  import Login from "./views/security/Login.svelte";
+  import { routes } from "./routes";
+  import Register from "./views/security/Register.svelte";
+  import Home from "./views/Home.svelte";
+  import MemberOverview from "./views/member/MemberOverview.svelte";
 </script>
 
 <main>
   <nav>
-    <a href="/">Home</a>
-    <a href="/#/about">About</a>
-    <a href="/#/blog/colors">Colors</a>
+    <a href={routes.Home}>Home</a>
+    <a href={`/#${routes.Login}`}>Einloggen</a>
+    <a href={`/#${routes.Register}`}>Registrieren</a>
+    <a href={`/#${routes.MemberOverview}`}>Übersicht</a>
   </nav>
-  <div class="card">
-    <Counter />
-  </div>
 
   <Router
     routes={{
-      "/": Counter,
-      "/about": Hello,
+      [routes.Register]: Register,
+      [routes.Login]: Login,
+      [routes.Home]: Home,
+      [routes.MemberOverview]: MemberOverview,
     }}
   />
 </main>

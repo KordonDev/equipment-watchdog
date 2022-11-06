@@ -1,4 +1,4 @@
 <script lang="ts">
 </script>
 
-<h1>Hello</h1>
+<h1>home</h1>

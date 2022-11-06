@@ -47,13 +47,14 @@ func main() {
 	args := parseArguments()
 
 	router := gin.Default()
+	api := router.Group("/api")
 
 	corsConfig := cors.DefaultConfig()
 	corsConfig.AllowOrigins = []string{"http://localhost:5173"}
 	corsConfig.AllowCredentials = true
-	router.Use(cors.New(corsConfig))
+	api.Use(cors.New(corsConfig))
 
-	members := router.Group("/members", security.AuthorizeJWTMiddleware())
+	members := api.Group("/members", security.AuthorizeJWTMiddleware())
 	members.GET("/", getMembers)
 	members.POST("/", addMember)
 
@@ -61,12 +62,12 @@ func main() {
 	userDB := security.NewUserDB(db)
 	webAuthNService := security.NewWebAuthNService(userDB, args.Origin, args.Domain)
 
-	router.GET("/register/:username", webAuthNService.StartRegister)
-	router.POST("/register/:username", webAuthNService.FinishRegistration)
+	api.GET("/register/:username", webAuthNService.StartRegister)
+	api.POST("/register/:username", webAuthNService.FinishRegistration)
 
-	router.GET("/login/:username", webAuthNService.StartLogin)
-	router.POST("/login/:username", webAuthNService.FinishLogin)
-	router.POST("/logout", webAuthNService.Logout)
+	api.GET("/login/:username", webAuthNService.StartLogin)
+	api.POST("/login/:username", webAuthNService.FinishLogin)
+	api.POST("/logout", webAuthNService.Logout)
 
 	router.LoadHTMLGlob("templates/*.html")
 
@@ -112,6 +113,7 @@ func parseArguments() *CmdArgs {
 	domain := flag.String("domain", "localhost", "Generally the domain name for your site with webAuthn")
 	origin := flag.String("origin", "http://localhost:8080", "The origin URL for WebAuthn requests")
 	flag.Parse()
+	fmt.Printf("domain %s, origin %s \n", *domain, *origin)
 	return &CmdArgs{
 		Debug:  *debug,
 		Domain: *domain,
