@@ -1,7 +1,6 @@
 package main
 
 import (
-	"flag"
 	"fmt"
 	"log"
 	"net/http"
@@ -11,6 +10,7 @@ import (
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/kordondev/equipment-watchdog/security"
+	"gopkg.in/yaml.v2"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
@@ -44,7 +44,7 @@ func addMember(c *gin.Context) {
 }
 
 func main() {
-	args := parseArguments()
+	args := parseConfig()
 
 	router := gin.Default()
 	api := router.Group("/api")
@@ -93,21 +93,21 @@ func createDB(debug bool) *gorm.DB {
 	return db
 }
 
-type CmdArgs struct {
+type Config struct {
 	Debug  bool
 	Domain string
 	Origin string
 }
 
-func parseArguments() *CmdArgs {
-	debug := flag.Bool("debug", false, "log debug information")
-	domain := flag.String("domain", "localhost", "Generally the domain name for your site with webAuthn")
-	origin := flag.String("origin", "http://localhost:8080", "The origin URL for WebAuthn requests")
-	flag.Parse()
-	fmt.Printf("domain %s, origin %s \n", *domain, *origin)
-	return &CmdArgs{
-		Debug:  *debug,
-		Domain: *domain,
-		Origin: *origin,
+func parseConfig() *Config {
+	configFile, err := os.ReadFile("./config.yml")
+	if err != nil {
+		log.Fatal("failed to read config")
 	}
+	c := &Config{}
+	err = yaml.Unmarshal(configFile, c)
+	if err != nil {
+		log.Fatal("failed to read config")
+	}
+	return c
 }

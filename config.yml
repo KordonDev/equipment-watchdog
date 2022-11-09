@@ -1,0 +1,3 @@
+debug: false
+domain: localhost
+origin: http://localhost:5173
