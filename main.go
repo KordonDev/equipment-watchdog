@@ -1,15 +1,16 @@
 package main
 
 import (
-	"flag"
 	"fmt"
 	"log"
 	"net/http"
 	"os"
 	"time"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/kordondev/equipment-watchdog/security"
+	"gopkg.in/yaml.v2"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
@@ -43,11 +44,17 @@ func addMember(c *gin.Context) {
 }
 
 func main() {
-	args := parseArguments()
+	args := parseConfig()
 
 	router := gin.Default()
+	api := router.Group("/api")
 
-	members := router.Group("/members", security.AuthorizeJWTMiddleware())
+	corsConfig := cors.DefaultConfig()
+	corsConfig.AllowOrigins = []string{"http://localhost:5173"}
+	corsConfig.AllowCredentials = true
+	api.Use(cors.New(corsConfig))
+
+	members := api.Group("/members", security.AuthorizeJWTMiddleware())
 	members.GET("/", getMembers)
 	members.POST("/", addMember)
 
@@ -55,21 +62,12 @@ func main() {
 	userDB := security.NewUserDB(db)
 	webAuthNService := security.NewWebAuthNService(userDB, args.Origin, args.Domain)
 
-	router.GET("/register/:username", webAuthNService.StartRegister)
-	router.POST("/register/:username", webAuthNService.FinishRegistration)
+	api.GET("/register/:username", webAuthNService.StartRegister)
+	api.POST("/register/:username", webAuthNService.FinishRegistration)
 
-	router.GET("/login/:username", webAuthNService.StartLogin)
-	router.POST("/login/:username", webAuthNService.FinishLogin)
-	router.POST("/logout", webAuthNService.Logout)
-
-	router.LoadHTMLGlob("templates/*.html")
-
-	router.GET("/index/:name", func(c *gin.Context) {
-		name := c.Param("name")
-		c.HTML(http.StatusOK, "index.html", gin.H{
-			"name": name,
-		})
-	})
+	api.GET("/login/:username", webAuthNService.StartLogin)
+	api.POST("/login/:username", webAuthNService.FinishLogin)
+	api.POST("/logout", webAuthNService.Logout)
 
 	router.Run("localhost:8080")
 }
@@ -95,20 +93,21 @@ func createDB(debug bool) *gorm.DB {
 	return db
 }
 
-type CmdArgs struct {
+type Config struct {
 	Debug  bool
 	Domain string
 	Origin string
 }
 
-func parseArguments() *CmdArgs {
-	debug := flag.Bool("debug", false, "log debug information")
-	domain := flag.String("domain", "localhost", "Generally the domain name for your site with webAuthn")
-	origin := flag.String("origin", "http://localhost:8080", "The origin URL for WebAuthn requests")
-	flag.Parse()
-	return &CmdArgs{
-		Debug:  *debug,
-		Domain: *domain,
-		Origin: *origin,
+func parseConfig() *Config {
+	configFile, err := os.ReadFile("./config.yml")
+	if err != nil {
+		log.Fatal("failed to read config")
 	}
+	c := &Config{}
+	err = yaml.Unmarshal(configFile, c)
+	if err != nil {
+		log.Fatal("failed to read config")
+	}
+	return c
 }

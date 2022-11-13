@@ -28,11 +28,16 @@ func AuthorizeJWTMiddleware() gin.HandlerFunc {
 				fmt.Println(claims)
 			} else {
 				fmt.Println(err)
-				c.AbortWithStatus(http.StatusUnauthorized)
+
+				c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
+					"redirect": "login",
+				})
 			}
 		} else {
 			fmt.Println("No auth header")
-			c.AbortWithStatus(http.StatusUnauthorized)
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
+				"redirect": "login",
+			})
 		}
 	}
 }
