@@ -4,6 +4,7 @@ go 1.18
 
 require (
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
+	github.com/gin-contrib/cors v1.4.0
 	github.com/gin-gonic/gin v1.8.1
 	gorm.io/driver/sqlite v1.3.6
 	gorm.io/gorm v1.23.10
@@ -26,7 +27,6 @@ require (
 	github.com/form3tech-oss/jwt-go v3.2.3+incompatible // indirect
 	github.com/fullstorydev/grpcurl v1.8.1 // indirect
 	github.com/fxamacker/cbor/v2 v2.4.0 // indirect
-	github.com/gin-contrib/cors v1.4.0 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang-jwt/jwt/v4 v4.1.0 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
@@ -111,5 +111,5 @@ require (
 	golang.org/x/sys v0.0.0-20210806184541-e5e7981a1069 // indirect
 	golang.org/x/text v0.3.6 // indirect
 	google.golang.org/protobuf v1.28.0 // indirect
-	gopkg.in/yaml.v2 v2.4.0 // indirect
+	gopkg.in/yaml.v2 v2.4.0
 )

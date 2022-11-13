@@ -4,7 +4,6 @@
   let username = "";
   const login = (e: SubmitEvent) => {
     e.preventDefault();
-    console.log(username);
     register(username);
   };
 </script>

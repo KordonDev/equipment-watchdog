@@ -19,3 +19,6 @@ go.work
 
 # sqlite
 test.db
+
+.idea
+frontend/.vite
