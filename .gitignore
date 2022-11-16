@@ -22,3 +22,5 @@ test.db
 
 .idea
 frontend/.vite
+vendor
+.vscode

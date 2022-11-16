@@ -1,47 +1,19 @@
 package main
 
 import (
-	"fmt"
 	"log"
-	"net/http"
 	"os"
 	"time"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	"github.com/kordondev/equipment-watchdog/members"
 	"github.com/kordondev/equipment-watchdog/security"
 	"gopkg.in/yaml.v2"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 )
-
-type member struct {
-	Id   string `json:"id"`
-	Name string `json:"name"`
-}
-
-var members = []member{
-	{Id: "1", Name: "Arne"},
-	{Id: "2", Name: "Luka"},
-}
-
-func getMembers(c *gin.Context) {
-	c.JSON(http.StatusOK, members)
-}
-
-func addMember(c *gin.Context) {
-	var newMember member
-
-	if err := c.BindJSON(&newMember); err != nil {
-		c.AbortWithStatus(http.StatusBadRequest)
-		return
-	}
-	fmt.Println(newMember)
-
-	members = append(members, newMember)
-	c.JSON(http.StatusCreated, newMember)
-}
 
 func main() {
 	args := parseConfig()
@@ -54,11 +26,16 @@ func main() {
 	corsConfig.AllowCredentials = true
 	api.Use(cors.New(corsConfig))
 
-	members := api.Group("/members", security.AuthorizeJWTMiddleware())
-	members.GET("/", getMembers)
-	members.POST("/", addMember)
-
 	db := createDB(args.Debug)
+
+	memberDB := members.NewMemberDB(db)
+	memberService := members.NewMemberService(memberDB)
+	members := router.Group("/members")
+
+	members.GET("/", memberService.GetAllMembers)
+	members.POST("/", memberService.CreateMember)
+	members.PUT("/", memberService.UpdateMember)
+
 	userDB := security.NewUserDB(db)
 	webAuthNService := security.NewWebAuthNService(userDB, args.Origin, args.Domain)
 

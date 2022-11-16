@@ -2,9 +2,10 @@ package members
 
 import (
 	"errors"
-	"github.com/gin-gonic/gin"
 	"net/http"
 	"strconv"
+
+	"github.com/gin-gonic/gin"
 )
 
 type MemberService struct {
@@ -55,9 +56,29 @@ func (s *MemberService) UpdateMember(c *gin.Context) {
 	}
 
 	um.Id = em.Id
-	s.memberDB.SaveMember(&um)
+	err = s.memberDB.SaveMember(&um)
+	if err != nil {
+		c.AbortWithStatus(http.StatusInternalServerError)
+		return
+	}
 
 	c.JSON(http.StatusOK, um)
+}
+
+func (s *MemberService) CreateMember(c *gin.Context) {
+	var m member
+	if err := c.BindJSON(&m); err != nil {
+		c.AbortWithStatus(http.StatusBadRequest)
+		return
+	}
+
+	cm, err := s.memberDB.CreateMember(&m)
+	if err != nil {
+		c.AbortWithStatus(http.StatusInternalServerError)
+		return
+	}
+
+	c.JSON(http.StatusCreated, cm)
 }
 
 func (s *MemberService) getMember(id string) (*member, error) {

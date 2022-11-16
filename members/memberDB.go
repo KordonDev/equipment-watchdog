@@ -29,7 +29,7 @@ func (mdb *memberDB) GetAllMember() ([]*member, error) {
 
 	var members []*member
 	for _, m := range dbMembers {
-		members =append(members, m.fromDB())
+		members = append(members, m.fromDB())
 	}
 	return members, nil
 }
@@ -58,6 +58,14 @@ func (mdb *memberDB) GetMemberById(id uint64) (*member, error) {
 
 func (mdb *memberDB) SaveMember(member *member) error {
 	return mdb.db.Save(member.toDB()).Error
+}
+
+func (mdb *memberDB) CreateMember(member *member) (*member, error) {
+	err := mdb.db.Create(member.toDB()).Error
+	if err != nil {
+		return nil, err
+	}
+	return mdb.GetMemberByName(member.Name)
 }
 
 func (mdb *memberDB) DeleteMember(member *member) error {
