@@ -10,17 +10,17 @@ import (
 )
 
 type MemberService struct {
-	memberDB *memberDB
+	db *memberDB
 }
 
 func NewMemberService(memberDB *memberDB) *MemberService {
 	return &MemberService{
-		memberDB: memberDB,
+		db: memberDB,
 	}
 }
 
 func (s *MemberService) GetAllMembers(c *gin.Context) {
-	m, err := s.memberDB.GetAllMember()
+	m, err := s.db.GetAllMember()
 
 	if err != nil {
 		c.AbortWithError(http.StatusInternalServerError, err)
@@ -30,9 +30,14 @@ func (s *MemberService) GetAllMembers(c *gin.Context) {
 }
 
 func (s *MemberService) GetMemberById(c *gin.Context) {
-	id := c.Param("id")
-	m, err := s.getMember(id)
+	id, err := parseId(c)
+	if err != nil {
+		log.Error(err)
+		c.AbortWithError(http.StatusNotFound, err)
+		return
+	}
 
+	m, err := s.db.GetMemberById(id)
 	if err != nil {
 		log.Error(err)
 		c.AbortWithError(http.StatusNotFound, err)
@@ -43,10 +48,16 @@ func (s *MemberService) GetMemberById(c *gin.Context) {
 }
 
 func (s *MemberService) UpdateMember(c *gin.Context) {
-	id := c.Param("id")
-	em, err := s.getMember(id)
-
+	id, err := parseId(c)
 	if err != nil {
+		log.Error(err)
+		c.AbortWithError(http.StatusNotFound, err)
+		return
+	}
+
+	em, err := s.db.GetMemberById(id)
+	if err != nil {
+		log.Error(err)
 		c.AbortWithError(http.StatusNotFound, err)
 		return
 	}
@@ -58,7 +69,7 @@ func (s *MemberService) UpdateMember(c *gin.Context) {
 	}
 
 	um.Id = em.Id
-	err = s.memberDB.SaveMember(&um)
+	err = s.db.SaveMember(&um)
 	if err != nil {
 		c.AbortWithStatus(http.StatusInternalServerError)
 		return
@@ -74,7 +85,7 @@ func (s *MemberService) CreateMember(c *gin.Context) {
 		return
 	}
 
-	cm, err := s.memberDB.CreateMember(&m)
+	cm, err := s.db.CreateMember(&m)
 	if err != nil {
 		c.AbortWithStatus(http.StatusInternalServerError)
 		return
@@ -84,18 +95,14 @@ func (s *MemberService) CreateMember(c *gin.Context) {
 }
 
 func (s *MemberService) DeleteById(c *gin.Context) {
-	id := c.Param("id")
-
-	idN, err := strconv.ParseUint(id, 10, 64)
-
+	id, err := parseId(c)
 	if err != nil {
 		log.Error(err)
 		c.AbortWithError(http.StatusNotFound, err)
 		return
 	}
 
-	err = s.memberDB.db.Delete(&dbMember{}, idN).Error
-
+	err = s.db.db.Delete(&dbMember{}, id).Error
 	if err != nil {
 		log.Error(err)
 		c.AbortWithError(http.StatusNotFound, err)
@@ -103,15 +110,14 @@ func (s *MemberService) DeleteById(c *gin.Context) {
 	}
 
 	c.Status(http.StatusOK)
-
 }
 
-func (s *MemberService) getMember(id string) (*member, error) {
+func parseId(c *gin.Context) (uint64, error) {
+	id := c.Param("id")
 	idN, err := strconv.ParseUint(id, 10, 64)
 
 	if err != nil {
-		return nil, errors.New("id as number could not be found")
+		return 0, errors.New("id as number could not be found")
 	}
-
-	return s.memberDB.GetMemberById(idN)
+	return idN, nil
 }
