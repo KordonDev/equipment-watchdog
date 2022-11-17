@@ -33,8 +33,10 @@ func main() {
 	members := router.Group("/members")
 
 	members.GET("/", memberService.GetAllMembers)
+	members.GET("/:id", memberService.GetMemberById)
 	members.POST("/", memberService.CreateMember)
 	members.PUT("/", memberService.UpdateMember)
+	members.DELETE("/:id", memberService.DeleteById)
 
 	userDB := security.NewUserDB(db)
 	webAuthNService := security.NewWebAuthNService(userDB, args.Origin, args.Domain)

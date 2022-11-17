@@ -21,7 +21,7 @@ func NewMemberDB(db *gorm.DB) *memberDB {
 func (mdb *memberDB) GetAllMember() ([]*member, error) {
 	var dbMembers []dbMember
 
-	err := mdb.db.Find(dbMembers).Error
+	err := mdb.db.Find(&dbMembers).Error
 
 	if err != nil {
 		return nil, err

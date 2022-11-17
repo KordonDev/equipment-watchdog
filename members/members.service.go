@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/cloudflare/cfssl/log"
 	"github.com/gin-gonic/gin"
 )
 
@@ -33,6 +34,7 @@ func (s *MemberService) GetMemberById(c *gin.Context) {
 	m, err := s.getMember(id)
 
 	if err != nil {
+		log.Error(err)
 		c.AbortWithError(http.StatusNotFound, err)
 		return
 	}
@@ -79,6 +81,29 @@ func (s *MemberService) CreateMember(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusCreated, cm)
+}
+
+func (s *MemberService) DeleteById(c *gin.Context) {
+	id := c.Param("id")
+
+	idN, err := strconv.ParseUint(id, 10, 64)
+
+	if err != nil {
+		log.Error(err)
+		c.AbortWithError(http.StatusNotFound, err)
+		return
+	}
+
+	err = s.memberDB.db.Delete(&dbMember{}, idN).Error
+
+	if err != nil {
+		log.Error(err)
+		c.AbortWithError(http.StatusNotFound, err)
+		return
+	}
+
+	c.Status(http.StatusOK)
+
 }
 
 func (s *MemberService) getMember(id string) (*member, error) {
