@@ -32,6 +32,8 @@ func main() {
 	memberService := members.NewMemberService(memberDB)
 	members := router.Group("/members")
 
+	members.GET("/groups", memberService.GetAllGroups)
+
 	members.GET("/", memberService.GetAllMembers)
 	members.GET("/:id", memberService.GetMemberById)
 	members.POST("/", memberService.CreateMember)

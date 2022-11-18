@@ -112,6 +112,10 @@ func (s *MemberService) DeleteById(c *gin.Context) {
 	c.Status(http.StatusOK)
 }
 
+func (s *MemberService) GetAllGroups(c *gin.Context) {
+	c.JSON(http.StatusOK, GroupWithEquipment)
+}
+
 func parseId(c *gin.Context) (uint64, error) {
 	id := c.Param("id")
 	idN, err := strconv.ParseUint(id, 10, 64)

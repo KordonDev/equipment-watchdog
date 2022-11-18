@@ -7,6 +7,7 @@ type dbMember struct {
 	CreatedAt time.Time
 	UpdatedAt time.Time
 	Name      string `gorm:"unique"`
+	Group     Group
 }
 
 func (dbMember) TableName() string {
@@ -14,20 +15,23 @@ func (dbMember) TableName() string {
 }
 
 type member struct {
-	Id   uint64 `json:"id"`
-	Name string `json:"name"`
+	Id    uint64 `json:"id"`
+	Name  string `json:"name"`
+	Group Group  `json:"group"`
 }
 
 func (m *member) toDB() *dbMember {
 	return &dbMember{
-		ID: m.Id,
-		Name: m.Name,
+		ID:    m.Id,
+		Name:  m.Name,
+		Group: m.Group,
 	}
 }
 
 func (dbm dbMember) fromDB() *member {
 	return &member{
-		Id: dbm.ID,
-		Name: dbm.Name,
+		Id:    dbm.ID,
+		Name:  dbm.Name,
+		Group: dbm.Group,
 	}
 }
