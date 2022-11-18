@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"time"
@@ -30,15 +31,15 @@ func main() {
 
 	memberDB := members.NewMemberDB(db)
 	memberService := members.NewMemberService(memberDB)
-	members := router.Group("/members")
+	membersRoute := router.Group("/member")
 
-	members.GET("/groups", memberService.GetAllGroups)
+	membersRoute.GET("/groups", memberService.GetAllGroups)
 
-	members.GET("/", memberService.GetAllMembers)
-	members.GET("/:id", memberService.GetMemberById)
-	members.POST("/", memberService.CreateMember)
-	members.PUT("/", memberService.UpdateMember)
-	members.DELETE("/:id", memberService.DeleteById)
+	membersRoute.GET("/", memberService.GetAllMembers)
+	membersRoute.GET("/:id", memberService.GetMemberById)
+	membersRoute.POST("/", memberService.CreateMember)
+	membersRoute.PUT("/", memberService.UpdateMember)
+	membersRoute.DELETE("/:id", memberService.DeleteById)
 
 	userDB := security.NewUserDB(db)
 	webAuthNService := security.NewWebAuthNService(userDB, args.Origin, args.Domain)
@@ -50,7 +51,7 @@ func main() {
 	api.POST("/login/:username", webAuthNService.FinishLogin)
 	api.POST("/logout", webAuthNService.Logout)
 
-	router.Run("localhost:8080")
+	router.Run(fmt.Sprintf("%s:8080", args.Domain))
 }
 
 func createDB(debug bool) *gorm.DB {
