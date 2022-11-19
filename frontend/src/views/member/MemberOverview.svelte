@@ -1,16 +1,20 @@
 <script lang="ts">
   import { getMembers } from "./member.service";
+  import { Card } from "flowbite-svelte";
+  import { routes } from "../../routes";
 
   let membersPromise = getMembers();
 </script>
 
 <h1>mitglieder</h1>
 {#await membersPromise then members}
-  <ul>
+  <div class="flex flex-wrap">
     {#each members as member}
-      <li>
-        {`${member.id} ${member.name}`}
-      </li>
+      <Card class="m-4">
+        <a href={`${routes.MemberDetail.link}${member.id}`}>
+          {`${member.id} ${member.name}`}
+        </a>
+      </Card>
     {/each}
-  </ul>
+  </div>
 {/await}

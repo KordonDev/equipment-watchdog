@@ -31,7 +31,7 @@ func main() {
 
 	memberDB := members.NewMemberDB(db)
 	memberService := members.NewMemberService(memberDB)
-	membersRoute := router.Group("/member")
+	membersRoute := api.Group("/members")
 
 	membersRoute.GET("/groups", memberService.GetAllGroups)
 

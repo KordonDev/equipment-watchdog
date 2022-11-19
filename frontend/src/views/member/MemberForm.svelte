@@ -1,0 +1,30 @@
+<script lang="ts">
+  import { Label, Input, Select, Button } from "flowbite-svelte";
+  import type { Member } from "./member.service";
+
+  export let member: Member;
+  export let submitText: string;
+  export let onSubmit: (m: Member) => void;
+
+  const allGroups = [
+    { value: "mon", name: "Montagsgruppe" },
+    { value: "fr", name: "Freitag" },
+  ];
+
+  function handleSubmit() {
+    onSubmit(member);
+  }
+</script>
+
+<form on:submit|preventDefault={handleSubmit}>
+  <Label for="name" class="block mb-2">Name</Label>
+  <Input required class="mb-4" id="name" bind:value={member.name} />
+
+  <Label class="mb-4">
+    <div class="mb-2">Gruppe</div>
+    <Select required items={allGroups} bind:value={member.group} />
+  </Label>
+  <div class="flex flex-row justify-end">
+    <Button class="j" color="purple" type="submit">{submitText}</Button>
+  </div>
+</form>

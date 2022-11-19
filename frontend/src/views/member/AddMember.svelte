@@ -1,16 +1,36 @@
 <script lang="ts">
-  import { getMembers } from "./member.service";
+  import { Alert } from "flowbite-svelte";
+  import type { Member } from "./member.service";
+  import { createMember } from "./member.service";
+  import MemberForm from "./MemberForm.svelte";
 
-  let membersPromise = getMembers();
+  let member: Member = {
+    id: "0",
+    name: "",
+    group: "",
+  };
+
+  let errorAlert = false;
+  let loading = true;
+
+  function createMemberInternal(m: Member) {
+    createMember(m)
+      .then((succ) => {
+        loading = false;
+      })
+      .catch((err) => {
+        errorAlert = true;
+        loading = false;
+      });
+  }
+
+  function closeAlert() {
+    errorAlert = false;
+  }
 </script>
 
-<h1>mitglieder</h1>
-{#await membersPromise then members}
-  <ul>
-    {#each members as member}
-      <li>
-        {`${member.id} ${member.name}`}
-      </li>
-    {/each}
-  </ul>
-{/await}
+<h1>Mitglied hinzufügen</h1>
+<MemberForm {member} onSubmit={createMember} submitText="Anlegen" />
+{#if errorAlert}
+  <Alert color="red" dismissable on:close={closeAlert}>Close me</Alert>
+{/if}

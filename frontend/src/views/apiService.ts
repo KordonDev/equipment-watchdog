@@ -24,7 +24,7 @@ export function fetchApi(url: string, headers?: RequestInit) {
       if (contentType && contentType.indexOf("application/json") !== -1) {
         return res.json().then((data) => {
           if (data.redirect === "login") {
-            window.location.replace(`/#${routes.Login}`);
+            window.location.replace(routes.Login.link);
           }
         });
       }
