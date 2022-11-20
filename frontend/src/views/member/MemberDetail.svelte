@@ -5,6 +5,7 @@
   import { createNotification } from "../../components/Notification/notificationStore";
   import { deleteMember, getMember, updateMember } from "./member.service";
   import MemberForm from "./MemberForm.svelte";
+  import MemberCard from "./MemberCard.svelte";
 
   export let params = { id: undefined };
 
@@ -41,7 +42,8 @@
 </script>
 
 {#await memberPromise then member}
-  <h1>{member.name}</h1>
+  <MemberCard {member} />
+
   <MemberForm
     {member}
     onSubmit={updateMember}
