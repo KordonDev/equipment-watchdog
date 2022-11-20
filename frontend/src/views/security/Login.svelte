@@ -1,12 +1,11 @@
 <script lang="ts">
+  import { replace } from "svelte-spa-router";
   import { routes } from "../../routes";
   import { login } from "./security.service";
 
   let username = "";
   const handleLogin = () => {
-    login(username).then(() =>
-      window.location.replace(routes.MemberOverview.link)
-    );
+    login(username).then(() => replace(routes.MemberOverview.link));
   };
 </script>
 

@@ -17,17 +17,17 @@ import (
 )
 
 func main() {
-	args := parseConfig()
+	config := parseConfig()
 
 	router := gin.Default()
 	api := router.Group("/api")
 
 	corsConfig := cors.DefaultConfig()
-	corsConfig.AllowOrigins = []string{"http://localhost:5173"}
+	corsConfig.AllowOrigins = []string{config.Origin}
 	corsConfig.AllowCredentials = true
 	api.Use(cors.New(corsConfig))
 
-	db := createDB(args.Debug)
+	db := createDB(config.Debug)
 
 	memberDB := members.NewMemberDB(db)
 	memberService := members.NewMemberService(memberDB)
@@ -42,7 +42,7 @@ func main() {
 	membersRoute.DELETE("/:id", memberService.DeleteById)
 
 	userDB := security.NewUserDB(db)
-	webAuthNService := security.NewWebAuthNService(userDB, args.Origin, args.Domain)
+	webAuthNService := security.NewWebAuthNService(userDB, config.Origin, config.Domain)
 
 	api.GET("/register/:username", webAuthNService.StartRegister)
 	api.POST("/register/:username", webAuthNService.FinishRegistration)
@@ -51,7 +51,7 @@ func main() {
 	api.POST("/login/:username", webAuthNService.FinishLogin)
 	api.POST("/logout", webAuthNService.Logout)
 
-	router.Run(fmt.Sprintf("%s:8080", args.Domain))
+	router.Run(fmt.Sprintf("%s:8080", config.Domain))
 }
 
 func createDB(debug bool) *gorm.DB {

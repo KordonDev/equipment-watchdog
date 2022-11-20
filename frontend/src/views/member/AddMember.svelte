@@ -1,5 +1,7 @@
 <script lang="ts">
-  import { Alert } from "flowbite-svelte";
+  import { routes } from "../../routes";
+  import { push } from "svelte-spa-router";
+  import { createNotification } from "../../components/notificationStore";
   import type { Member } from "./member.service";
   import { createMember } from "./member.service";
   import MemberForm from "./MemberForm.svelte";
@@ -10,27 +12,35 @@
     group: "",
   };
 
-  let errorAlert = false;
-  let loading = true;
+  let loading = false;
 
   function createMemberInternal(m: Member) {
     createMember(m)
-      .then((succ) => {
+      .then((newMember) => {
+        createNotification(
+          {
+            color: "green",
+            text: `Mitglied ${m.name} wurde erfolgreich angelegt.`,
+          },
+          5
+        );
         loading = false;
+        push(`${routes.MemberDetail.link}${newMember.id}`);
       })
-      .catch((err) => {
-        errorAlert = true;
+      .catch(() => {
+        createNotification({
+          color: "red",
+          text: `Mitglied ${m.name} konnte nicht angelegt werden.`,
+        });
         loading = false;
       });
-  }
-
-  function closeAlert() {
-    errorAlert = false;
   }
 </script>
 
 <h1>Mitglied hinzufügen</h1>
-<MemberForm {member} onSubmit={createMember} submitText="Anlegen" />
-{#if errorAlert}
-  <Alert color="red" dismissable on:close={closeAlert}>Close me</Alert>
-{/if}
+<MemberForm
+  {member}
+  onSubmit={createMemberInternal}
+  submitText="Anlegen"
+  {loading}
+/>

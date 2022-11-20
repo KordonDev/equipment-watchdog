@@ -1,5 +1,5 @@
 <script lang="ts">
-  import Router from "svelte-spa-router";
+  import Router, { link, replace } from "svelte-spa-router";
   import Login from "./views/security/Login.svelte";
   import { routes } from "./routes";
   import Register from "./views/security/Register.svelte";
@@ -7,17 +7,18 @@
   import { logout } from "./views/security/security.service";
   import AddMember from "./views/member/AddMember.svelte";
   import MemberDetail from "./views/member/MemberDetail.svelte";
+  import Notification from "./components/Notification.svelte";
 
-  if (window.location.pathname === "/") {
-    window.location.assign(routes.MemberOverview.link);
+  if (window.location.pathname === "/" && window.location.hash === "") {
+    replace(routes.MemberOverview.link);
   }
 </script>
 
 <main>
   <nav>
-    <a href={routes.Login.link}>Einloggen</a>
-    <a href={routes.MemberOverview.link}>Übersicht</a>
-    <a href={routes.AddMember.link}>Mitglied hinzufügen</a>
+    <a href={routes.Login.link} use:link>Einloggen</a>
+    <a href={routes.MemberOverview.link} use:link>Übersicht</a>
+    <a href={routes.AddMember.link} use:link>Mitglied hinzufügen</a>
     <button on:click={logout}>Ausloggen</button>
   </nav>
 
@@ -31,6 +32,8 @@
     }}
   />
 </main>
+
+<Notification />
 
 <style>
 </style>
