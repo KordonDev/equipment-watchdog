@@ -1,7 +1,7 @@
 <script lang="ts">
   import { routes } from "../../routes";
   import { push } from "svelte-spa-router";
-  import { createNotification } from "../../components/notificationStore";
+  import { createNotification } from "../../components/Notification/notificationStore";
   import type { Member } from "./member.service";
   import { createMember } from "./member.service";
   import MemberForm from "./MemberForm.svelte";

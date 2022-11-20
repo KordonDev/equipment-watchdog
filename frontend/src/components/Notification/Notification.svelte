@@ -1,7 +1,7 @@
 <script lang="ts">
   import { Alert } from "flowbite-svelte";
   import { notificationsStore, removeNotification } from "./notificationStore";
-  import type { Notification } from "src/components/notificationStore";
+  import type { Notification } from "./notificationStore";
 
   let notifications: Notification[];
 

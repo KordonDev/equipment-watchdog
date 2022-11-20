@@ -1,5 +1,6 @@
 <script lang="ts">
   import { Label, Input, Select, Button, Spinner } from "flowbite-svelte";
+  import { groupsStore } from "../../components/groupsStore";
   import type { Member } from "./member.service";
 
   export let member: Member;
@@ -7,10 +8,8 @@
   export let loading: boolean;
   export let onSubmit: (m: Member) => void;
 
-  const allGroups = [
-    { value: "mon", name: "Montagsgruppe" },
-    { value: "fr", name: "Freitag" },
-  ];
+  let allGroups = [];
+  groupsStore.subscribe((value) => (allGroups = value));
 
   function handleSubmit() {
     onSubmit(member);

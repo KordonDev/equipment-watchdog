@@ -7,7 +7,7 @@
   import { logout } from "./views/security/security.service";
   import AddMember from "./views/member/AddMember.svelte";
   import MemberDetail from "./views/member/MemberDetail.svelte";
-  import Notification from "./components/Notification.svelte";
+  import Notification from "./components/Notification/Notification.svelte";
 
   if (window.location.pathname === "/" && window.location.hash === "") {
     replace(routes.MemberOverview.link);
