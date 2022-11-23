@@ -20,12 +20,13 @@ func main() {
 	config := parseConfig()
 
 	router := gin.Default()
-	api := router.Group("/api")
 
 	corsConfig := cors.DefaultConfig()
 	corsConfig.AllowOrigins = []string{config.Origin}
 	corsConfig.AllowCredentials = true
-	api.Use(cors.New(corsConfig))
+	router.Use(cors.New(corsConfig))
+
+	api := router.Group("/api")
 
 	db := createDB(config.Debug)
 
@@ -38,7 +39,7 @@ func main() {
 	membersRoute.GET("/", memberService.GetAllMembers)
 	membersRoute.GET("/:id", memberService.GetMemberById)
 	membersRoute.POST("/", memberService.CreateMember)
-	membersRoute.PUT("/", memberService.UpdateMember)
+	membersRoute.PUT("/:id", memberService.UpdateMember)
 	membersRoute.DELETE("/:id", memberService.DeleteById)
 
 	userDB := security.NewUserDB(db)
