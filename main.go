@@ -3,12 +3,12 @@ package main
 import (
 	"fmt"
 	"log"
-	"net/http"
 	"os"
 	"time"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	"github.com/kordondev/equipment-watchdog/members"
 	"github.com/kordondev/equipment-watchdog/security"
 	"gopkg.in/yaml.v2"
 	"gorm.io/driver/sqlite"
@@ -16,51 +16,34 @@ import (
 	"gorm.io/gorm/logger"
 )
 
-type member struct {
-	Id   string `json:"id"`
-	Name string `json:"name"`
-}
-
-var members = []member{
-	{Id: "1", Name: "Arne"},
-	{Id: "2", Name: "Luka"},
-}
-
-func getMembers(c *gin.Context) {
-	c.JSON(http.StatusOK, members)
-}
-
-func addMember(c *gin.Context) {
-	var newMember member
-
-	if err := c.BindJSON(&newMember); err != nil {
-		c.AbortWithStatus(http.StatusBadRequest)
-		return
-	}
-	fmt.Println(newMember)
-
-	members = append(members, newMember)
-	c.JSON(http.StatusCreated, newMember)
-}
-
 func main() {
-	args := parseConfig()
+	config := parseConfig()
 
 	router := gin.Default()
-	api := router.Group("/api")
 
 	corsConfig := cors.DefaultConfig()
-	corsConfig.AllowOrigins = []string{"http://localhost:5173"}
+	corsConfig.AllowOrigins = []string{config.Origin}
 	corsConfig.AllowCredentials = true
-	api.Use(cors.New(corsConfig))
+	router.Use(cors.New(corsConfig))
 
-	members := api.Group("/members", security.AuthorizeJWTMiddleware())
-	members.GET("/", getMembers)
-	members.POST("/", addMember)
+	api := router.Group("/api")
 
-	db := createDB(args.Debug)
+	db := createDB(config.Debug)
+
+	memberDB := members.NewMemberDB(db)
+	memberService := members.NewMemberService(memberDB)
+	membersRoute := api.Group("/members")
+
+	membersRoute.GET("/groups", memberService.GetAllGroups)
+
+	membersRoute.GET("/", memberService.GetAllMembers)
+	membersRoute.GET("/:id", memberService.GetMemberById)
+	membersRoute.POST("/", memberService.CreateMember)
+	membersRoute.PUT("/:id", memberService.UpdateMember)
+	membersRoute.DELETE("/:id", memberService.DeleteById)
+
 	userDB := security.NewUserDB(db)
-	webAuthNService := security.NewWebAuthNService(userDB, args.Origin, args.Domain)
+	webAuthNService := security.NewWebAuthNService(userDB, config.Origin, config.Domain)
 
 	api.GET("/register/:username", webAuthNService.StartRegister)
 	api.POST("/register/:username", webAuthNService.FinishRegistration)
@@ -69,7 +52,7 @@ func main() {
 	api.POST("/login/:username", webAuthNService.FinishLogin)
 	api.POST("/logout", webAuthNService.Logout)
 
-	router.Run("localhost:8080")
+	router.Run(fmt.Sprintf("%s:8080", config.Domain))
 }
 
 func createDB(debug bool) *gorm.DB {

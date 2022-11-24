@@ -1,4 +1,3 @@
-import { BASE_URL } from "../../constants";
 import { fetchApi } from "../apiService";
 
 function bufferDecode(value) {

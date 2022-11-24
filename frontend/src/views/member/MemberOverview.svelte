@@ -1,16 +1,15 @@
 <script lang="ts">
   import { getMembers } from "./member.service";
+  import MemberCard from "./MemberCard.svelte";
 
   let membersPromise = getMembers();
 </script>
 
 <h1>mitglieder</h1>
 {#await membersPromise then members}
-  <ul>
+  <div class="flex flex-wrap">
     {#each members as member}
-      <li>
-        {`${member.id} ${member.name}`}
-      </li>
+      <MemberCard {member} />
     {/each}
-  </ul>
+  </div>
 {/await}

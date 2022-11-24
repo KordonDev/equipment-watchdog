@@ -1,20 +1,18 @@
 <script lang="ts">
+  import { replace } from "svelte-spa-router";
   import { routes } from "../../routes";
   import { login } from "./security.service";
 
   let username = "";
-  const handleLogin = (e) => {
-    e.preventDefault();
-    login(username).then(() =>
-      window.location.replace(`/#${routes.MemberOverview}`)
-    );
+  const handleLogin = () => {
+    login(username).then(() => replace(routes.MemberOverview.link));
   };
 </script>
 
 <h1>Einloggen</h1>
 
 <div class="card">
-  <form on:submit={handleLogin}>
+  <form on:submit|preventDefault={handleLogin}>
     <input bind:value={username} autofocus />
     <button type="submit">Einloggen</button>
   </form>

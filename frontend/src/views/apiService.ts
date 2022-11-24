@@ -1,5 +1,6 @@
 import { routes } from "../routes";
 import { BASE_URL } from "../constants";
+import { replace } from "svelte-spa-router";
 
 export function fetchApi(url: string, headers?: RequestInit) {
   return fetch(`${BASE_URL}${url}`, {
@@ -24,7 +25,7 @@ export function fetchApi(url: string, headers?: RequestInit) {
       if (contentType && contentType.indexOf("application/json") !== -1) {
         return res.json().then((data) => {
           if (data.redirect === "login") {
-            window.location.replace(`/#${routes.Login}`);
+            replace(routes.Login.link);
           }
         });
       }
