@@ -8,18 +8,18 @@ const (
 	Mini   Group = "mini"
 )
 
-type Equipment string
+type EquipmentType string
 
 const (
-	Helmet   Equipment = "helmet"
-	Jacket   Equipment = "jacket"
-	Gloves   Equipment = "gloves"
-	Trousers Equipment = "trousers"
-	Boots    Equipment = "boots"
-	TShirt   Equipment = "tshirt"
+	Helmet   EquipmentType = "helmet"
+	Jacket   EquipmentType = "jacket"
+	Gloves   EquipmentType = "gloves"
+	Trousers EquipmentType = "trousers"
+	Boots    EquipmentType = "boots"
+	TShirt   EquipmentType = "tshirt"
 )
 
-var GroupWithEquipment = map[Group][]Equipment{
+var GroupWithEquipment = map[Group][]EquipmentType{
 	Friday: {Helmet, Jacket, Gloves, Trousers, Boots, TShirt},
 	Monday: {Helmet, Jacket, Gloves, Trousers, Boots, TShirt},
 	Mini:   {Helmet, Gloves, TShirt},
