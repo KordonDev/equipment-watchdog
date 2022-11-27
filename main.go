@@ -30,6 +30,17 @@ func main() {
 
 	db := createDB(config.Debug)
 
+	jwtService := security.JWTAuthService(config.Origin, config.JwtSecret)
+	userDB := security.NewUserDB(db)
+	webAuthNService := security.NewWebAuthNService(userDB, config.Origin, config.Domain, jwtService)
+	api.GET("/register/:username", webAuthNService.StartRegister)
+	api.POST("/register/:username", webAuthNService.FinishRegistration)
+	api.GET("/login/:username", webAuthNService.StartLogin)
+	api.POST("/login/:username", webAuthNService.FinishLogin)
+	api.POST("/logout", webAuthNService.Logout)
+
+	api.Use(security.AuthorizeJWTMiddleware(config.Domain, jwtService))
+
 	memberDB := members.NewMemberDB(db)
 	memberService := members.NewMemberService(memberDB)
 	membersRoute := api.Group("/members")
@@ -41,16 +52,6 @@ func main() {
 	membersRoute.POST("/", memberService.CreateMember)
 	membersRoute.PUT("/:id", memberService.UpdateMember)
 	membersRoute.DELETE("/:id", memberService.DeleteById)
-
-	userDB := security.NewUserDB(db)
-	webAuthNService := security.NewWebAuthNService(userDB, config.Origin, config.Domain)
-
-	api.GET("/register/:username", webAuthNService.StartRegister)
-	api.POST("/register/:username", webAuthNService.FinishRegistration)
-
-	api.GET("/login/:username", webAuthNService.StartLogin)
-	api.POST("/login/:username", webAuthNService.FinishLogin)
-	api.POST("/logout", webAuthNService.Logout)
 
 	router.Run(fmt.Sprintf("%s:8080", config.Domain))
 }
@@ -77,9 +78,10 @@ func createDB(debug bool) *gorm.DB {
 }
 
 type Config struct {
-	Debug  bool
-	Domain string
-	Origin string
+	Debug     bool
+	Domain    string
+	Origin    string
+	JwtSecret string
 }
 
 func parseConfig() *Config {

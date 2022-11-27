@@ -13,14 +13,14 @@ import (
 type WebAuthNService struct {
 	webAuthn     *webauthn.WebAuthn
 	sessionStore *session.Store
-	jwtService   JWTService
+	jwtService   *JwtService
 	userDB       *userDB
 	domain       string
 }
 
 var AUTHORIZATION_COOKIE_KEY = "Authorization"
 
-func NewWebAuthNService(userDB *userDB, origin string, domain string) *WebAuthNService {
+func NewWebAuthNService(userDB *userDB, origin string, domain string, jwtService *JwtService) *WebAuthNService {
 	var err error
 	webAuthn, err := webauthn.New(&webauthn.Config{
 		RPDisplayName: "equipment watchdog", // Display Name for your site
@@ -36,8 +36,6 @@ func NewWebAuthNService(userDB *userDB, origin string, domain string) *WebAuthNS
 	if err != nil {
 		log.Fatal("Error creating sessionStore", err)
 	}
-
-	jwtService := JWTAuthService()
 
 	return &WebAuthNService{webAuthn: webAuthn, sessionStore: sessionStore, jwtService: jwtService, userDB: userDB, domain: domain}
 }

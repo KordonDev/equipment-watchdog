@@ -5,11 +5,10 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
 )
 
-func AuthorizeJWTMiddleware() gin.HandlerFunc {
+func AuthorizeJWTMiddleware(domain string, jwtService *JwtService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 
 		var jwtCookie string
@@ -22,10 +21,12 @@ func AuthorizeJWTMiddleware() gin.HandlerFunc {
 		}
 
 		if len(jwtCookie) > 0 {
-			token, err := JWTAuthService().ValidateToken(jwtCookie)
+			token, err := jwtService.ValidateToken(jwtCookie)
 			if token.Valid {
-				claims := token.Claims.(jwt.MapClaims)
-				fmt.Println(claims)
+				jwtData := jwtService.GetClaims(token)
+
+				newToken := jwtService.GenerateToken(jwtData.Name, jwtData.IsUser)
+				c.SetCookie(AUTHORIZATION_COOKIE_KEY, newToken, 60*100, "/", domain, true, true)
 			} else {
 				fmt.Println(err)
 
