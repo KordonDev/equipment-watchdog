@@ -35,7 +35,7 @@ func (DbCredential) TableName() string {
 	return "user_credentials"
 }
 
-type DbUser struct {
+type dbUser struct {
 	ID          uint64 `gorm:"primarykey"`
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
@@ -45,12 +45,12 @@ type DbUser struct {
 	Credentials []DbCredential `gorm:"foreignKey:UserID"`
 }
 
-func (DbUser) TableName() string {
+func (dbUser) TableName() string {
 	return "users"
 }
 
 func NewUserDB(db *gorm.DB) *userDB {
-	db.AutoMigrate(&DbUser{}, &DbCredential{}, &DbAuthenticator{})
+	db.AutoMigrate(&dbUser{}, &DbCredential{}, &DbAuthenticator{})
 
 	return &userDB{
 		db: db,
@@ -58,26 +58,41 @@ func NewUserDB(db *gorm.DB) *userDB {
 }
 
 func (u *userDB) GetUser(username string) (*User, error) {
-	var dbu DbUser
-	err := u.db.Model(&DbUser{}).Preload("Credentials").First(&dbu, "name = ?", username).Error
+	var dbu dbUser
+	err := u.db.Model(&dbUser{}).Preload("Credentials").First(&dbu, "name = ?", username).Error
 
 	if err != nil {
 		return &User{}, fmt.Errorf("error getting user: %s", username)
 	}
 
-	return fromDBUser(dbu), nil
+	return dbu.toUser(), nil
+}
+
+func (u *userDB) GetAll() ([]*User, error) {
+	var dbUser []dbUser
+	err := u.db.Find(&dbUser).Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	var users []*User
+	for _, user := range dbUser {
+		users = append(users, user.toUser())
+	}
+	return users, nil
 }
 
 func (u *userDB) AddUser(user *User) (*User, error) {
-	u.db.Create(toDBUser(user))
+	u.db.Create(user.toDBUser())
 	return u.GetUser(user.Name)
 }
 
 func (u *userDB) SaveUser(user *User) {
-	u.db.Save(toDBUser(user))
+	u.db.Save(user.toDBUser())
 }
 
-func toDBUser(user *User) *DbUser {
+func (user User) toDBUser() dbUser {
 	c := []DbCredential{}
 	for _, cr := range user.Credentials {
 		a := DbAuthenticator{
@@ -95,17 +110,17 @@ func toDBUser(user *User) *DbUser {
 		}
 		c = append(c, dbC)
 	}
-	dbu := DbUser{
+	dbu := dbUser{
 		ID:          user.ID,
 		Name:        user.Name,
 		IsApproved:  user.IsApproved,
 		IsAdmin:     user.IsAdmin,
 		Credentials: c,
 	}
-	return &dbu
+	return dbu
 }
 
-func fromDBUser(dbu DbUser) *User {
+func (dbu dbUser) toUser() *User {
 	c := []webauthn.Credential{}
 	for _, cr := range dbu.Credentials {
 		a := webauthn.Authenticator{

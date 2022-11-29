@@ -1,12 +1,11 @@
 package members
 
 import (
-	"errors"
 	"net/http"
-	"strconv"
 
 	"github.com/cloudflare/cfssl/log"
 	"github.com/gin-gonic/gin"
+	"github.com/kordondev/equipment-watchdog/url"
 )
 
 type MemberService struct {
@@ -30,7 +29,7 @@ func (s *MemberService) GetAllMembers(c *gin.Context) {
 }
 
 func (s *MemberService) GetMemberById(c *gin.Context) {
-	id, err := parseId(c)
+	id, err := url.ParseToInt(c, "id")
 	if err != nil {
 		log.Error(err)
 		c.AbortWithError(http.StatusNotFound, err)
@@ -48,7 +47,7 @@ func (s *MemberService) GetMemberById(c *gin.Context) {
 }
 
 func (s *MemberService) UpdateMember(c *gin.Context) {
-	id, err := parseId(c)
+	id, err := url.ParseToInt(c, "id")
 	if err != nil {
 		log.Error(err)
 		c.AbortWithError(http.StatusNotFound, err)
@@ -95,7 +94,7 @@ func (s *MemberService) CreateMember(c *gin.Context) {
 }
 
 func (s *MemberService) DeleteById(c *gin.Context) {
-	id, err := parseId(c)
+	id, err := url.ParseToInt(c, "id")
 	if err != nil {
 		log.Error(err)
 		c.AbortWithError(http.StatusNotFound, err)
@@ -114,14 +113,4 @@ func (s *MemberService) DeleteById(c *gin.Context) {
 
 func (s *MemberService) GetAllGroups(c *gin.Context) {
 	c.JSON(http.StatusOK, GroupWithEquipment)
-}
-
-func parseId(c *gin.Context) (uint64, error) {
-	id := c.Param("id")
-	idN, err := strconv.ParseUint(id, 10, 64)
-
-	if err != nil {
-		return 0, errors.New("id as number could not be found")
-	}
-	return idN, nil
 }

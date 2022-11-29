@@ -21,8 +21,6 @@ func NewUserService(db *userDB, jwtService *JwtService) *userService {
 
 func (u *userService) GetMe(c *gin.Context) {
 	username := c.GetString("username")
-
-	fmt.Println(username)
 	user, err := u.db.GetUser(username)
 
 	if err != nil {
@@ -34,5 +32,34 @@ func (u *userService) GetMe(c *gin.Context) {
 	token := u.jwtService.GenerateToken(*user)
 	u.jwtService.SetCookie(c, token)
 	c.JSON(http.StatusOK, user)
+}
 
+func (u *userService) GetAll(c *gin.Context) {
+	users, err := u.db.GetAll()
+
+	if err != nil {
+		fmt.Println(err)
+		c.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
+	c.JSON(http.StatusOK, users)
+}
+
+func (u *userService) ToggleApprove(c *gin.Context) {
+	username := c.Param("username")
+	if username == "" {
+		c.AbortWithStatus(http.StatusBadRequest)
+		return
+	}
+
+	user, err := u.db.GetUser(username)
+	if err != nil {
+		fmt.Println(err)
+		c.AbortWithError(http.StatusNotFound, err)
+		return
+	}
+
+	user.IsApproved = !user.IsApproved
+	u.db.SaveUser(user)
+	c.JSON(http.StatusOK, user)
 }

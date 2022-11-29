@@ -53,6 +53,8 @@ func AuthorizeJWTMiddleware(origin string, jwtService *JwtService) gin.HandlerFu
 
 		newToken := jwtService.GenerateToken(jwtData.User)
 		c.Set("username", jwtData.Name)
+		c.Set("isApproved", jwtData.IsApproved)
+		c.Set("isAdmin", jwtData.IsAdmin)
 		jwtService.SetCookie(c, newToken)
 	}
 }
