@@ -18,6 +18,10 @@ type DbAuthenticator struct {
 	CloneWarning bool
 }
 
+func (DbAuthenticator) TableName() string {
+	return "user_credential_authenticators"
+}
+
 type DbCredential struct {
 	ID              []byte `gorm:"primarykey"`
 	UserID          uint64
@@ -27,12 +31,22 @@ type DbCredential struct {
 	CreatedAt       time.Time
 }
 
+func (DbCredential) TableName() string {
+	return "user_credentials"
+}
+
 type DbUser struct {
 	ID          uint64 `gorm:"primarykey"`
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
-	Name        string         `gorm:"unique"`
+	Name        string `gorm:"unique"`
+	IsApproved  bool
+	IsAdmin     bool
 	Credentials []DbCredential `gorm:"foreignKey:UserID"`
+}
+
+func (DbUser) TableName() string {
+	return "users"
 }
 
 func NewUserDB(db *gorm.DB) *userDB {
@@ -84,6 +98,8 @@ func toDBUser(user *User) *DbUser {
 	dbu := DbUser{
 		ID:          user.ID,
 		Name:        user.Name,
+		IsApproved:  user.IsApproved,
+		IsAdmin:     user.IsAdmin,
 		Credentials: c,
 	}
 	return &dbu
@@ -109,6 +125,8 @@ func fromDBUser(dbu DbUser) *User {
 	user := User{
 		ID:          dbu.ID,
 		Name:        dbu.Name,
+		IsApproved:  dbu.IsApproved,
+		IsAdmin:     dbu.IsAdmin,
 		Credentials: c,
 	}
 	return &user

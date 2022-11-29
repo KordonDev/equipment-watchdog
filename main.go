@@ -30,7 +30,7 @@ func main() {
 
 	db := createDB(config.Debug)
 
-	jwtService := security.JWTAuthService(config.Origin, config.JwtSecret)
+	jwtService := security.NewJwtService(config.Origin, config.JwtSecret, config.Domain)
 	userDB := security.NewUserDB(db)
 	webAuthNService := security.NewWebAuthNService(userDB, config.Origin, config.Domain, jwtService)
 	api.GET("/register/:username", webAuthNService.StartRegister)
@@ -39,7 +39,7 @@ func main() {
 	api.POST("/login/:username", webAuthNService.FinishLogin)
 	api.POST("/logout", webAuthNService.Logout)
 
-	api.Use(security.AuthorizeJWTMiddleware(config.Domain, jwtService))
+	api.Use(security.AuthorizeJWTMiddleware(config.Origin, jwtService))
 
 	memberDB := members.NewMemberDB(db)
 	memberService := members.NewMemberService(memberDB)
@@ -52,6 +52,9 @@ func main() {
 	membersRoute.POST("/", memberService.CreateMember)
 	membersRoute.PUT("/:id", memberService.UpdateMember)
 	membersRoute.DELETE("/:id", memberService.DeleteById)
+
+	userService := security.NewUserService(userDB, jwtService)
+	api.GET("/me", userService.GetMe)
 
 	router.Run(fmt.Sprintf("%s:8080", config.Domain))
 }

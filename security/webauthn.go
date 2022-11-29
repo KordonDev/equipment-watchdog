@@ -47,6 +47,8 @@ func (w *WebAuthNService) StartRegister(c *gin.Context) {
 	if err != nil {
 		user = &User{
 			Name:        username,
+			IsApproved:  false,
+			IsAdmin:     false,
 			Credentials: []webauthn.Credential{},
 		}
 		user, err = w.userDB.AddUser(user)
@@ -101,6 +103,8 @@ func (w WebAuthNService) FinishRegistration(c *gin.Context) {
 	}
 
 	user.AddCredential(*credential)
+	// TODO: remove after endpoint can change this
+	user.IsApproved = true
 	w.userDB.SaveUser(user)
 	c.Status(http.StatusOK)
 }
@@ -150,10 +154,11 @@ func (w *WebAuthNService) FinishLogin(c *gin.Context) {
 		return
 	}
 
-	token := w.jwtService.GenerateToken(username, true)
 	w.userDB.SaveUser(user)
 
-	c.SetCookie(AUTHORIZATION_COOKIE_KEY, token, 60*100, "/", w.domain, true, true)
+	token := w.jwtService.GenerateToken(*user)
+
+	w.jwtService.SetCookie(c, token)
 	c.Status(http.StatusOK)
 }
 

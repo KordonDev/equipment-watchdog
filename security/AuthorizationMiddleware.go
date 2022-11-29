@@ -8,7 +8,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func AuthorizeJWTMiddleware(domain string, jwtService *JwtService) gin.HandlerFunc {
+func AuthorizeJWTMiddleware(origin string, jwtService *JwtService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 
 		var jwtCookie string
@@ -20,25 +20,39 @@ func AuthorizeJWTMiddleware(domain string, jwtService *JwtService) gin.HandlerFu
 			}
 		}
 
-		if len(jwtCookie) > 0 {
-			token, err := jwtService.ValidateToken(jwtCookie)
-			if token.Valid {
-				jwtData := jwtService.GetClaims(token)
-
-				newToken := jwtService.GenerateToken(jwtData.Name, jwtData.IsUser)
-				c.SetCookie(AUTHORIZATION_COOKIE_KEY, newToken, 60*100, "/", domain, true, true)
-			} else {
-				fmt.Println(err)
-
-				c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
-					"redirect": "login",
-				})
-			}
-		} else {
+		if len(jwtCookie) == 0 {
 			fmt.Println("No auth header")
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
 				"redirect": "login",
 			})
+			return
 		}
+
+		token, err := jwtService.ValidateToken(jwtCookie)
+		if !token.Valid || err != nil {
+			fmt.Println(err)
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
+				"redirect": "login",
+			})
+			return
+		}
+
+		jwtData, err := jwtService.GetClaims(token)
+		if !jwtData.IsApproved {
+			fmt.Println("Token not approved")
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
+				"redirect": "not-approved",
+			})
+			return
+		}
+		if err != nil {
+			fmt.Println("Error parsing token data", err)
+			c.AbortWithStatus(http.StatusInternalServerError)
+			return
+		}
+
+		newToken := jwtService.GenerateToken(jwtData.User)
+		c.Set("username", jwtData.Name)
+		jwtService.SetCookie(c, newToken)
 	}
 }

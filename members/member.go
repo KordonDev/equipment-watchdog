@@ -11,7 +11,7 @@ type dbMember struct {
 }
 
 func (dbMember) TableName() string {
-	return "member"
+	return "members"
 }
 
 type member struct {
