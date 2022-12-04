@@ -2,46 +2,33 @@ package security
 
 import (
 	"fmt"
-	"os"
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
+	"github.com/mitchellh/mapstructure"
 )
 
-// jwt service
-type JWTService interface {
-	GenerateToken(email string, isUser bool) string
-	ValidateToken(token string) (*jwt.Token, error)
-}
-type authCustomClaims struct {
-	Name string `json:"name"`
-	User bool   `json:"user"`
+type AuthCustomClaims struct {
+	Name   string `json:"name"`
+	IsUser bool   `json:"isUser"`
 	jwt.StandardClaims
 }
 
-type jwtServices struct {
+type JwtService struct {
 	secretKey string
 	issure    string
 }
 
 // auth-jwt
-func JWTAuthService() JWTService {
-	return &jwtServices{
-		secretKey: getSecretKey(),
-		issure:    "kordon",
+func JWTAuthService(origin string, jwtSecret string) *JwtService {
+	return &JwtService{
+		secretKey: jwtSecret,
+		issure:    origin,
 	}
 }
 
-func getSecretKey() string {
-	secret := os.Getenv("SECRET")
-	if secret == "" {
-		secret = "secret"
-	}
-	return secret
-}
-
-func (service *jwtServices) GenerateToken(email string, isUser bool) string {
-	claims := &authCustomClaims{
+func (service *JwtService) GenerateToken(email string, isUser bool) string {
+	claims := &AuthCustomClaims{
 		email,
 		isUser,
 		jwt.StandardClaims{
@@ -60,7 +47,7 @@ func (service *jwtServices) GenerateToken(email string, isUser bool) string {
 	return t
 }
 
-func (service *jwtServices) ValidateToken(encodedToken string) (*jwt.Token, error) {
+func (service *JwtService) ValidateToken(encodedToken string) (*jwt.Token, error) {
 	return jwt.Parse(encodedToken, func(token *jwt.Token) (interface{}, error) {
 		if _, isvalid := token.Method.(*jwt.SigningMethodHMAC); !isvalid {
 			return nil, fmt.Errorf("invalid token %s", token.Header["alg"])
@@ -68,4 +55,13 @@ func (service *jwtServices) ValidateToken(encodedToken string) (*jwt.Token, erro
 		}
 		return []byte(service.secretKey), nil
 	})
+}
+
+func (service *JwtService) GetClaims(token *jwt.Token) *AuthCustomClaims {
+	claims := token.Claims.(jwt.MapClaims)
+
+	var jwtData AuthCustomClaims
+	mapstructure.Decode(claims, &jwtData)
+
+	return &jwtData
 }
