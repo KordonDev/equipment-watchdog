@@ -6,6 +6,7 @@
   import { deleteMember, getMember, updateMember } from "./member.service";
   import MemberForm from "./MemberForm.svelte";
   import MemberCard from "./MemberCard.svelte";
+  import Navigation from "../../components/Navigation/Navigation.svelte";
 
   export let params = { id: undefined };
 
@@ -40,6 +41,8 @@
       });
   }
 </script>
+
+<Navigation />
 
 {#await memberPromise then member}
   <MemberCard {member} />

@@ -7,10 +7,12 @@
     TableHead,
     TableHeadCell,
   } from "flowbite-svelte";
+  import type { User } from "./user.service";
 
   export let users: User[];
   export let onApprove: (userId: number) => void;
   export let onAdmin: (userId: number) => void;
+  export let disable: boolean;
 </script>
 
 <Table>
@@ -28,6 +30,7 @@
             type="checkbox"
             checked={user.isApproved}
             on:change={() => onApprove(user.id)}
+            disabled={disable}
           />
         </TableBodyCell>
         <TableBodyCell>
@@ -35,6 +38,7 @@
             type="checkbox"
             checked={user.isAdmin}
             on:change={() => onAdmin(user.id)}
+            disabled={disable}
           />
         </TableBodyCell>
       </TableBodyRow>

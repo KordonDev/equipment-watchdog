@@ -15,8 +15,14 @@ export function getAllUser(): Promise<User[]> {
   return fetchApi(`/users/`);
 }
 
-export function toggleApproveUser(userId: number) {
+export function toggleApproveUser(userId: number): Promise<User> {
   return fetchApi(`/users/${userId}/toogle-approve`, {
+    method: "PATCH",
+  });
+}
+
+export function toggleAdminUser(userId: number): Promise<User> {
+  return fetchApi(`/users/${userId}/toogle-admin`, {
     method: "PATCH",
   });
 }
