@@ -2,7 +2,7 @@
   import { routes } from "../../routes";
   import { link } from "svelte-spa-router";
   import { register } from "./security.service";
-  import { createNotification } from "src/components/Notification/notificationStore";
+  import { createNotification } from "../../components/Notification/notificationStore";
 
   let username = "";
   const login = (e: SubmitEvent) => {

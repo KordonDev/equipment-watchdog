@@ -8,6 +8,7 @@
   import MemberDetail from "./views/member/MemberDetail.svelte";
   import Notification from "./components/Notification/Notification.svelte";
   import UserOverview from "./views/user/UserOverview.svelte";
+  import NotApproved from "./views/security/NotApproved.svelte";
 
   if (window.location.pathname === "/" && window.location.hash === "") {
     replace(routes.MemberOverview.link);
@@ -23,6 +24,7 @@
       [routes.AddMember.path]: AddMember,
       [routes.MemberDetail.path]: MemberDetail,
       [routes.Users.path]: UserOverview,
+      [routes.NotApproved.path]: NotApproved,
     }}
   />
 </main>

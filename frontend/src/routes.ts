@@ -23,4 +23,8 @@ export const routes = {
     path: "/users/",
     link: "/users",
   },
+  NotApproved: {
+    path: "/not-approved",
+    link: "/not-approved",
+  },
 };

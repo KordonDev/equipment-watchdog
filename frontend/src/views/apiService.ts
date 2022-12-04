@@ -27,6 +27,9 @@ export function fetchApi(url: string, headers?: RequestInit) {
           if (data.redirect === "login") {
             replace(routes.Login.link);
           }
+          if (data.redirect === "not-approved") {
+            replace(routes.NotApproved.link);
+          }
         });
       }
       throw res;
