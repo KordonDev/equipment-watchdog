@@ -76,7 +76,7 @@ func (u *userDB) GetAll() ([]*User, error) {
 		return nil, err
 	}
 
-	var users []*User
+	users := make([]*User, 0)
 	for _, user := range dbUser {
 		users = append(users, user.toUser())
 	}

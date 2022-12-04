@@ -11,6 +11,7 @@ export function getMembers(): Promise<Member[]> {
 }
 
 export function getMember(id: string): Promise<Member> {
+  debugger;
   return fetchApi(`/members/${id}`);
 }
 

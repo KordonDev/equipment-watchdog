@@ -98,10 +98,6 @@ export function register(username: string) {
     });
 }
 
-export function getMe() {
-  return fetchApi(`/me`);
-}
-
 export function logout() {
   return fetchApi(`/logout`, {
     method: "POST",

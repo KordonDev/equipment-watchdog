@@ -73,19 +73,9 @@ func (service *JwtService) ValidateToken(encodedToken string) (*jwt.Token, error
 	})
 }
 
-type StandardClaimsMapstructure struct {
-	Audience  string `mapstructure:"aud,omitempty"`
-	ExpiresAt int64  `mapstructure:"exp,omitempty"`
-	Id        string `mapstructure:"jti,omitempty"`
-	IssuedAt  int64  `mapstructure:"iat,omitempty"`
-	Issuer    string `mapstructure:"iss,omitempty"`
-	NotBefore int64  `mapstructure:"nbf,omitempty"`
-	Subject   string `mapstructure:"sub,omitempty"`
-}
-
 type Claims struct {
-	User
-	StandardClaimsMapstructure
+	User           `mapstructure:",squash"`
+	StandardClaims `mapstructure:",squash"`
 }
 
 func (service *JwtService) GetClaims(token *jwt.Token) (*Claims, error) {

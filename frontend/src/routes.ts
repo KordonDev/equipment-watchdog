@@ -19,4 +19,8 @@ export const routes = {
     path: "/member/add",
     link: "/member/add",
   },
+  Users: {
+    path: "/users/",
+    link: "/users",
+  },
 };

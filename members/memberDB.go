@@ -27,7 +27,7 @@ func (mdb *memberDB) GetAllMember() ([]*member, error) {
 		return nil, err
 	}
 
-	var members []*member
+	members := make([]*member, 0)
 	for _, m := range dbMembers {
 		members = append(members, m.fromDB())
 	}
