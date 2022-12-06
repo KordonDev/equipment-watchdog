@@ -10,6 +10,7 @@ type dbEquipment struct {
 	CreatedAt time.Time
 	UpdatedAt time.Time
 	Type members.EquipmentType
+	RegistrationCode uint
 }
 
 func (dbEquipment) TableName() string {
@@ -19,12 +20,14 @@ func (dbEquipment) TableName() string {
 type equipment struct {
 	Id uint64 `json:"id"`
 	Type members.EquipmentType `json:"type"`
+	RegistrationCode uint
 }
 
 func (e *equipment) toDb() *dbEquipment {
 	return &dbEquipment{
 		ID: e.Id,
 		Type: e.Type,
+		RegistrationCode: e.RegistrationCode,
 	}
 }
 
@@ -32,5 +35,6 @@ func (dbe dbEquipment) fromDB() *equipment {
 	return &equipment{
 		Id: dbe.ID,
 		Type: dbe.Type,
+		RegistrationCode: dbe.RegistrationCode,
 	}
 }

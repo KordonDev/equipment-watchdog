@@ -18,7 +18,7 @@ func NewEquipmentService(equipmentDB *equipmentDB) *EquipmentService {
 	}
 }
 
-func (e *EquipmentService) GetEquipmentById(c *gin.Context) {
+func (s *EquipmentService) GetEquipmentById(c *gin.Context) {
 	id, err := parseId(c)
 	if err != nil {
 		log.Error(err)
@@ -26,9 +26,14 @@ func (e *EquipmentService) GetEquipmentById(c *gin.Context) {
 		return
 	}
 
+	e, err := s.db.getById(id)
+	if err != nil {
+		log.Error(err)
+		c.AbortWithError(http.StatusNotFound, err)
+		return
+	}
 
-	// TODO: go
-
+	c.JSON(http.StatusOK, e)
 }
 
 func parseId(c *gin.Context) (uint64, error) {
