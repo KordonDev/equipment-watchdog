@@ -1,6 +1,6 @@
 <script lang="ts">
   import { routes } from "../../routes";
-  import { link } from "svelte-spa-router";
+  import {link, replace} from "svelte-spa-router";
   import { register } from "./security.service";
   import { createNotification } from "../../components/Notification/notificationStore";
 
@@ -9,7 +9,6 @@
     e.preventDefault();
     register(username)
       .then((u) => {
-        console.log(u);
         createNotification(
           {
             color: "green",
@@ -17,6 +16,7 @@
           },
           5
         );
+        replace(routes.Login.link)
       })
       .catch((err) => {
         createNotification({
