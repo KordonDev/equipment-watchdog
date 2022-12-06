@@ -55,8 +55,9 @@ func main() {
 
 	userService := security.NewUserService(userDB, jwtService)
 	api.GET("/me", userService.GetMe)
+	api.PATCH("/users/:username/toggle-approve", security.AdminOnlyMiddleware(), userService.ToggleApprove)
+	api.PATCH("/users/:username/toggle-admin", security.AdminOnlyMiddleware(), userService.ToggleAdmin)
 	api.GET("/users/", security.AdminOnlyMiddleware(), userService.GetAll)
-	api.PATCH("/users/:id/toggle-approve", security.AdminOnlyMiddleware(), userService.ToggleApprove)
 
 	router.Run(fmt.Sprintf("%s:8080", config.Domain))
 }

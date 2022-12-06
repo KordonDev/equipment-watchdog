@@ -15,14 +15,14 @@ export function getAllUser(): Promise<User[]> {
   return fetchApi(`/users/`);
 }
 
-export function toggleApproveUser(userId: number): Promise<User> {
-  return fetchApi(`/users/${userId}/toogle-approve`, {
+export function toggleApproveUser(username: string): Promise<User> {
+  return fetchApi(`/users/${username}/toggle-approve`, {
     method: "PATCH",
   });
 }
 
-export function toggleAdminUser(userId: number): Promise<User> {
-  return fetchApi(`/users/${userId}/toogle-admin`, {
+export function toggleAdminUser(username: string): Promise<User> {
+  return fetchApi(`/users/${username}/toggle-admin`, {
     method: "PATCH",
   });
 }

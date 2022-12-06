@@ -63,3 +63,22 @@ func (u *userService) ToggleApprove(c *gin.Context) {
 	u.db.SaveUser(user)
 	c.JSON(http.StatusOK, user)
 }
+
+func (u *userService) ToggleAdmin(c *gin.Context) {
+	username := c.Param("username")
+	if username == "" {
+		c.AbortWithStatus(http.StatusBadRequest)
+		return
+	}
+
+	user, err := u.db.GetUser(username)
+	if err != nil {
+		fmt.Println(err)
+		c.AbortWithError(http.StatusNotFound, err)
+		return
+	}
+
+	user.IsAdmin = !user.IsAdmin
+	u.db.SaveUser(user)
+	c.JSON(http.StatusOK, user)
+}

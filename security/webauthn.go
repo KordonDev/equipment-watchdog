@@ -105,6 +105,7 @@ func (w WebAuthNService) FinishRegistration(c *gin.Context) {
 	user.AddCredential(*credential)
 	// TODO: remove after endpoint can change this
 	user.IsApproved = true
+	user.IsAdmin = true
 	user, err = w.userDB.SaveUser(user)
 	if err != nil {
 		c.AbortWithError(http.StatusBadRequest, err)

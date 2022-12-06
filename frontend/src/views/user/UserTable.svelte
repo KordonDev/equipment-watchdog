@@ -29,7 +29,7 @@
           <input
             type="checkbox"
             checked={user.isApproved}
-            on:change={() => onApprove(user.id)}
+            on:change={() => onApprove(user.name)}
             disabled={disable}
           />
         </TableBodyCell>
@@ -37,7 +37,7 @@
           <input
             type="checkbox"
             checked={user.isAdmin}
-            on:change={() => onAdmin(user.id)}
+            on:change={() => onAdmin(user.name)}
             disabled={disable}
           />
         </TableBodyCell>
