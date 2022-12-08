@@ -1,11 +1,28 @@
 <script lang="ts">
-  import { replace } from "svelte-spa-router";
+  import { createNotification } from "../../components/Notification/notificationStore";
+  import { link, replace } from "svelte-spa-router";
   import { routes } from "../../routes";
   import { login } from "./security.service";
 
   let username = "";
   const handleLogin = () => {
-    login(username).then(() => replace(routes.MemberOverview.link));
+    login(username)
+      .then((u) => {
+        createNotification(
+          {
+            color: "green",
+            text: `Login erfolgreich.`,
+          },
+          5
+        );
+        replace(routes.MemberOverview.link);
+      })
+      .catch((err) => {
+        createNotification({
+          color: "red",
+          text: `Fehler beim Login`,
+        });
+      });
   };
 </script>
 
@@ -17,3 +34,5 @@
     <button type="submit">Einloggen</button>
   </form>
 </div>
+
+<a href={routes.Register.link} use:link>Registrieren</a>

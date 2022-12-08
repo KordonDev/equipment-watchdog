@@ -8,9 +8,11 @@ import (
 )
 
 type User struct {
-	ID          uint64
-	Name        string
-	Credentials []webauthn.Credential
+	ID          uint64                `json:"id"`
+	Name        string                `json:"name" mapstructure:"name"`
+	IsApproved  bool                  `json:"isApproved"`
+	IsAdmin     bool                  `json:"isAdmin"`
+	Credentials []webauthn.Credential `json:"-"`
 }
 
 func NewUser(name string) *User {

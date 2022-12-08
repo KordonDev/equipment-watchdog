@@ -1,14 +1,34 @@
-import { writable } from "svelte/store";
+import {readable} from "svelte/store";
+import type {Groups} from "../views/member/member.service";
+import {getGroups as getGroupsRequest, Group} from "../views/member/member.service";
 
-export interface Group {
+
+export const getGroupsWithEquipment = readable<Groups>(undefined, function start(set) {
+  getGroupsRequest().then((groups) => set(groups));
+});
+
+export interface TranslatedGroup {
   name: string;
-  value: string;
+  value: Group
 }
 
-export const groupsStore = writable([
-  { value: "monday", name: "Montagsgruppe" },
-  { value: "friday", name: "Freitag" },
-  { value: "mini", name: "Minigruppe" },
-]);
 
-// TODO: fetch groups when logged in. Currently loginState is not persisted
+const groupTranslations = [
+  { value: Group.MONDAY, translation: "Montagsgruppe" },
+  { value: Group.FRIDAY, translation: "Freitagsgruppe" },
+  { value: Group.MINI, translation: "Minigruppe" },
+];
+
+export const getTranslatedGroups = readable<TranslatedGroup[]>(undefined, function start(set) {
+  getGroupsRequest().then((groups) => {
+    const translations = Object.keys(groups).map((key) => {
+      const translation = groupTranslations.find(t =>  t.value === key)?.translation
+      return {
+        value: key as Group,
+        name: translation || key
+      }
+    })
+
+    set(translations)
+  });
+})

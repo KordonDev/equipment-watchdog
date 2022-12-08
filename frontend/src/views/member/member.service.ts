@@ -37,8 +37,25 @@ export function deleteMember(id: string): Promise<void> {
   });
 }
 
-interface Groups {
-  name: string[];
+export enum Group {
+  FRIDAY = "friday",
+  MONDAY = "monday",
+  MINI = "mini"
+}
+
+export enum Equipment {
+  Helmet = "helmet",
+  Jacket = "jacket",
+  Gloves = "gloves",
+  Trousers = "trousers",
+  Boots = "boots",
+  TShirt = "tshirt"
+}
+
+export interface Groups {
+  [Group.FRIDAY]: Equipment[];
+  [Group.MONDAY]: Equipment[];
+  [Group.MINI]: Equipment[];
 }
 export function getGroups(): Promise<Groups> {
   return fetchApi("/members/groups");

@@ -5,6 +5,7 @@
   import type { Member } from "./member.service";
   import { createMember } from "./member.service";
   import MemberForm from "./MemberForm.svelte";
+  import Navigation from "../../components/Navigation/Navigation.svelte";
 
   let member: Member = {
     id: "0",
@@ -36,6 +37,8 @@
       });
   }
 </script>
+
+<Navigation />
 
 <h1>Mitglied hinzufügen</h1>
 <MemberForm

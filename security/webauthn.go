@@ -47,6 +47,8 @@ func (w *WebAuthNService) StartRegister(c *gin.Context) {
 	if err != nil {
 		user = &User{
 			Name:        username,
+			IsApproved:  false,
+			IsAdmin:     false,
 			Credentials: []webauthn.Credential{},
 		}
 		user, err = w.userDB.AddUser(user)
@@ -101,8 +103,18 @@ func (w WebAuthNService) FinishRegistration(c *gin.Context) {
 	}
 
 	user.AddCredential(*credential)
-	w.userDB.SaveUser(user)
-	c.Status(http.StatusOK)
+
+	if !w.userDB.HasApprovedAndAdminUser() {
+		user.IsApproved = true
+		user.IsAdmin = true
+	}
+
+	user, err = w.userDB.SaveUser(user)
+	if err != nil {
+		c.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+	c.JSON(http.StatusOK, user)
 }
 
 func (w *WebAuthNService) StartLogin(c *gin.Context) {
@@ -150,11 +162,16 @@ func (w *WebAuthNService) FinishLogin(c *gin.Context) {
 		return
 	}
 
-	token := w.jwtService.GenerateToken(username, true)
-	w.userDB.SaveUser(user)
+	user, err = w.userDB.SaveUser(user)
+	if err != nil {
+		c.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
 
-	c.SetCookie(AUTHORIZATION_COOKIE_KEY, token, 60*100, "/", w.domain, true, true)
-	c.Status(http.StatusOK)
+	token := w.jwtService.GenerateToken(*user)
+
+	w.jwtService.SetCookie(c, token)
+	c.JSON(http.StatusOK, user)
 }
 
 func (w *WebAuthNService) Logout(c *gin.Context) {

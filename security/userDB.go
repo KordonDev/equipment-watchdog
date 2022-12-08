@@ -18,6 +18,10 @@ type DbAuthenticator struct {
 	CloneWarning bool
 }
 
+func (DbAuthenticator) TableName() string {
+	return "user_credential_authenticators"
+}
+
 type DbCredential struct {
 	ID              []byte `gorm:"primarykey"`
 	UserID          uint64
@@ -27,12 +31,22 @@ type DbCredential struct {
 	CreatedAt       time.Time
 }
 
+func (DbCredential) TableName() string {
+	return "user_credentials"
+}
+
 type DbUser struct {
 	ID          uint64 `gorm:"primarykey"`
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
-	Name        string         `gorm:"unique"`
+	Name        string `gorm:"unique"`
+	IsApproved  bool
+	IsAdmin     bool
 	Credentials []DbCredential `gorm:"foreignKey:UserID"`
+}
+
+func (DbUser) TableName() string {
+	return "users"
 }
 
 func NewUserDB(db *gorm.DB) *userDB {
@@ -51,21 +65,46 @@ func (u *userDB) GetUser(username string) (*User, error) {
 		return &User{}, fmt.Errorf("error getting user: %s", username)
 	}
 
-	return fromDBUser(dbu), nil
+	return dbu.toUser(), nil
+}
+
+func (u *userDB) GetAll() ([]*User, error) {
+	var dbUser []DbUser
+	err := u.db.Find(&dbUser).Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	users := make([]*User, 0)
+	for _, user := range dbUser {
+		users = append(users, user.toUser())
+	}
+	return users, nil
 }
 
 func (u *userDB) AddUser(user *User) (*User, error) {
-	u.db.Create(toDBUser(user))
+	u.db.Create(user.toDBUser())
 	return u.GetUser(user.Name)
 }
 
-func (u *userDB) SaveUser(user *User) {
-	u.db.Save(toDBUser(user))
+func (u *userDB) SaveUser(user *User) (*User,error) {
+	u.db.Save(user.toDBUser())
+	return u.GetUser(user.Name)
 }
 
-func toDBUser(user *User) *DbUser {
-	c := []DbCredential{}
-	for _, cr := range user.Credentials {
+func (u *userDB) HasApprovedAndAdminUser() bool {
+	var dbu DbUser
+	err := u.db.Model(&DbUser{}).First(&dbu, "is_admin = 1 AND is_approved = 1").Error
+	if err != nil || dbu.ID == 0 {
+		return false
+	}
+	return true
+}
+
+func (u *User) toDBUser() *DbUser {
+	var c []DbCredential
+	for _, cr := range u.Credentials {
 		a := DbAuthenticator{
 			AAGUID:       cr.Authenticator.AAGUID,
 			SignCount:    cr.Authenticator.SignCount,
@@ -74,7 +113,7 @@ func toDBUser(user *User) *DbUser {
 
 		dbC := DbCredential{
 			ID:              cr.ID,
-			UserID:          user.ID,
+			UserID:          u.ID,
 			PublicKey:       cr.PublicKey,
 			AttestationType: cr.AttestationType,
 			Authenticator:   a,
@@ -82,15 +121,17 @@ func toDBUser(user *User) *DbUser {
 		c = append(c, dbC)
 	}
 	dbu := DbUser{
-		ID:          user.ID,
-		Name:        user.Name,
+		ID:          u.ID,
+		Name:        u.Name,
+		IsApproved:  u.IsApproved,
+		IsAdmin:     u.IsAdmin,
 		Credentials: c,
 	}
 	return &dbu
 }
 
-func fromDBUser(dbu DbUser) *User {
-	c := []webauthn.Credential{}
+func (dbu *DbUser) toUser() *User {
+	var c []webauthn.Credential
 	for _, cr := range dbu.Credentials {
 		a := webauthn.Authenticator{
 			AAGUID:       cr.Authenticator.AAGUID,
@@ -109,7 +150,10 @@ func fromDBUser(dbu DbUser) *User {
 	user := User{
 		ID:          dbu.ID,
 		Name:        dbu.Name,
+		IsApproved:  dbu.IsApproved,
+		IsAdmin:     dbu.IsAdmin,
 		Credentials: c,
 	}
 	return &user
 }
+
