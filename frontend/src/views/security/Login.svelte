@@ -8,7 +8,6 @@
   const handleLogin = () => {
     login(username)
       .then((u) => {
-        console.log(u);
         createNotification(
           {
             color: "green",

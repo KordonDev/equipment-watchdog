@@ -12,7 +12,7 @@
         createNotification(
           {
             color: "green",
-            text: `Toggled ${user.name} approve Status.`,
+            text: `${user.name} ${user.isApproved? 'bestätigt': 'Bestätigung zurückgenommen'}.`,
           },
           5
         );
@@ -21,7 +21,7 @@
         createNotification(
           {
             color: "red",
-            text: `Fehler beim updaten.`,
+            text: `Fehler beim Speichern.`,
           },
           5
         );
@@ -33,7 +33,7 @@
         createNotification(
           {
             color: "green",
-            text: `Toggled ${user.name} admin Status.`,
+            text: `${user.name} hat Adminrechte ${user.isAdmin ? 'bekommen' : 'verloren'}.`,
           },
           5
         );
@@ -42,7 +42,7 @@
         createNotification(
           {
             color: "red",
-            text: `Fehler beim updaten.`,
+            text: `Fehler beim Speichern.`,
           },
           5
         );

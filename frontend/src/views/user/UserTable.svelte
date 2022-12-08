@@ -18,8 +18,8 @@
 <Table>
   <TableHead>
     <TableHeadCell>Name</TableHeadCell>
-    <TableHeadCell>Approved</TableHeadCell>
-    <TableHeadCell>Admin</TableHeadCell>
+    <TableHeadCell>Bestätigt</TableHeadCell>
+    <TableHeadCell>Adminrechte</TableHeadCell>
   </TableHead>
   <TableBody>
     {#each users as user}

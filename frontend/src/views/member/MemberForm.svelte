@@ -1,6 +1,6 @@
 <script lang="ts">
   import { Label, Input, Select, Button, Spinner } from "flowbite-svelte";
-  import { groupsStore } from "../../components/groupsStore";
+  import { getTranslatedGroups} from "../../components/groupsStore";
   import type { Member } from "./member.service";
 
   export let member: Member;
@@ -9,7 +9,7 @@
   export let onSubmit: (m: Member) => void;
 
   let allGroups = [];
-  groupsStore.subscribe((value) => (allGroups = value));
+  getTranslatedGroups.subscribe((groups) => (allGroups = groups));
 
   function handleSubmit() {
     onSubmit(member);

@@ -93,6 +93,15 @@ func (u *userDB) SaveUser(user *User) (*User,error) {
 	return u.GetUser(user.Name)
 }
 
+func (u *userDB) HasApprovedAndAdminUser() bool {
+	var dbu DbUser
+	err := u.db.Model(&DbUser{}).First(&dbu, "is_admin = 1 AND is_approved = 1").Error
+	if err != nil || dbu.ID == 0 {
+		return false
+	}
+	return true
+}
+
 func (u *User) toDBUser() *DbUser {
 	var c []DbCredential
 	for _, cr := range u.Credentials {
@@ -147,3 +156,4 @@ func (dbu *DbUser) toUser() *User {
 	}
 	return &user
 }
+
