@@ -1,11 +1,11 @@
 package equipment
 
 import (
-	"errors"
+	"net/http"
+
 	"github.com/cloudflare/cfssl/log"
 	"github.com/gin-gonic/gin"
-	"net/http"
-	"strconv"
+	"github.com/kordondev/equipment-watchdog/url"
 )
 
 type EquipmentService struct {
@@ -19,7 +19,7 @@ func NewEquipmentService(equipmentDB *equipmentDB) *EquipmentService {
 }
 
 func (s *EquipmentService) GetEquipmentById(c *gin.Context) {
-	id, err := parseId(c)
+	id, err := url.ParseToInt(c, "id")
 	if err != nil {
 		log.Error(err)
 		c.AbortWithError(http.StatusBadRequest, err)
@@ -36,14 +36,35 @@ func (s *EquipmentService) GetEquipmentById(c *gin.Context) {
 	c.JSON(http.StatusOK, e)
 }
 
-func parseId(c *gin.Context) (uint64, error) {
-	id := c.Param("id")
-	idN, err := strconv.ParseUint(id, 10, 64)
-
-	if err != nil {
-		return 0, errors.New("id as number could not be found")
+func (s *EquipmentService) GetAllEquipmentByType(c *gin.Context) {
+	eType := c.Param("type")
+	if eType == "" {
+		c.AbortWithStatus(http.StatusBadRequest)
+		return
 	}
-	return idN, nil
+
+	es, err := s.db.getByType(eType)
+	if err != nil {
+		log.Error(err)
+		c.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
+
+	c.JSON(http.StatusOK, es)
 }
 
+func (s *EquipmentService) CreateEquipment(c *gin.Context) {
+	var e equipment
+	if err := c.BindJSON(&e); err != nil {
+		c.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
 
+	ce, err := s.db.Create(&e)
+	if err != nil {
+		c.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+
+	c.JSON(http.StatusCreated, ce)
+}

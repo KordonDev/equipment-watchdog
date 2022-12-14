@@ -61,11 +61,12 @@ func (mdb *memberDB) SaveMember(member *member) error {
 }
 
 func (mdb *memberDB) CreateMember(member *member) (*member, error) {
-	err := mdb.db.Create(member.toDB()).Error
+	m := member.toDB()
+	err := mdb.db.Create(&m).Error
 	if err != nil {
 		return nil, err
 	}
-	return mdb.GetMemberByName(member.Name)
+	return m.fromDB(), nil
 }
 
 func (mdb *memberDB) DeleteMember(member *member) error {

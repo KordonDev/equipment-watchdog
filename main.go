@@ -8,6 +8,7 @@ import (
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	"github.com/kordondev/equipment-watchdog/equipment"
 	"github.com/kordondev/equipment-watchdog/members"
 	"github.com/kordondev/equipment-watchdog/security"
 	"gopkg.in/yaml.v2"
@@ -58,6 +59,13 @@ func main() {
 	api.PATCH("/users/:username/toggle-approve", security.AdminOnlyMiddleware(), userService.ToggleApprove)
 	api.PATCH("/users/:username/toggle-admin", security.AdminOnlyMiddleware(), userService.ToggleAdmin)
 	api.GET("/users/", security.AdminOnlyMiddleware(), userService.GetAll)
+
+	equipmentDB := equipment.NewEquipmentDB(db)
+	equipmentService := equipment.NewEquipmentService(equipmentDB)
+	equipmentRoute := api.Group("/equipment")
+	equipmentRoute.GET("/type/:type", equipmentService.GetAllEquipmentByType)
+	equipmentRoute.GET("/:id", equipmentService.GetEquipmentById)
+	equipmentRoute.POST("/", equipmentService.CreateEquipment)
 
 	router.Run(fmt.Sprintf("%s:8080", config.Domain))
 }
