@@ -66,6 +66,7 @@ func main() {
 	equipmentRoute.GET("/type/:type", equipmentService.GetAllEquipmentByType)
 	equipmentRoute.GET("/:id", equipmentService.GetEquipmentById)
 	equipmentRoute.POST("/", equipmentService.CreateEquipment)
+	equipmentRoute.DELETE("/:id", equipmentService.DeleteEquipment)
 
 	router.Run(fmt.Sprintf("%s:8080", config.Domain))
 }

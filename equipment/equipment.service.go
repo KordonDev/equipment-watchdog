@@ -68,3 +68,20 @@ func (s *EquipmentService) CreateEquipment(c *gin.Context) {
 
 	c.JSON(http.StatusCreated, ce)
 }
+
+func (s *EquipmentService) DeleteEquipment(c *gin.Context) {
+	id, err := url.ParseToInt(c, "id")
+	if err != nil {
+		log.Error(err)
+		c.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+
+	err = s.db.delete(id)
+	if err != nil {
+		log.Error(err)
+		c.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
+	c.Status(http.StatusOK)
+}

@@ -51,3 +51,7 @@ func (edb *equipmentDB) Create(equipment *equipment) (*equipment, error) {
 	}
 	return e.fromDB(), nil
 }
+
+func (edb *equipmentDB) delete(id uint64) error {
+	return edb.db.Delete(&dbEquipment{}, id).Error
+}
