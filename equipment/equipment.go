@@ -11,17 +11,17 @@ type dbEquipment struct {
 	CreatedAt        time.Time
 	UpdatedAt        time.Time
 	Type             members.EquipmentType
-	RegistrationCode uint
+	RegistrationCode string
 }
 
-/*func (dbEquipment) TableName() string {
+func (dbEquipment) TableName() string {
 	return "equipments"
-}*/
+}
 
 type equipment struct {
 	Id               uint64                `json:"id"`
 	Type             members.EquipmentType `json:"type"`
-	RegistrationCode uint                  `json:"registrationCode"`
+	RegistrationCode string                `json:"registrationCode"`
 }
 
 func (e *equipment) toDb() *dbEquipment {

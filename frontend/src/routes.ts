@@ -1,3 +1,5 @@
+import { EquipmentType } from "./views/equipment/equipment.service";
+
 export const routes = {
   Login: {
     path: "/login",
@@ -22,6 +24,14 @@ export const routes = {
   Users: {
     path: "/users/",
     link: "/users",
+  },
+  EquipmentAdd: {
+    path: "/equipment/add",
+    link: "/equipment/add",
+  },
+  EquipmentType: {
+    path: "/equipment/type/:type",
+    link: `/equipment/type/`,
   },
   NotApproved: {
     path: "/not-approved",
