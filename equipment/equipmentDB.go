@@ -30,7 +30,7 @@ func (edb *equipmentDB) getById(id uint64) (*equipment, error) {
 func (edb *equipmentDB) getByType(equipmentType string) ([]*equipment, error) {
 	dbEquipment := make([]dbEquipment, 0)
 
-	err := edb.db.Where("type = ?", equipmentType).Find(dbEquipment).Error
+	err := edb.db.Where("type = ?", equipmentType).Find(&dbEquipment).Error
 	if err != nil {
 		return make([]*equipment, 0), err
 	}
