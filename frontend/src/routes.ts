@@ -33,6 +33,10 @@ export const routes = {
     path: "/equipment/type/:type",
     link: `/equipment/type/`,
   },
+  EquipmentDetails: {
+    path: "/equipment/details/:id",
+    link: `/equipment/details/`,
+  },
   NotApproved: {
     path: "/not-approved",
     link: "/not-approved",

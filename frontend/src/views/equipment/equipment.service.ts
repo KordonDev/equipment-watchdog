@@ -24,7 +24,7 @@ export function createEquipment(equipment: Equipment): Promise<Equipment> {
   });
 }
 
-export function deleteEquipment(id: string): Promise<void> {
+export function deleteEquipment(id: number): Promise<void> {
   return fetchApi(`/equipment/${id}`, {
     method: "DELETE",
   });

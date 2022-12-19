@@ -56,7 +56,14 @@
     {#each equipments as equipment}
       <div>
         <h3>{translateEquipmentType(equipment.type)}</h3>
-        <p>{equipment.type}</p>
+        <p>
+          Registrierungsnummer <a
+            href={`${routes.EquipmentDetails.link}${equipment.id}`}
+            use:link
+          >
+            {equipment.registrationCode}
+          </a>
+        </p>
       </div>
     {/each}
   </div>
