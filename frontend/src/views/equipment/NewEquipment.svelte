@@ -30,7 +30,7 @@
           5
         );
         loading = false;
-        push(`${routes.EquipmentType.link}${e.type}`);
+        push(`${routes.EquipmentDetails.link}${e.id}`);
       })
       .catch(() => {
         createNotification({

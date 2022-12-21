@@ -65,7 +65,7 @@
   >
     <p>
       Soll {translateEquipmentType(equipment.type)} mit der Registrierungsnummer
-      ${equipment.registrationCode} gelöscht werden?
+      {equipment.registrationCode} gelöscht werden?
     </p>
     <svelte:fragment slot="footer">
       {#if loading}

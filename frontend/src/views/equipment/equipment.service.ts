@@ -50,7 +50,7 @@ export const translatedEquipmentTypes = [
 
 export const translateEquipmentType = (type: EquipmentType): string => {
   return (
-    Object.values(translatedEquipmentTypes).find(
+    translatedEquipmentTypes.find(
       (equipmentType) => equipmentType.value === type
     )?.name || type
   );
