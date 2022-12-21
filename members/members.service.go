@@ -32,7 +32,7 @@ func (s *MemberService) GetMemberById(c *gin.Context) {
 	id, err := url.ParseToInt(c, "id")
 	if err != nil {
 		log.Error(err)
-		c.AbortWithError(http.StatusNotFound, err)
+		c.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
 

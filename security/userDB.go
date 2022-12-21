@@ -84,11 +84,15 @@ func (u *userDB) GetAll() ([]*User, error) {
 }
 
 func (u *userDB) AddUser(user *User) (*User, error) {
-	u.db.Create(user.toDBUser())
-	return u.GetUser(user.Name)
+	us := user.toDBUser()
+	err := u.db.Create(us).Error
+	if err != nil {
+		return nil, err
+	}
+	return us.toUser(), nil
 }
 
-func (u *userDB) SaveUser(user *User) (*User,error) {
+func (u *userDB) SaveUser(user *User) (*User, error) {
 	u.db.Save(user.toDBUser())
 	return u.GetUser(user.Name)
 }
@@ -156,4 +160,3 @@ func (dbu *DbUser) toUser() *User {
 	}
 	return &user
 }
-

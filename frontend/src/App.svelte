@@ -9,6 +9,9 @@
   import Notification from "./components/Notification/Notification.svelte";
   import UserOverview from "./views/user/UserOverview.svelte";
   import NotApproved from "./views/security/NotApproved.svelte";
+  import CreateEquipment from "./views/equipment/NewEquipment.svelte";
+  import EquipmentByType from "./views/equipment/EquipmentByType.svelte";
+  import EquipmentDetails from "./views/equipment/EquipmentDetails.svelte";
 
   if (window.location.pathname === "/" && window.location.hash === "") {
     replace(routes.MemberOverview.link);
@@ -24,6 +27,9 @@
       [routes.AddMember.path]: AddMember,
       [routes.MemberDetail.path]: MemberDetail,
       [routes.Users.path]: UserOverview,
+      [routes.EquipmentType.path]: EquipmentByType,
+      [routes.EquipmentAdd.path]: CreateEquipment,
+      [routes.EquipmentDetails.path]: EquipmentDetails,
       [routes.NotApproved.path]: NotApproved,
     }}
   />

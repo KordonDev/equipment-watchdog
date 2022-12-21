@@ -1,4 +1,5 @@
 import { fetchApi } from "../apiService";
+import type { EquipmentType } from "../equipment/equipment.service";
 
 export interface Member {
   id: string;
@@ -40,22 +41,13 @@ export function deleteMember(id: string): Promise<void> {
 export enum Group {
   FRIDAY = "friday",
   MONDAY = "monday",
-  MINI = "mini"
-}
-
-export enum Equipment {
-  Helmet = "helmet",
-  Jacket = "jacket",
-  Gloves = "gloves",
-  Trousers = "trousers",
-  Boots = "boots",
-  TShirt = "tshirt"
+  MINI = "mini",
 }
 
 export interface Groups {
-  [Group.FRIDAY]: Equipment[];
-  [Group.MONDAY]: Equipment[];
-  [Group.MINI]: Equipment[];
+  [Group.FRIDAY]: EquipmentType[];
+  [Group.MONDAY]: EquipmentType[];
+  [Group.MINI]: EquipmentType[];
 }
 export function getGroups(): Promise<Groups> {
   return fetchApi("/members/groups");
