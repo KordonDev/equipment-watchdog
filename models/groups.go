@@ -1,4 +1,4 @@
-package members
+package models
 
 type Group string
 

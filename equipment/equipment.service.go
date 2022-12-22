@@ -1,6 +1,8 @@
 package equipment
 
 import (
+	"github.com/kordondev/equipment-watchdog/models"
+	"gorm.io/gorm"
 	"net/http"
 
 	"github.com/cloudflare/cfssl/log"
@@ -12,9 +14,9 @@ type EquipmentService struct {
 	db *equipmentDB
 }
 
-func NewEquipmentService(equipmentDB *equipmentDB) *EquipmentService {
+func NewEquipmentService(db *gorm.DB) *EquipmentService {
 	return &EquipmentService{
-		db: equipmentDB,
+		db: newEquipmentDB(db),
 	}
 }
 
@@ -54,7 +56,7 @@ func (s *EquipmentService) GetAllEquipmentByType(c *gin.Context) {
 }
 
 func (s *EquipmentService) CreateEquipment(c *gin.Context) {
-	var e equipment
+	var e models.Equipment
 	if err := c.BindJSON(&e); err != nil {
 		c.AbortWithError(http.StatusBadRequest, err)
 		return

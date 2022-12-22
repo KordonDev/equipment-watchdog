@@ -2,6 +2,8 @@ package members
 
 import (
 	"fmt"
+	"github.com/kordondev/equipment-watchdog/models"
+	"log"
 
 	"gorm.io/gorm"
 )
@@ -10,16 +12,19 @@ type memberDB struct {
 	db *gorm.DB
 }
 
-func NewMemberDB(db *gorm.DB) *memberDB {
-	db.AutoMigrate(&dbMember{})
+func newMemberDB(db *gorm.DB) *memberDB {
+	err := db.AutoMigrate(&models.DbMember{})
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	return &memberDB{
 		db: db,
 	}
 }
 
-func (mdb *memberDB) GetAllMember() ([]*member, error) {
-	var dbMembers []dbMember
+func (mdb *memberDB) GetAllMember() ([]*models.Member, error) {
+	var dbMembers []models.DbMember
 
 	err := mdb.db.Find(&dbMembers).Error
 
@@ -27,48 +32,48 @@ func (mdb *memberDB) GetAllMember() ([]*member, error) {
 		return nil, err
 	}
 
-	members := make([]*member, 0)
+	members := make([]*models.Member, 0)
 	for _, m := range dbMembers {
-		members = append(members, m.fromDB())
+		members = append(members, m.FromDB())
 	}
 	return members, nil
 }
 
-func (mdb *memberDB) GetMemberByName(name string) (*member, error) {
-	var m dbMember
-	err := mdb.db.Model(&dbMember{}).First(&m, "name = ?", name).Error
+func (mdb *memberDB) GetMemberByName(name string) (*models.Member, error) {
+	var m models.DbMember
+	err := mdb.db.Model(&models.DbMember{}).First(&m, "name = ?", name).Error
 
 	if err != nil {
-		return &member{}, fmt.Errorf("error getting user: %s", name)
+		return &models.Member{}, fmt.Errorf("error getting user: %s", name)
 	}
 
-	return m.fromDB(), nil
+	return m.FromDB(), nil
 }
 
-func (mdb *memberDB) GetMemberById(id uint64) (*member, error) {
-	var m dbMember
-	err := mdb.db.Model(&dbMember{}).First(&m, "ID = ?", id).Error
+func (mdb *memberDB) GetMemberById(id uint64) (*models.Member, error) {
+	var m models.DbMember
+	err := mdb.db.Preload("Equipment").Model(&models.DbMember{}).First(&m, "ID = ?", id).Error
 
 	if err != nil {
-		return &member{}, fmt.Errorf("error getting user by id: %d", id)
+		return &models.Member{}, fmt.Errorf("error getting user by id: %d", id)
 	}
 
-	return m.fromDB(), nil
+	return m.FromDB(), nil
 }
 
-func (mdb *memberDB) SaveMember(member *member) error {
-	return mdb.db.Save(member.toDB()).Error
+func (mdb *memberDB) SaveMember(member *models.Member) error {
+	return mdb.db.Save(member.ToDB()).Error
 }
 
-func (mdb *memberDB) CreateMember(member *member) (*member, error) {
-	m := member.toDB()
+func (mdb *memberDB) CreateMember(member *models.Member) (*models.Member, error) {
+	m := member.ToDB()
 	err := mdb.db.Create(&m).Error
 	if err != nil {
 		return nil, err
 	}
-	return m.fromDB(), nil
+	return m.FromDB(), nil
 }
 
-func (mdb *memberDB) DeleteMember(member *member) error {
-	return mdb.db.Delete(member.toDB()).Error
+func (mdb *memberDB) DeleteMember(member *models.Member) error {
+	return mdb.db.Delete(member.ToDB()).Error
 }

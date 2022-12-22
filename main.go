@@ -42,8 +42,7 @@ func main() {
 
 	api.Use(security.AuthorizeJWTMiddleware(config.Origin, jwtService))
 
-	memberDB := members.NewMemberDB(db)
-	memberService := members.NewMemberService(memberDB)
+	memberService := members.NewMemberService(db)
 	membersRoute := api.Group("/members")
 
 	membersRoute.GET("/groups", memberService.GetAllGroups)
@@ -60,8 +59,7 @@ func main() {
 	api.PATCH("/users/:username/toggle-admin", security.AdminOnlyMiddleware(), userService.ToggleAdmin)
 	api.GET("/users/", security.AdminOnlyMiddleware(), userService.GetAll)
 
-	equipmentDB := equipment.NewEquipmentDB(db)
-	equipmentService := equipment.NewEquipmentService(equipmentDB)
+	equipmentService := equipment.NewEquipmentService(db)
 	equipmentRoute := api.Group("/equipment")
 	equipmentRoute.GET("/type/:type", equipmentService.GetAllEquipmentByType)
 	equipmentRoute.GET("/:id", equipmentService.GetEquipmentById)

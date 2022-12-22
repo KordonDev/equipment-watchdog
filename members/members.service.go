@@ -1,6 +1,8 @@
 package members
 
 import (
+	"github.com/kordondev/equipment-watchdog/models"
+	"gorm.io/gorm"
 	"net/http"
 
 	"github.com/cloudflare/cfssl/log"
@@ -12,9 +14,9 @@ type MemberService struct {
 	db *memberDB
 }
 
-func NewMemberService(memberDB *memberDB) *MemberService {
+func NewMemberService(db *gorm.DB) *MemberService {
 	return &MemberService{
-		db: memberDB,
+		db: newMemberDB(db),
 	}
 }
 
@@ -61,11 +63,13 @@ func (s *MemberService) UpdateMember(c *gin.Context) {
 		return
 	}
 
-	var um member
+	var um models.Member
 	if err := c.BindJSON(&um); err != nil {
 		c.AbortWithStatus(http.StatusBadRequest)
 		return
 	}
+
+	// TODO:load equipment by id and set to object
 
 	um.Id = em.Id
 	err = s.db.SaveMember(&um)
@@ -78,7 +82,7 @@ func (s *MemberService) UpdateMember(c *gin.Context) {
 }
 
 func (s *MemberService) CreateMember(c *gin.Context) {
-	var m member
+	var m models.Member
 	if err := c.BindJSON(&m); err != nil {
 		c.AbortWithStatus(http.StatusBadRequest)
 		return
@@ -101,7 +105,7 @@ func (s *MemberService) DeleteById(c *gin.Context) {
 		return
 	}
 
-	err = s.db.db.Delete(&dbMember{}, id).Error
+	err = s.db.db.Delete(&models.DbMember{}, id).Error
 	if err != nil {
 		log.Error(err)
 		c.AbortWithError(http.StatusNotFound, err)
@@ -112,5 +116,5 @@ func (s *MemberService) DeleteById(c *gin.Context) {
 }
 
 func (s *MemberService) GetAllGroups(c *gin.Context) {
-	c.JSON(http.StatusOK, GroupWithEquipment)
+	c.JSON(http.StatusOK, models.GroupWithEquipment)
 }
