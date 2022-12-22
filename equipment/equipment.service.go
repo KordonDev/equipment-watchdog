@@ -1,9 +1,10 @@
 package equipment
 
 import (
+	"net/http"
+
 	"github.com/kordondev/equipment-watchdog/models"
 	"gorm.io/gorm"
-	"net/http"
 
 	"github.com/cloudflare/cfssl/log"
 	"github.com/gin-gonic/gin"
@@ -86,4 +87,8 @@ func (s *EquipmentService) DeleteEquipment(c *gin.Context) {
 		return
 	}
 	c.Status(http.StatusOK)
+}
+
+func (s *EquipmentService) GetAllByIds(ids []uint64) ([]*models.Equipment, error) {
+	return s.db.getAllByIds(ids)
 }

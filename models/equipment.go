@@ -21,6 +21,7 @@ type Equipment struct {
 	Id               uint64        `json:"id"`
 	Type             EquipmentType `json:"type"`
 	RegistrationCode string        `json:"registrationCode"`
+	MemberID         uint64        `json:"memberId"`
 }
 
 func (e *Equipment) ToDb() *DbEquipment {
@@ -28,6 +29,7 @@ func (e *Equipment) ToDb() *DbEquipment {
 		ID:               e.Id,
 		Type:             e.Type,
 		RegistrationCode: e.RegistrationCode,
+		MemberID:         e.MemberID,
 	}
 }
 
@@ -36,5 +38,6 @@ func (dbe *DbEquipment) FromDB() *Equipment {
 		Id:               dbe.ID,
 		Type:             dbe.Type,
 		RegistrationCode: dbe.RegistrationCode,
+		MemberID:         dbe.MemberID,
 	}
 }

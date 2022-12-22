@@ -1,9 +1,11 @@
 package members
 
 import (
+	"net/http"
+
+	"github.com/kordondev/equipment-watchdog/equipment"
 	"github.com/kordondev/equipment-watchdog/models"
 	"gorm.io/gorm"
-	"net/http"
 
 	"github.com/cloudflare/cfssl/log"
 	"github.com/gin-gonic/gin"
@@ -11,12 +13,14 @@ import (
 )
 
 type MemberService struct {
-	db *memberDB
+	db               *memberDB
+	equipmentService *equipment.EquipmentService
 }
 
-func NewMemberService(db *gorm.DB) *MemberService {
+func NewMemberService(db *gorm.DB, equipmentService *equipment.EquipmentService) *MemberService {
 	return &MemberService{
-		db: newMemberDB(db),
+		db:               newMemberDB(db),
+		equipmentService: equipmentService,
 	}
 }
 
@@ -69,15 +73,24 @@ func (s *MemberService) UpdateMember(c *gin.Context) {
 		return
 	}
 
-	// TODO:load equipment by id and set to object
+	eqIds := make([]uint64, 0)
+	for _, e := range um.Equipment {
+		eqIds = append(eqIds, e.Id)
+	}
+	equipments, err := s.equipmentService.GetAllByIds(eqIds)
+	if err != nil {
+		log.Error(err)
+		c.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
 
 	um.Id = em.Id
+	um.Equipment = equipments
 	err = s.db.SaveMember(&um)
 	if err != nil {
 		c.AbortWithStatus(http.StatusInternalServerError)
 		return
 	}
-
 	c.JSON(http.StatusOK, um)
 }
 

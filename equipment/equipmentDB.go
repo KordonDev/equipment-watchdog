@@ -1,9 +1,10 @@
 package equipment
 
 import (
+	"log"
+
 	"github.com/kordondev/equipment-watchdog/models"
 	"gorm.io/gorm"
-	"log"
 )
 
 type equipmentDB struct {
@@ -40,12 +41,7 @@ func (edb *equipmentDB) getByType(equipmentType string) ([]*models.Equipment, er
 		return make([]*models.Equipment, 0), err
 	}
 
-	equipment := make([]*models.Equipment, 0)
-	for _, v := range dbEquipment {
-		equipment = append(equipment, v.FromDB())
-	}
-
-	return equipment, nil
+	return listFormDB(dbEquipment), nil
 }
 
 func (edb *equipmentDB) Create(equipment *models.Equipment) (*models.Equipment, error) {
@@ -59,4 +55,24 @@ func (edb *equipmentDB) Create(equipment *models.Equipment) (*models.Equipment, 
 
 func (edb *equipmentDB) delete(id uint64) error {
 	return edb.db.Delete(&models.DbEquipment{}, id).Error
+}
+
+func (edb *equipmentDB) getAllByIds(ids []uint64) ([]*models.Equipment, error) {
+	dbEquipment := make([]models.DbEquipment, 0)
+
+	err := edb.db.Where("id IN ?", ids).Find(&dbEquipment).Error
+	if err != nil {
+		return make([]*models.Equipment, 0), err
+	}
+
+	return listFormDB(dbEquipment), nil
+}
+
+func listFormDB(dbEquipment []models.DbEquipment) []*models.Equipment {
+	equipment := make([]*models.Equipment, 0)
+	for _, v := range dbEquipment {
+		equipment = append(equipment, v.FromDB())
+	}
+
+	return equipment
 }

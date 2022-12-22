@@ -2,8 +2,9 @@ package members
 
 import (
 	"fmt"
-	"github.com/kordondev/equipment-watchdog/models"
 	"log"
+
+	"github.com/kordondev/equipment-watchdog/models"
 
 	"gorm.io/gorm"
 )
@@ -26,7 +27,7 @@ func newMemberDB(db *gorm.DB) *memberDB {
 func (mdb *memberDB) GetAllMember() ([]*models.Member, error) {
 	var dbMembers []models.DbMember
 
-	err := mdb.db.Find(&dbMembers).Error
+	err := mdb.db.Preload("Equipment").Find(&dbMembers).Error
 
 	if err != nil {
 		return nil, err
@@ -41,7 +42,7 @@ func (mdb *memberDB) GetAllMember() ([]*models.Member, error) {
 
 func (mdb *memberDB) GetMemberByName(name string) (*models.Member, error) {
 	var m models.DbMember
-	err := mdb.db.Model(&models.DbMember{}).First(&m, "name = ?", name).Error
+	err := mdb.db.Preload("Equipment").Model(&models.DbMember{}).First(&m, "name = ?", name).Error
 
 	if err != nil {
 		return &models.Member{}, fmt.Errorf("error getting user: %s", name)
@@ -62,7 +63,9 @@ func (mdb *memberDB) GetMemberById(id uint64) (*models.Member, error) {
 }
 
 func (mdb *memberDB) SaveMember(member *models.Member) error {
-	return mdb.db.Save(member.ToDB()).Error
+	err := mdb.db.Save(member.ToDB()).Error
+	mdb.db.Model(member.ToDB()).Association("Equipment").Replace(member.Equipment)
+	return err
 }
 
 func (mdb *memberDB) CreateMember(member *models.Member) (*models.Member, error) {
