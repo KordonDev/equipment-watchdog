@@ -6,7 +6,16 @@ export interface Member {
   id: string;
   name: string;
   group: string;
-  equipment: Equipment[];
+  equipments: Equipments;
+}
+
+export interface Equipments {
+  [EquipmentType.Helmet]?: Equipment;
+  [EquipmentType.Jacket]?: Equipment;
+  [EquipmentType.Gloves]?: Equipment;
+  [EquipmentType.Trousers]?: Equipment;
+  [EquipmentType.Boots]?: Equipment;
+  [EquipmentType.TShirt]?: Equipment;
 }
 
 export function getMembers(): Promise<Member[]> {
@@ -28,13 +37,7 @@ export function createMember(member: Member): Promise<Member> {
 }
 
 export function updateMember(member: Member): Promise<Member> {
-  member.equipment = [
-    {
-      id: 2,
-      registrationCode: "123",
-      type: EquipmentTypes.Jacket,
-    },
-  ];
+  console.log("update ", JSON.stringify(member));
   return fetchApi(`/members/${member.id}`, {
     method: "PUT",
     body: JSON.stringify(member),

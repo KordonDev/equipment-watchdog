@@ -68,6 +68,17 @@ func (edb *equipmentDB) getAllByIds(ids []uint64) ([]*models.Equipment, error) {
 	return listFormDB(dbEquipment), nil
 }
 
+func (edb *equipmentDB) getFreeEquipment() ([]*models.Equipment, error) {
+	dbEquipment := make([]models.DbEquipment, 0)
+
+	err := edb.db.Where("member_id IS null OR member_id is 0").Find(&dbEquipment).Error
+	if err != nil {
+		return make([]*models.Equipment, 0), err
+	}
+
+	return listFormDB(dbEquipment), nil
+}
+
 func listFormDB(dbEquipment []models.DbEquipment) []*models.Equipment {
 	equipment := make([]*models.Equipment, 0)
 	for _, v := range dbEquipment {

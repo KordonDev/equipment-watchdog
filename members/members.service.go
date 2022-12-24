@@ -85,7 +85,7 @@ func (s *MemberService) UpdateMember(c *gin.Context) {
 	}
 
 	um.Id = em.Id
-	um.Equipment = equipments
+	um.Equipment = um.ListToMap(equipments, um.Id)
 	err = s.db.SaveMember(&um)
 	if err != nil {
 		c.AbortWithStatus(http.StatusInternalServerError)

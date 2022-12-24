@@ -30,6 +30,19 @@ export function deleteEquipment(id: number): Promise<void> {
   });
 }
 
+export type EquipmentByType = {
+  [EquipmentType.Helmet]?: Equipment[];
+  [EquipmentType.Jacket]?: Equipment[];
+  [EquipmentType.Gloves]?: Equipment[];
+  [EquipmentType.Trousers]?: Equipment[];
+  [EquipmentType.Boots]?: Equipment[];
+  [EquipmentType.TShirt]?: Equipment[];
+};
+
+export function getFreeEquipment(): Promise<EquipmentByType> {
+  return fetchApi("/equipment/free");
+}
+
 export enum EquipmentType {
   Helmet = "helmet",
   Jacket = "jacket",

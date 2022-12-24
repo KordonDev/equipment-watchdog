@@ -18,10 +18,10 @@ func (DbMember) TableName() string {
 }
 
 type Member struct {
-	Id        uint64       `json:"id"`
-	Name      string       `json:"name"`
-	Group     Group        `json:"group"`
-	Equipment []*Equipment `json:"equipment"`
+	Id        uint64                       `json:"id"`
+	Name      string                       `json:"name"`
+	Group     Group                        `json:"group"`
+	Equipment map[EquipmentType]*Equipment `json:"equipments"`
 }
 
 func (m *Member) ToDB() *DbMember {
@@ -38,9 +38,9 @@ func (m *Member) ToDB() *DbMember {
 }
 
 func (dbm DbMember) FromDB() *Member {
-	e := make([]*Equipment, 0)
+	e := make(map[EquipmentType]*Equipment, 0)
 	for _, equipment := range dbm.Equipment {
-		e = append(e, equipment.FromDB())
+		e[equipment.Type] = equipment.FromDB()
 	}
 	return &Member{
 		Id:        dbm.ID,
@@ -48,4 +48,13 @@ func (dbm DbMember) FromDB() *Member {
 		Group:     dbm.Group,
 		Equipment: e,
 	}
+}
+
+func (m Member) ListToMap(equipments []*Equipment, memberId uint64) map[EquipmentType]*Equipment {
+	e := make(map[EquipmentType]*Equipment, 0)
+	for _, equipment := range equipments {
+		equipment.MemberID = memberId
+		e[equipment.Type] = equipment
+	}
+	return e
 }

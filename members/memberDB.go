@@ -63,8 +63,9 @@ func (mdb *memberDB) GetMemberById(id uint64) (*models.Member, error) {
 }
 
 func (mdb *memberDB) SaveMember(member *models.Member) error {
-	err := mdb.db.Save(member.ToDB()).Error
-	mdb.db.Model(member.ToDB()).Association("Equipment").Replace(member.Equipment)
+	dbm := member.ToDB()
+	err := mdb.db.Save(dbm).Error
+	mdb.db.Model(dbm).Association("Equipment").Replace(dbm.Equipment)
 	return err
 }
 
