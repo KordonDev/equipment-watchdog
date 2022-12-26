@@ -45,7 +45,7 @@
 <Navigation />
 
 {#await memberPromise then member}
-  <MemberCard {member} />
+  <MemberCard {member} columns={6} />
 
   <MemberForm
     {member}

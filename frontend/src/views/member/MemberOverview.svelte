@@ -11,7 +11,7 @@
 {#await membersPromise then members}
   <div class="flex flex-wrap">
     {#each members as member}
-      <MemberCard {member} />
+      <MemberCard {member} columns={2} />
     {/each}
   </div>
 {/await}
