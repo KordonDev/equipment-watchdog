@@ -3,12 +3,13 @@
   import { onMount } from "svelte";
   import { getTranslatedGroups } from "../../components/groupsStore";
   import {
+    addNoneEquipment,
+    allEquipmentPossibilities,
     EquipmentType,
+    getEquipmentFromFree,
     getFreeEquipment,
-    type Equipment,
-    type EquipmentByType,
   } from "../equipment/equipment.service";
-  import type { Equipments, Member } from "./member.service";
+  import type { Group, Member } from "./member.service";
 
   export let member: Member;
   export let submitText: string;
@@ -35,66 +36,16 @@
       equipments: getEquipmentFromFree(member.equipments, freeEquipment),
     });
   }
-  const NoEquipment: Equipment = {
-    id: 0,
-    registrationCode: "Keine",
-    type: EquipmentType.TShirt,
-  };
 
-  function addNoneEquipment(equipments: Equipments): Equipments {
-    return (Object.values(EquipmentType) as EquipmentType[]).reduce(
-      (acc: Equipments, eT: EquipmentType) => {
-        if (equipments[eT]) {
-          acc[eT] = equipments[eT];
-        } else {
-          acc[eT] = { ...NoEquipment };
-        }
-        return acc;
-      },
-      {} as Equipments
-    );
-  }
-
-  function getEquipmentFromFree(
-    selected: Equipments,
-    equipments: EquipmentByType
-  ): Equipments {
-    return (Object.values(EquipmentType) as EquipmentType[]).reduce(
-      (acc, eT) => {
-        const selectedEquipment = equipments[eT].find(
-          (e) => selected[eT].registrationCode === e.registrationCode
-        );
-        if (
-          selected[eT]?.registrationCode !== NoEquipment.registrationCode &&
-          selectedEquipment
-        ) {
-          acc[eT] = selectedEquipment;
-        }
-        return acc;
-      },
-      {} as Equipments
-    );
-  }
-
-  function allEquipmentPossibilities(
-    equipments: Equipments,
-    equipmentsList: EquipmentByType
-  ): EquipmentByType {
-    return (Object.values(EquipmentType) as EquipmentType[]).reduce(
-      (acc, eT) => {
-        acc[eT] = [NoEquipment];
-        if (
-          equipments[eT] &&
-          equipments[eT].registrationCode !== NoEquipment.registrationCode
-        ) {
-          acc[eT] = acc[eT].concat(equipments[eT]);
-        }
-        if (equipmentsList[eT]) {
-          acc[eT] = acc[eT].concat(...equipmentsList[eT]);
-        }
-        return acc;
-      },
-      {} as EquipmentByType
+  function getItems(
+    freeEquipment: EquipmentType,
+    equipmentType: EquipmentType
+  ) {
+    return (
+      freeEquipment[equipmentType]?.map((e) => ({
+        value: e.registrationCode,
+        name: e.registrationCode,
+      })) || []
     );
   }
 </script>
@@ -111,13 +62,45 @@
     <div>
       <h2>Ausrüstung</h2>
       <Label class="mb-4">
+        <div class="mb-2">Helm</div>
+        <Select
+          items={getItems(freeEquipment, EquipmentType.Jacket)}
+          bind:value={member.equipments[EquipmentType.Helmet].registrationCode}
+        />
+      </Label>
+      <Label class="mb-4">
         <div class="mb-2">Jacke</div>
         <Select
-          items={freeEquipment[EquipmentType.Jacket]?.map((e) => ({
-            value: e.registrationCode,
-            name: e.registrationCode,
-          })) || []}
+          items={getItems(freeEquipment, EquipmentType.Jacket)}
           bind:value={member.equipments[EquipmentType.Jacket].registrationCode}
+        />
+      </Label>
+      <Label class="mb-4">
+        <div class="mb-2">Handschuhe</div>
+        <Select
+          items={getItems(freeEquipment, EquipmentType.Gloves)}
+          bind:value={member.equipments[EquipmentType.Helmet].registrationCode}
+        />
+      </Label>
+      <Label class="mb-4">
+        <div class="mb-2">Hose</div>
+        <Select
+          items={getItems(freeEquipment, EquipmentType.Trousers)}
+          bind:value={member.equipments[EquipmentType.Helmet].registrationCode}
+        />
+      </Label>
+      <Label class="mb-4">
+        <div class="mb-2">Stiefel</div>
+        <Select
+          items={getItems(freeEquipment, EquipmentType.Boots)}
+          bind:value={member.equipments[EquipmentType.Helmet].registrationCode}
+        />
+      </Label>
+      <Label class="mb-4">
+        <div class="mb-2">TShirt</div>
+        <Select
+          items={getItems(freeEquipment, EquipmentType.TShirt)}
+          bind:value={member.equipments[EquipmentType.Helmet].registrationCode}
         />
       </Label>
     </div>

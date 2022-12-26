@@ -1,4 +1,5 @@
 import { fetchApi } from "../apiService";
+import type { Equipments } from "../member/member.service";
 
 export interface Equipment {
   id: number;
@@ -68,3 +69,60 @@ export const translateEquipmentType = (type: EquipmentType): string => {
     )?.name || type
   );
 };
+
+export const NoEquipment: Equipment = {
+  id: 0,
+  registrationCode: "Keine",
+  type: EquipmentType.TShirt,
+};
+
+export function addNoneEquipment(equipments: Equipments): Equipments {
+  return (Object.values(EquipmentType) as EquipmentType[]).reduce(
+    (acc: Equipments, eT: EquipmentType) => {
+      if (equipments[eT]) {
+        acc[eT] = equipments[eT];
+      } else {
+        acc[eT] = { ...NoEquipment };
+      }
+      return acc;
+    },
+    {} as Equipments
+  );
+}
+
+export function getEquipmentFromFree(
+  selected: Equipments,
+  equipments: EquipmentByType
+): Equipments {
+  return (Object.values(EquipmentType) as EquipmentType[]).reduce((acc, eT) => {
+    const selectedEquipment = equipments[eT].find(
+      (e) => selected[eT].registrationCode === e.registrationCode
+    );
+    if (
+      selected[eT]?.registrationCode !== NoEquipment.registrationCode &&
+      selectedEquipment
+    ) {
+      acc[eT] = selectedEquipment;
+    }
+    return acc;
+  }, {} as Equipments);
+}
+
+export function allEquipmentPossibilities(
+  equipments: Equipments,
+  equipmentsList: EquipmentByType
+): EquipmentByType {
+  return (Object.values(EquipmentType) as EquipmentType[]).reduce((acc, eT) => {
+    acc[eT] = [NoEquipment];
+    if (
+      equipments[eT] &&
+      equipments[eT].registrationCode !== NoEquipment.registrationCode
+    ) {
+      acc[eT] = acc[eT].concat(equipments[eT]);
+    }
+    if (equipmentsList[eT]) {
+      acc[eT] = acc[eT].concat(...equipmentsList[eT]);
+    }
+    return acc;
+  }, {} as EquipmentByType);
+}
