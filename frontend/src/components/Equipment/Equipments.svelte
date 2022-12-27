@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { Member } from "../../views/member/member.service";
+  import { Group, type Member } from "../../views/member/member.service";
   import { EquipmentType } from "../../views/equipment/equipment.service";
   import EquipmentIcon from "./EquipmentIcon.svelte";
 
@@ -12,26 +12,30 @@
     registrationCode={member.equipments.helmet?.registrationCode}
     equipmentType={EquipmentType.Helmet}
   />
-  <EquipmentIcon
-    registrationCode={member.equipments.jacket?.registrationCode}
-    equipmentType={EquipmentType.Jacket}
-  />
+  {#if member.group !== Group.MINI}
+    <EquipmentIcon
+      registrationCode={member.equipments.jacket?.registrationCode}
+      equipmentType={EquipmentType.Jacket}
+    />
+  {/if}
   <EquipmentIcon
     registrationCode={member.equipments.gloves?.registrationCode}
     equipmentType={EquipmentType.Gloves}
   />
-  <EquipmentIcon
-    registrationCode={member.equipments.trousers?.registrationCode}
-    equipmentType={EquipmentType.Trousers}
-  />
-  <EquipmentIcon
-    registrationCode={member.equipments.boots?.registrationCode}
-    equipmentType={EquipmentType.Boots}
-  />
-  <EquipmentIcon
-    registrationCode={member.equipments.tshirt?.registrationCode}
-    equipmentType={EquipmentType.TShirt}
-  />
+  {#if member.group !== Group.MINI}
+    <EquipmentIcon
+      registrationCode={member.equipments.trousers?.registrationCode}
+      equipmentType={EquipmentType.Trousers}
+    />
+    <EquipmentIcon
+      registrationCode={member.equipments.boots?.registrationCode}
+      equipmentType={EquipmentType.Boots}
+    />
+    <EquipmentIcon
+      registrationCode={member.equipments.tshirt?.registrationCode}
+      equipmentType={EquipmentType.TShirt}
+    />
+  {/if}
 </div>
 
 <style>
