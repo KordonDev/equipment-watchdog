@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { Label, Select } from "flowbite-svelte";
+  import { Input, Label, Select } from "flowbite-svelte";
   import { group_outros } from "svelte/internal";
   import {
     getTranslatedGroups,
@@ -29,6 +29,15 @@
     return m.group === filter;
   }
 
+  function byName(m: Member, search: string) {
+    if (search === "") {
+      return true;
+    }
+    return m.name.includes(search);
+  }
+
+  let search = "";
+
   let membersPromise = getMembers();
 </script>
 
@@ -44,9 +53,15 @@
     on:change={updateGroupFilter}
   />
 </Label>
+<Label class="block mb-2">
+  Suche
+  <Input required class="mb-4" bind:value={search} />
+</Label>
 {#await membersPromise then members}
   <div class="flex flex-wrap">
-    {#each members.filter((m) => byGroup(m, groupFilterInternal)) as member}
+    {#each members
+      .filter((m) => byGroup(m, groupFilterInternal))
+      .filter((m) => byName(m, search)) as member}
       <MemberCard {member} columns={2} />
     {/each}
   </div>
