@@ -11,6 +11,7 @@
     id: "0",
     name: "",
     group: "",
+    equipments: {},
   };
 
   let loading = false;
@@ -46,4 +47,5 @@
   onSubmit={createMemberInternal}
   submitText="Anlegen"
   {loading}
+  hideEquipment
 />

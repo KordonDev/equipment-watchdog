@@ -15,6 +15,7 @@
   export let submitText: string;
   export let loading: boolean;
   export let onSubmit: (m: Member) => void;
+  export let hideEquipment: boolean | undefined;
 
   let allGroups = [];
   getTranslatedGroups.subscribe((groups) => (allGroups = groups));
@@ -58,7 +59,7 @@
     <div class="mb-2">Gruppe</div>
     <Select required items={allGroups} bind:value={member.group} />
   </Label>
-  {#if mocked && freeEquipment}
+  {#if mocked && freeEquipment && !hideEquipment}
     <div>
       <h2>Ausrüstung</h2>
       <Label class="mb-4">
