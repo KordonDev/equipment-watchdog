@@ -37,7 +37,6 @@ export function createMember(member: Member): Promise<Member> {
 }
 
 export function updateMember(member: Member): Promise<Member> {
-  console.log("update ", JSON.stringify(member));
   return fetchApi(`/members/${member.id}`, {
     method: "PUT",
     body: JSON.stringify(member),

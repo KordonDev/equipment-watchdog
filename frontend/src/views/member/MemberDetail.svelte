@@ -52,6 +52,7 @@
     onSubmit={updateMember}
     submitText="Speichern"
     loading={false}
+    hideEquipment={false}
   />
 
   <Button color="red" on:click={() => (deleteModalOpen = true)}>

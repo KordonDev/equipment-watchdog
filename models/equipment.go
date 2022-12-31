@@ -9,7 +9,7 @@ type DbEquipment struct {
 	CreatedAt        time.Time
 	UpdatedAt        time.Time
 	Type             EquipmentType
-	RegistrationCode string
+	RegistrationCode string `gorm:"unique"`
 	MemberID         uint64
 }
 

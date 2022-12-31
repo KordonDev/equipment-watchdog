@@ -9,7 +9,7 @@
     getEquipmentFromFree,
     getFreeEquipment,
   } from "../equipment/equipment.service";
-  import type { Group, Member } from "./member.service";
+  import { Group, type Member } from "./member.service";
 
   export let member: Member;
   export let submitText: string;
@@ -65,45 +65,52 @@
       <Label class="mb-4">
         <div class="mb-2">Helm</div>
         <Select
-          items={getItems(freeEquipment, EquipmentType.Jacket)}
+          items={getItems(freeEquipment, EquipmentType.Helmet)}
           bind:value={member.equipments[EquipmentType.Helmet].registrationCode}
         />
       </Label>
-      <Label class="mb-4">
-        <div class="mb-2">Jacke</div>
-        <Select
-          items={getItems(freeEquipment, EquipmentType.Jacket)}
-          bind:value={member.equipments[EquipmentType.Jacket].registrationCode}
-        />
-      </Label>
+      {#if member.group !== Group.MINI}
+        <Label class="mb-4">
+          <div class="mb-2">Jacke</div>
+          <Select
+            items={getItems(freeEquipment, EquipmentType.Jacket)}
+            bind:value={member.equipments[EquipmentType.Jacket]
+              .registrationCode}
+          />
+        </Label>
+      {/if}
       <Label class="mb-4">
         <div class="mb-2">Handschuhe</div>
         <Select
           items={getItems(freeEquipment, EquipmentType.Gloves)}
-          bind:value={member.equipments[EquipmentType.Helmet].registrationCode}
+          bind:value={member.equipments[EquipmentType.Gloves].registrationCode}
         />
       </Label>
-      <Label class="mb-4">
-        <div class="mb-2">Hose</div>
-        <Select
-          items={getItems(freeEquipment, EquipmentType.Trousers)}
-          bind:value={member.equipments[EquipmentType.Helmet].registrationCode}
-        />
-      </Label>
-      <Label class="mb-4">
-        <div class="mb-2">Stiefel</div>
-        <Select
-          items={getItems(freeEquipment, EquipmentType.Boots)}
-          bind:value={member.equipments[EquipmentType.Helmet].registrationCode}
-        />
-      </Label>
-      <Label class="mb-4">
-        <div class="mb-2">TShirt</div>
-        <Select
-          items={getItems(freeEquipment, EquipmentType.TShirt)}
-          bind:value={member.equipments[EquipmentType.Helmet].registrationCode}
-        />
-      </Label>
+      {#if member.group !== Group.MINI}
+        <Label class="mb-4">
+          <div class="mb-2">Hose</div>
+          <Select
+            items={getItems(freeEquipment, EquipmentType.Trousers)}
+            bind:value={member.equipments[EquipmentType.Trousers]
+              .registrationCode}
+          />
+        </Label>
+        <Label class="mb-4">
+          <div class="mb-2">Stiefel</div>
+          <Select
+            items={getItems(freeEquipment, EquipmentType.Boots)}
+            bind:value={member.equipments[EquipmentType.Boots].registrationCode}
+          />
+        </Label>
+        <Label class="mb-4">
+          <div class="mb-2">TShirt</div>
+          <Select
+            items={getItems(freeEquipment, EquipmentType.TShirt)}
+            bind:value={member.equipments[EquipmentType.TShirt]
+              .registrationCode}
+          />
+        </Label>
+      {/if}
     </div>
   {/if}
   <div class="flex flex-row justify-end">

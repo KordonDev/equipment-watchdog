@@ -74,8 +74,11 @@ func (s *MemberService) UpdateMember(c *gin.Context) {
 	}
 
 	eqIds := make([]uint64, 0)
-	for _, e := range um.Equipment {
-		eqIds = append(eqIds, e.Id)
+
+	for _, eT := range models.GroupWithEquipment[um.Group] {
+		if um.Equipment[eT] != nil {
+			eqIds = append(eqIds, um.Equipment[eT].Id)
+		}
 	}
 	equipments, err := s.equipmentService.GetAllByIds(eqIds)
 	if err != nil {

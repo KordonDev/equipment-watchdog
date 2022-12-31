@@ -9,20 +9,20 @@
   <img
     src={`/${equipmentType}.svg`}
     alt=""
-    class={`helmet ${registrationCode?.length > 0 ? "equipped" : ""}`}
+    class={`equipment ${registrationCode?.length > 0 ? "equipped" : ""}`}
   />
   {registrationCode ? registrationCode : ""}
 </div>
 
 <style>
-  img.helmet {
+  img.equipment {
     width: 100px;
     height: 100px;
     padding: 10px;
     margin: 5px;
     border-radius: 5px;
   }
-  img.helmet.equipped {
+  img.equipment.equipped {
     background: rgba(0, 100, 0, 0.4);
   }
   div {
