@@ -9,7 +9,8 @@
     translatedEquipmentTypes,
     translateEquipmentType,
   } from "./equipment.service";
-  import { Alert, Label, Select, Spinner } from "flowbite-svelte";
+  import { Alert, Card, Label, Select, Spinner } from "flowbite-svelte";
+  import EquipmentIcon from "../../components/Equipment/EquipmentIcon.svelte";
 
   export let params = { type: undefined };
   let currentType;
@@ -55,15 +56,19 @@
   <div class="flex flex-wrap">
     {#each equipments as equipment}
       <div>
-        <h3>{translateEquipmentType(equipment.type)}</h3>
-        <p>
-          Registrierungsnummer <a
-            href={`${routes.EquipmentDetails.link}${equipment.id}`}
-            use:link
-          >
+        <Card class="m-4">
+          {#if equipment.memberId && equipment.memberId !== 0}
+            Ausgerüstet
+          {/if}
+          <EquipmentIcon
+            equipmentType={equipment.type}
+            registrationCode={undefined}
+          />
+          <h3>{translateEquipmentType(equipment.type)}</h3>
+          <a href={`${routes.EquipmentDetails.link}${equipment.id}`} use:link>
             {equipment.registrationCode}
           </a>
-        </p>
+        </Card>
       </div>
     {/each}
   </div>
