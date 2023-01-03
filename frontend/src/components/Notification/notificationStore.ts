@@ -19,6 +19,12 @@ export const createNotification = (
   }
 };
 
+export const errorNotification = (message: string) =>
+  createNotification({ color: "red", text: message }, 20);
+
+export const successNotification = (message: string) =>
+  createNotification({ color: "green", text: message }, 5);
+
 export const removeNotification = (id: string) => {
   notificationsStore.update((nS) => nS.filter((n) => n.id !== id));
 };

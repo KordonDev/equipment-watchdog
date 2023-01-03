@@ -1,27 +1,25 @@
 <script lang="ts">
-  import { createNotification } from "../../components/Notification/notificationStore";
+  import {
+    createNotification,
+    errorNotification,
+    successNotification,
+  } from "../../components/Notification/notificationStore";
   import { link, replace } from "svelte-spa-router";
   import { routes } from "../../routes";
   import { login } from "./security.service";
+  import { getGroups } from "../member/member.service";
+  import { getGroupsWithEquipment } from "../../components/groupsStore";
 
   let username = "";
   const handleLogin = () => {
     login(username)
-      .then((u) => {
-        createNotification(
-          {
-            color: "green",
-            text: `Login erfolgreich.`,
-          },
-          5
-        );
+      .then(() => {
+        successNotification("Login erfolgreich.");
+        getGroups().then(getGroupsWithEquipment.set);
         replace(routes.MemberOverview.link);
       })
-      .catch((err) => {
-        createNotification({
-          color: "red",
-          text: `Fehler beim Login`,
-        });
+      .catch(() => {
+        errorNotification("Fehler beim Login");
       });
   };
 </script>

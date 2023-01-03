@@ -2,8 +2,16 @@
   import { Button, Modal, Spinner } from "flowbite-svelte";
   import { routes } from "../../routes";
   import { push } from "svelte-spa-router";
-  import { createNotification } from "../../components/Notification/notificationStore";
-  import { deleteMember, getMember, updateMember } from "./member.service";
+  import {
+    errorNotification,
+    successNotification,
+  } from "../../components/Notification/notificationStore";
+  import {
+    deleteMember,
+    getMember,
+    updateMember,
+    type Member,
+  } from "./member.service";
   import MemberForm from "./MemberForm.svelte";
   import MemberCard from "./MemberCard.svelte";
   import Navigation from "../../components/Navigation/Navigation.svelte";
@@ -16,29 +24,35 @@
   let loading = false;
 
   function deleteMemberInternal(id: string, name: string) {
+    loading = true;
     deleteMember(id)
       .then(() => {
-        createNotification(
-          {
-            color: "green",
-            text: `Mitglied ${name} wurde erfolgreich gelöscht.`,
-          },
-          5
-        );
+        successNotification(`Mitglied ${name} wurde erfolgreich gelöscht.`);
         loading = false;
         deleteModalOpen = false;
         push(routes.MemberOverview.link);
       })
-      .catch(() => {
-        createNotification(
-          {
-            color: "red",
-            text: `Mitglied ${name} konnte nicht gelöscht werden.`,
-          },
-          20
+      .catch(() =>
+        errorNotification(`Mitglied ${name} konnte nicht gelöscht werden.`)
+      );
+  }
+
+  function updateMemberInternal(member: Member) {
+    loading = true;
+    updateMember(member)
+      .then((m) => {
+        successNotification(
+          `Mitglied ${m.name} wurde erfolgreich gespeichert.`
         );
-        loading = false;
-      });
+        // TODO: Fix, should be removed
+        //window.location.reload();
+      })
+      .catch(() =>
+        errorNotification(
+          `Mitglied ${member.name} konnte nicht gespeichert werden.`
+        )
+      )
+      .finally(() => (loading = false));
   }
 </script>
 
@@ -49,7 +63,7 @@
 
   <MemberForm
     {member}
-    onSubmit={updateMember}
+    onSubmit={updateMemberInternal}
     submitText="Speichern"
     loading={false}
     hideEquipment={false}

@@ -5,7 +5,7 @@ import {
   Group,
 } from "../views/member/member.service";
 
-export const getGroupsWithEquipment = readable<Groups>(
+export const getGroupsWithEquipment = writable<Groups>(
   undefined,
   function start(set) {
     getGroupsRequest().then((groups) => set(groups));
