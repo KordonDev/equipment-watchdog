@@ -1,13 +1,11 @@
 <script lang="ts">
   import { Label, Input, Select, Button, Spinner } from "flowbite-svelte";
   import EquipmentSelect from "../../components/Equipment/EquipmentSelect.svelte";
-  import { onMount } from "svelte";
   import type { Writable } from "svelte/store";
   import { getTranslatedGroups } from "../../components/groupsStore";
   import {
     allEquipmentPossibilities,
     EquipmentType,
-    getEquipmentFromFree,
     getFreeEquipment,
   } from "../equipment/equipment.service";
   import { Group, type Member } from "./member.service";
@@ -18,10 +16,10 @@
   export let onSubmit: (m: Member) => void;
   export let hideEquipment: boolean | undefined;
 
-  let allGroups = allEquipmentPossibilities($memberStore.equipments, {});
+  let allGroups = [];
   getTranslatedGroups.subscribe((groups) => (allGroups = groups));
 
-  let freeEquipment = {};
+  let freeEquipment = allEquipmentPossibilities($memberStore.equipments, {});
   getFreeEquipment().then((fe) => {
     freeEquipment = allEquipmentPossibilities($memberStore.equipments, fe);
   });

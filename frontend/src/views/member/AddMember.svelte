@@ -2,17 +2,18 @@
   import { routes } from "../../routes";
   import { push } from "svelte-spa-router";
   import { createNotification } from "../../components/Notification/notificationStore";
-  import type { Member } from "./member.service";
+  import { Group, type Member } from "./member.service";
   import { createMember } from "./member.service";
   import MemberForm from "./MemberForm.svelte";
   import Navigation from "../../components/Navigation/Navigation.svelte";
+  import { writable } from "svelte/store";
 
-  let member: Member = {
+  let member = writable<Member>({
     id: "0",
     name: "",
-    group: "",
+    group: Group.FRIDAY,
     equipments: {},
-  };
+  });
 
   let loading = false;
 
@@ -43,7 +44,7 @@
 
 <h1>Mitglied hinzufügen</h1>
 <MemberForm
-  {memberStore}
+  memberStore={member}
   onSubmit={createMemberInternal}
   submitText="Anlegen"
   {loading}

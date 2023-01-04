@@ -6,10 +6,10 @@ export interface Member {
   id: string;
   name: string;
   group: string;
-  equipments: Equipments;
+  equipments: EquipmentByType;
 }
 
-export interface Equipments {
+export interface EquipmentByType {
   [EquipmentType.Helmet]?: Equipment;
   [EquipmentType.Jacket]?: Equipment;
   [EquipmentType.Gloves]?: Equipment;

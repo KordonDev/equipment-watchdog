@@ -4,13 +4,13 @@
     NoEquipment,
     translatedEquipmentTypes,
     type Equipment,
-    type EquipmentByType,
+    type EquipmentListByType,
     type EquipmentType,
   } from "../../views/equipment/equipment.service";
   import type { Member } from "../..//views/member/member.service";
   import { writable, type Writable } from "svelte/store";
 
-  export let freeEquipments: EquipmentByType;
+  export let freeEquipments: EquipmentListByType;
   export let memberStore: Writable<Member>;
   export let equipmmentType: EquipmentType;
 
