@@ -1,5 +1,12 @@
 <script lang="ts">
-  import { Button, Modal, Spinner } from "flowbite-svelte";
+  import {
+    Button,
+    Label,
+    Modal,
+    Select,
+    Spinner,
+    Alert,
+  } from "flowbite-svelte";
   import { routes } from "../../routes";
   import { push } from "svelte-spa-router";
   import {
@@ -15,10 +22,15 @@
   import MemberForm from "./MemberForm.svelte";
   import MemberCard from "./MemberCard.svelte";
   import Navigation from "../../components/Navigation/Navigation.svelte";
+  import { writable } from "svelte/store";
 
   export let params = { id: undefined };
+  const member = writable<Member | undefined>();
+  let loadingError = false;
 
-  let memberPromise = getMember(params.id);
+  getMember(params.id)
+    .then((m) => member.set(m))
+    .catch(() => (loadingError = true));
   let deleteModalOpen = false;
 
   let loading = false;
@@ -44,8 +56,6 @@
         successNotification(
           `Mitglied ${m.name} wurde erfolgreich gespeichert.`
         );
-        // TODO: Fix, should be removed
-        //window.location.reload();
       })
       .catch(() =>
         errorNotification(
@@ -58,11 +68,11 @@
 
 <Navigation />
 
-{#await memberPromise then member}
-  <MemberCard {member} columns={6} />
+{#if $member !== undefined}
+  <MemberCard member={$member} columns={6} />
 
   <MemberForm
-    {member}
+    memberStore={member}
     onSubmit={updateMemberInternal}
     submitText="Speichern"
     loading={false}
@@ -73,7 +83,7 @@
     Mitglied löschen
   </Button>
   <Modal
-    title={`Mitglied "${member.name}" löschen?`}
+    title={`Mitglied "${$member.name}" löschen?`}
     bind:open={deleteModalOpen}
     autoclose
   >
@@ -87,7 +97,7 @@
       {:else}
         <Button
           color="red"
-          on:click={() => deleteMemberInternal(member.id, member.name)}
+          on:click={() => deleteMemberInternal($member.id, $member.name)}
         >
           Löschen
         </Button>
@@ -95,4 +105,7 @@
       {/if}
     </svelte:fragment>
   </Modal>
-{/await}
+{/if}
+{#if loadingError}
+  <Alert class="mb-4" color="red">Mitglied konnte nicht geladen werden.</Alert>
+{/if}

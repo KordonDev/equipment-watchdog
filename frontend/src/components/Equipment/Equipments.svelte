@@ -7,7 +7,7 @@
   export let columns: number;
 </script>
 
-<div class={`flex flex-wrap columns-${columns}`}>
+<div class={`flex flex-wrap columns-${columns} align-center`}>
   <EquipmentIcon
     registrationCode={member.equipments.helmet?.registrationCode}
     equipmentType={EquipmentType.Helmet}

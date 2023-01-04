@@ -43,7 +43,7 @@
 
 <h1>Mitglied hinzufügen</h1>
 <MemberForm
-  {member}
+  {memberStore}
   onSubmit={createMemberInternal}
   submitText="Anlegen"
   {loading}

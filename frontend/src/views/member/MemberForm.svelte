@@ -1,9 +1,10 @@
 <script lang="ts">
   import { Label, Input, Select, Button, Spinner } from "flowbite-svelte";
+  import EquipmentSelect from "../../components/Equipment/EquipmentSelect.svelte";
   import { onMount } from "svelte";
+  import type { Writable } from "svelte/store";
   import { getTranslatedGroups } from "../../components/groupsStore";
   import {
-    addNoneEquipment,
     allEquipmentPossibilities,
     EquipmentType,
     getEquipmentFromFree,
@@ -11,105 +12,69 @@
   } from "../equipment/equipment.service";
   import { Group, type Member } from "./member.service";
 
-  export let member: Member;
+  export let memberStore: Writable<Member>;
   export let submitText: string;
   export let loading: boolean;
   export let onSubmit: (m: Member) => void;
   export let hideEquipment: boolean | undefined;
 
-  let allGroups = [];
+  let allGroups = allEquipmentPossibilities($memberStore.equipments, {});
   getTranslatedGroups.subscribe((groups) => (allGroups = groups));
-  let mocked = false;
 
-  onMount(() => {
-    member.equipments = addNoneEquipment(member.equipments);
-    mocked = true;
-  });
-
-  let freeEquipment;
+  let freeEquipment = {};
   getFreeEquipment().then((fe) => {
-    freeEquipment = allEquipmentPossibilities(member.equipments, fe);
+    freeEquipment = allEquipmentPossibilities($memberStore.equipments, fe);
   });
 
   function handleSubmit() {
-    onSubmit({
-      ...member,
-      equipments: getEquipmentFromFree(member.equipments, freeEquipment),
-    });
-  }
-
-  function getItems(
-    freeEquipment: EquipmentType,
-    equipmentType: EquipmentType
-  ) {
-    return (
-      freeEquipment[equipmentType]?.map((e) => ({
-        value: e.registrationCode,
-        name: e.registrationCode,
-      })) || []
-    );
+    onSubmit($memberStore);
   }
 </script>
 
-<form on:submit|preventDefault={handleSubmit} disabled={loading}>
+<form on:submit|preventDefault={handleSubmit}>
   <Label for="name" class="block mb-2">Name</Label>
-  <Input required class="mb-4" id="name" bind:value={member.name} />
+  <Input required class="mb-4" id="name" bind:value={$memberStore.name} />
 
   <Label class="mb-4">
     <div class="mb-2">Gruppe</div>
-    <Select required items={allGroups} bind:value={member.group} />
+    <Select required items={allGroups} bind:value={$memberStore.group} />
   </Label>
-  {#if mocked && freeEquipment && !hideEquipment}
+  {#if freeEquipment && !hideEquipment}
     <div>
       <h2>Ausrüstung</h2>
-      <Label class="mb-4">
-        <div class="mb-2">Helm</div>
-        <Select
-          items={getItems(freeEquipment, EquipmentType.Helmet)}
-          bind:value={member.equipments[EquipmentType.Helmet].registrationCode}
+      <EquipmentSelect
+        freeEquipments={freeEquipment}
+        equipmmentType={EquipmentType.Helmet}
+        {memberStore}
+      />
+      {#if $memberStore.group !== Group.MINI}
+        <EquipmentSelect
+          freeEquipments={freeEquipment}
+          equipmmentType={EquipmentType.Jacket}
+          {memberStore}
         />
-      </Label>
-      {#if member.group !== Group.MINI}
-        <Label class="mb-4">
-          <div class="mb-2">Jacke</div>
-          <Select
-            items={getItems(freeEquipment, EquipmentType.Jacket)}
-            bind:value={member.equipments[EquipmentType.Jacket]
-              .registrationCode}
-          />
-        </Label>
       {/if}
-      <Label class="mb-4">
-        <div class="mb-2">Handschuhe</div>
-        <Select
-          items={getItems(freeEquipment, EquipmentType.Gloves)}
-          bind:value={member.equipments[EquipmentType.Gloves].registrationCode}
+      <EquipmentSelect
+        freeEquipments={freeEquipment}
+        equipmmentType={EquipmentType.Gloves}
+        {memberStore}
+      />
+      {#if $memberStore.group !== Group.MINI}
+        <EquipmentSelect
+          freeEquipments={freeEquipment}
+          equipmmentType={EquipmentType.Trousers}
+          {memberStore}
         />
-      </Label>
-      {#if member.group !== Group.MINI}
-        <Label class="mb-4">
-          <div class="mb-2">Hose</div>
-          <Select
-            items={getItems(freeEquipment, EquipmentType.Trousers)}
-            bind:value={member.equipments[EquipmentType.Trousers]
-              .registrationCode}
-          />
-        </Label>
-        <Label class="mb-4">
-          <div class="mb-2">Stiefel</div>
-          <Select
-            items={getItems(freeEquipment, EquipmentType.Boots)}
-            bind:value={member.equipments[EquipmentType.Boots].registrationCode}
-          />
-        </Label>
-        <Label class="mb-4">
-          <div class="mb-2">TShirt</div>
-          <Select
-            items={getItems(freeEquipment, EquipmentType.TShirt)}
-            bind:value={member.equipments[EquipmentType.TShirt]
-              .registrationCode}
-          />
-        </Label>
+        <EquipmentSelect
+          freeEquipments={freeEquipment}
+          equipmmentType={EquipmentType.Boots}
+          {memberStore}
+        />
+        <EquipmentSelect
+          freeEquipments={freeEquipment}
+          equipmmentType={EquipmentType.TShirt}
+          {memberStore}
+        />
       {/if}
     </div>
   {/if}
@@ -117,7 +82,7 @@
     {#if loading}
       <Spinner />
     {:else}
-      <Button color="purple" type="submit">
+      <Button color="purple" type="submit" disabled={loading}>
         {submitText}
       </Button>
     {/if}
