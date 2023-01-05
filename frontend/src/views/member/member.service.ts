@@ -1,10 +1,21 @@
 import { fetchApi } from "../apiService";
-import type { EquipmentType } from "../equipment/equipment.service";
+import type { Equipment, EquipmentType } from "../equipment/equipment.service";
+import { EquipmentType as EquipmentTypes } from "../equipment/equipment.service";
 
 export interface Member {
   id: string;
   name: string;
   group: string;
+  equipments: EquipmentByType;
+}
+
+export interface EquipmentByType {
+  [EquipmentType.Helmet]?: Equipment;
+  [EquipmentType.Jacket]?: Equipment;
+  [EquipmentType.Gloves]?: Equipment;
+  [EquipmentType.Trousers]?: Equipment;
+  [EquipmentType.Boots]?: Equipment;
+  [EquipmentType.TShirt]?: Equipment;
 }
 
 export function getMembers(): Promise<Member[]> {
@@ -49,6 +60,7 @@ export interface Groups {
   [Group.MONDAY]: EquipmentType[];
   [Group.MINI]: EquipmentType[];
 }
+
 export function getGroups(): Promise<Groups> {
   return fetchApi("/members/groups");
 }

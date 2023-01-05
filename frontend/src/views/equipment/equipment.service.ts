@@ -1,9 +1,11 @@
 import { fetchApi } from "../apiService";
+import type { EquipmentByType } from "../member/member.service";
 
 export interface Equipment {
   id: number;
   type: EquipmentType;
   registrationCode: string;
+  memberId?: number;
 }
 
 export function getEquipmentByType(type: EquipmentType): Promise<Equipment[]> {
@@ -28,6 +30,19 @@ export function deleteEquipment(id: number): Promise<void> {
   return fetchApi(`/equipment/${id}`, {
     method: "DELETE",
   });
+}
+
+export type EquipmentListByType = {
+  [EquipmentType.Helmet]?: Equipment[];
+  [EquipmentType.Jacket]?: Equipment[];
+  [EquipmentType.Gloves]?: Equipment[];
+  [EquipmentType.Trousers]?: Equipment[];
+  [EquipmentType.Boots]?: Equipment[];
+  [EquipmentType.TShirt]?: Equipment[];
+};
+
+export function getFreeEquipment(): Promise<EquipmentListByType> {
+  return fetchApi("/equipment/free");
 }
 
 export enum EquipmentType {
@@ -55,3 +70,60 @@ export const translateEquipmentType = (type: EquipmentType): string => {
     )?.name || type
   );
 };
+
+export const NoEquipment: Equipment = {
+  id: 0,
+  registrationCode: "Keine",
+  type: EquipmentType.TShirt,
+};
+
+export function addNoneEquipment(equipments: EquipmentByType): EquipmentByType {
+  return (Object.values(EquipmentType) as EquipmentType[]).reduce(
+    (acc: EquipmentByType, eT: EquipmentType) => {
+      if (equipments[eT]) {
+        acc[eT] = equipments[eT];
+      } else {
+        acc[eT] = { ...NoEquipment };
+      }
+      return acc;
+    },
+    {} as EquipmentByType
+  );
+}
+
+export function getEquipmentFromFree(
+  selected: EquipmentByType,
+  equipments: EquipmentListByType
+): EquipmentByType {
+  return (Object.values(EquipmentType) as EquipmentType[]).reduce((acc, eT) => {
+    const selectedEquipment = equipments[eT].find(
+      (e) => selected[eT].registrationCode === e.registrationCode
+    );
+    if (
+      selected[eT]?.registrationCode !== NoEquipment.registrationCode &&
+      selectedEquipment
+    ) {
+      acc[eT] = selectedEquipment;
+    }
+    return acc;
+  }, {} as EquipmentByType);
+}
+
+export function allEquipmentPossibilities(
+  equipments: EquipmentByType,
+  equipmentsList: EquipmentListByType
+): EquipmentListByType {
+  return (Object.values(EquipmentType) as EquipmentType[]).reduce((acc, eT) => {
+    acc[eT] = [NoEquipment];
+    if (
+      equipments[eT] &&
+      equipments[eT].registrationCode !== NoEquipment.registrationCode
+    ) {
+      acc[eT] = acc[eT].concat(equipments[eT]);
+    }
+    if (equipmentsList[eT]) {
+      acc[eT] = acc[eT].concat(...equipmentsList[eT]);
+    }
+    return acc;
+  }, {} as EquipmentListByType);
+}

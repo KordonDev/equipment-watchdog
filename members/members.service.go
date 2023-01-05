@@ -3,18 +3,24 @@ package members
 import (
 	"net/http"
 
+	"github.com/kordondev/equipment-watchdog/equipment"
+	"github.com/kordondev/equipment-watchdog/models"
+	"gorm.io/gorm"
+
 	"github.com/cloudflare/cfssl/log"
 	"github.com/gin-gonic/gin"
 	"github.com/kordondev/equipment-watchdog/url"
 )
 
 type MemberService struct {
-	db *memberDB
+	db               *memberDB
+	equipmentService *equipment.EquipmentService
 }
 
-func NewMemberService(memberDB *memberDB) *MemberService {
+func NewMemberService(db *gorm.DB, equipmentService *equipment.EquipmentService) *MemberService {
 	return &MemberService{
-		db: memberDB,
+		db:               newMemberDB(db),
+		equipmentService: equipmentService,
 	}
 }
 
@@ -61,24 +67,38 @@ func (s *MemberService) UpdateMember(c *gin.Context) {
 		return
 	}
 
-	var um member
+	var um models.Member
 	if err := c.BindJSON(&um); err != nil {
 		c.AbortWithStatus(http.StatusBadRequest)
 		return
 	}
 
+	eqIds := make([]uint64, 0)
+
+	for _, eT := range models.GroupWithEquipment[um.Group] {
+		if um.Equipment[eT] != nil {
+			eqIds = append(eqIds, um.Equipment[eT].Id)
+		}
+	}
+	equipments, err := s.equipmentService.GetAllByIds(eqIds)
+	if err != nil {
+		log.Error(err)
+		c.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
+
 	um.Id = em.Id
+	um.Equipment = um.ListToMap(equipments, um.Id)
 	err = s.db.SaveMember(&um)
 	if err != nil {
 		c.AbortWithStatus(http.StatusInternalServerError)
 		return
 	}
-
 	c.JSON(http.StatusOK, um)
 }
 
 func (s *MemberService) CreateMember(c *gin.Context) {
-	var m member
+	var m models.Member
 	if err := c.BindJSON(&m); err != nil {
 		c.AbortWithStatus(http.StatusBadRequest)
 		return
@@ -101,7 +121,7 @@ func (s *MemberService) DeleteById(c *gin.Context) {
 		return
 	}
 
-	err = s.db.db.Delete(&dbMember{}, id).Error
+	err = s.db.db.Delete(&models.DbMember{}, id).Error
 	if err != nil {
 		log.Error(err)
 		c.AbortWithError(http.StatusNotFound, err)
@@ -112,5 +132,5 @@ func (s *MemberService) DeleteById(c *gin.Context) {
 }
 
 func (s *MemberService) GetAllGroups(c *gin.Context) {
-	c.JSON(http.StatusOK, GroupWithEquipment)
+	c.JSON(http.StatusOK, models.GroupWithEquipment)
 }

@@ -3,6 +3,9 @@ package equipment
 import (
 	"net/http"
 
+	"github.com/kordondev/equipment-watchdog/models"
+	"gorm.io/gorm"
+
 	"github.com/cloudflare/cfssl/log"
 	"github.com/gin-gonic/gin"
 	"github.com/kordondev/equipment-watchdog/url"
@@ -12,9 +15,9 @@ type EquipmentService struct {
 	db *equipmentDB
 }
 
-func NewEquipmentService(equipmentDB *equipmentDB) *EquipmentService {
+func NewEquipmentService(db *gorm.DB) *EquipmentService {
 	return &EquipmentService{
-		db: equipmentDB,
+		db: newEquipmentDB(db),
 	}
 }
 
@@ -54,7 +57,7 @@ func (s *EquipmentService) GetAllEquipmentByType(c *gin.Context) {
 }
 
 func (s *EquipmentService) CreateEquipment(c *gin.Context) {
-	var e equipment
+	var e models.Equipment
 	if err := c.BindJSON(&e); err != nil {
 		c.AbortWithError(http.StatusBadRequest, err)
 		return
@@ -84,4 +87,23 @@ func (s *EquipmentService) DeleteEquipment(c *gin.Context) {
 		return
 	}
 	c.Status(http.StatusOK)
+}
+
+func (s *EquipmentService) GetAllByIds(ids []uint64) ([]*models.Equipment, error) {
+	return s.db.getAllByIds(ids)
+}
+
+func (s *EquipmentService) FreeEquipment(c *gin.Context) {
+	equipment, err := s.db.getFreeEquipment()
+
+	equipments := make(map[models.EquipmentType][]*models.Equipment)
+	for _, e := range equipment {
+		equipments[e.Type] = append(equipments[e.Type], e)
+	}
+	if err != nil {
+		log.Error(err)
+		c.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
+	c.JSON(http.StatusOK, equipments)
 }

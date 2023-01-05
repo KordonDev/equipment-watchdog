@@ -1,64 +1,89 @@
 <script lang="ts">
-  import { Button, Modal, Spinner } from "flowbite-svelte";
+  import {
+    Button,
+    Label,
+    Modal,
+    Select,
+    Spinner,
+    Alert,
+  } from "flowbite-svelte";
   import { routes } from "../../routes";
   import { push } from "svelte-spa-router";
-  import { createNotification } from "../../components/Notification/notificationStore";
-  import { deleteMember, getMember, updateMember } from "./member.service";
+  import {
+    errorNotification,
+    successNotification,
+  } from "../../components/Notification/notificationStore";
+  import {
+    deleteMember,
+    getMember,
+    updateMember,
+    type Member,
+  } from "./member.service";
   import MemberForm from "./MemberForm.svelte";
   import MemberCard from "./MemberCard.svelte";
   import Navigation from "../../components/Navigation/Navigation.svelte";
+  import { writable } from "svelte/store";
 
   export let params = { id: undefined };
+  const member = writable<Member | undefined>();
+  let loadingError = false;
 
-  let memberPromise = getMember(params.id);
+  getMember(params.id)
+    .then((m) => member.set(m))
+    .catch(() => (loadingError = true));
   let deleteModalOpen = false;
 
   let loading = false;
 
   function deleteMemberInternal(id: string, name: string) {
+    loading = true;
     deleteMember(id)
       .then(() => {
-        createNotification(
-          {
-            color: "green",
-            text: `Mitglied ${name} wurde erfolgreich gelöscht.`,
-          },
-          5
-        );
+        successNotification(`Mitglied ${name} wurde erfolgreich gelöscht.`);
         loading = false;
         deleteModalOpen = false;
         push(routes.MemberOverview.link);
       })
-      .catch(() => {
-        createNotification(
-          {
-            color: "red",
-            text: `Mitglied ${name} konnte nicht gelöscht werden.`,
-          },
-          20
+      .catch(() =>
+        errorNotification(`Mitglied ${name} konnte nicht gelöscht werden.`)
+      );
+  }
+
+  function updateMemberInternal(member: Member) {
+    loading = true;
+    updateMember(member)
+      .then((m) => {
+        successNotification(
+          `Mitglied ${m.name} wurde erfolgreich gespeichert.`
         );
-        loading = false;
-      });
+      })
+      .catch(() =>
+        errorNotification(
+          `Mitglied ${member.name} konnte nicht gespeichert werden.`
+        )
+      )
+      .finally(() => (loading = false));
   }
 </script>
 
 <Navigation />
 
-{#await memberPromise then member}
-  <MemberCard {member} />
+{#if $member !== undefined}
+  <MemberCard member={$member} columns={6} />
 
   <MemberForm
-    {member}
-    onSubmit={updateMember}
+    memberStore={member}
+    onSubmit={updateMemberInternal}
     submitText="Speichern"
     loading={false}
+    hideEquipment={false}
   />
 
   <Button color="red" on:click={() => (deleteModalOpen = true)}>
     Mitglied löschen
   </Button>
   <Modal
-    title={`Mitglied "${member.name}" löschen?`}
+    title={`Mitglied "${$member.name}" löschen?`}
     bind:open={deleteModalOpen}
     autoclose
   >
@@ -72,7 +97,7 @@
       {:else}
         <Button
           color="red"
-          on:click={() => deleteMemberInternal(member.id, member.name)}
+          on:click={() => deleteMemberInternal($member.id, $member.name)}
         >
           Löschen
         </Button>
@@ -80,4 +105,7 @@
       {/if}
     </svelte:fragment>
   </Modal>
-{/await}
+{/if}
+{#if loadingError}
+  <Alert class="mb-4" color="red">Mitglied konnte nicht geladen werden.</Alert>
+{/if}

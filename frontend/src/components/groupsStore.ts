@@ -1,11 +1,11 @@
-import { readable } from "svelte/store";
+import { readable, writable } from "svelte/store";
 import type { Groups } from "../views/member/member.service";
 import {
   getGroups as getGroupsRequest,
   Group,
 } from "../views/member/member.service";
 
-export const getGroupsWithEquipment = readable<Groups>(
+export const getGroupsWithEquipment = writable<Groups>(
   undefined,
   function start(set) {
     getGroupsRequest().then((groups) => set(groups));
@@ -40,4 +40,11 @@ export const getTranslatedGroups = readable<TranslatedGroup[]>(
       set(translations);
     });
   }
+);
+
+const LOCALSTOARGE_GROUP_KEY = "groups_overview";
+const storeGroup = localStorage.getItem(LOCALSTOARGE_GROUP_KEY);
+export const groupFilter = writable(storeGroup || Group.MONDAY);
+groupFilter.subscribe((value) =>
+  localStorage.setItem(LOCALSTOARGE_GROUP_KEY, value)
 );

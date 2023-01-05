@@ -1,6 +1,9 @@
 package equipment
 
 import (
+	"log"
+
+	"github.com/kordondev/equipment-watchdog/models"
 	"gorm.io/gorm"
 )
 
@@ -8,50 +11,79 @@ type equipmentDB struct {
 	db *gorm.DB
 }
 
-func NewEquipmentDB(db *gorm.DB) *equipmentDB {
-	db.AutoMigrate(&dbEquipment{})
+func newEquipmentDB(db *gorm.DB) *equipmentDB {
+	err := db.AutoMigrate(&models.DbEquipment{})
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	return &equipmentDB{
 		db: db,
 	}
 }
 
-func (edb *equipmentDB) getById(id uint64) (*equipment, error) {
-	var e dbEquipment
-	err := edb.db.Model(&dbEquipment{}).First(&e, "ID = ?", id).Error
+func (edb *equipmentDB) getById(id uint64) (*models.Equipment, error) {
+	var e models.DbEquipment
+	err := edb.db.Model(&models.DbEquipment{}).First(&e, "ID = ?", id).Error
 
 	if err != nil {
-		return &equipment{}, err
+		return &models.Equipment{}, err
 	}
 
-	return e.fromDB(), nil
+	return e.FromDB(), nil
 }
 
-func (edb *equipmentDB) getByType(equipmentType string) ([]*equipment, error) {
-	dbEquipment := make([]dbEquipment, 0)
+func (edb *equipmentDB) getByType(equipmentType string) ([]*models.Equipment, error) {
+	dbEquipment := make([]models.DbEquipment, 0)
 
 	err := edb.db.Where("type = ?", equipmentType).Find(&dbEquipment).Error
 	if err != nil {
-		return make([]*equipment, 0), err
+		return make([]*models.Equipment, 0), err
 	}
 
-	equipment := make([]*equipment, 0)
-	for _, v := range dbEquipment {
-		equipment = append(equipment, v.fromDB())
-	}
-
-	return equipment, nil
+	return listFormDB(dbEquipment), nil
 }
 
-func (edb *equipmentDB) Create(equipment *equipment) (*equipment, error) {
-	e := equipment.toDb()
+func (edb *equipmentDB) Create(equipment *models.Equipment) (*models.Equipment, error) {
+	e := equipment.ToDb()
 	err := edb.db.Create(&e).Error
 	if err != nil {
 		return nil, err
 	}
-	return e.fromDB(), nil
+	return e.FromDB(), nil
 }
 
 func (edb *equipmentDB) delete(id uint64) error {
-	return edb.db.Delete(&dbEquipment{}, id).Error
+	return edb.db.Delete(&models.DbEquipment{}, id).Error
+}
+
+func (edb *equipmentDB) getAllByIds(ids []uint64) ([]*models.Equipment, error) {
+	dbEquipment := make([]models.DbEquipment, 0)
+
+	err := edb.db.Where("id IN ?", ids).Find(&dbEquipment).Error
+	if err != nil {
+		return make([]*models.Equipment, 0), err
+	}
+
+	return listFormDB(dbEquipment), nil
+}
+
+func (edb *equipmentDB) getFreeEquipment() ([]*models.Equipment, error) {
+	dbEquipment := make([]models.DbEquipment, 0)
+
+	err := edb.db.Where("member_id IS null OR member_id is 0").Find(&dbEquipment).Error
+	if err != nil {
+		return make([]*models.Equipment, 0), err
+	}
+
+	return listFormDB(dbEquipment), nil
+}
+
+func listFormDB(dbEquipment []models.DbEquipment) []*models.Equipment {
+	equipment := make([]*models.Equipment, 0)
+	for _, v := range dbEquipment {
+		equipment = append(equipment, v.FromDB())
+	}
+
+	return equipment
 }
