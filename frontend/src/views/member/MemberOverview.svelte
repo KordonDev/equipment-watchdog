@@ -1,12 +1,13 @@
 <script lang="ts">
   import { Input, Label, Select } from "flowbite-svelte";
-  import { group_outros } from "svelte/internal";
+  import { routes } from "../../routes";
+  import { link } from "svelte-spa-router";
   import {
     getTranslatedGroups,
     groupFilter,
   } from "../../components/groupsStore";
   import Navigation from "../../components/Navigation/Navigation.svelte";
-  import { getMembers, Group, type Member } from "./member.service";
+  import { getMembers, type Member } from "./member.service";
   import MemberCard from "./MemberCard.svelte";
 
   let allGroups = [];
@@ -43,6 +44,7 @@
 
 <Navigation />
 <h1>Mitglieder</h1>
+<a href={routes.AddMember.link} use:link>Mitglied hinzufügen</a>
 <Label class="my-4" size="md">
   <div class="mb-2">Gruppe</div>
   <Select

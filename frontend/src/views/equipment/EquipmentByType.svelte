@@ -64,10 +64,12 @@
             equipmentType={equipment.type}
             registrationCode={undefined}
           />
-          <h3>{translateEquipmentType(equipment.type)}</h3>
-          <a href={`${routes.EquipmentDetails.link}${equipment.id}`} use:link>
-            {equipment.registrationCode}
-          </a>
+          <h3>
+            <a href={`${routes.EquipmentDetails.link}${equipment.id}`} use:link>
+              {equipment.registrationCode}
+            </a>
+          </h3>
+          <p>Größe: {equipment.size || "-"}</p>
         </Card>
       </div>
     {/each}
