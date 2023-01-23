@@ -54,6 +54,7 @@
   <div>
     <h3>{translateEquipmentType(equipment.type)}</h3>
     <p>Registrierungsnummer {equipment.registrationCode}</p>
+    <p>Größe {equipment.size || "-"}</p>
   </div>
   <Button color="red" on:click={() => (deleteModalOpen = true)}>
     {translateEquipmentType(equipment.type)} löschen

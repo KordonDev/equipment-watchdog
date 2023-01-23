@@ -15,6 +15,7 @@
     registrationCode: "",
     type: EquipmentType.Jacket,
     id: 0,
+    size: "",
   };
   let loading = false;
 
@@ -62,6 +63,9 @@
       bind:value={equipment.type}
     />
   </Label>
+
+  <Label for="size" class="block mb-2">Größe</Label>
+  <Input required class="mb-4" id="size" bind:value={equipment.size} />
   <div class="flex flex-row justify-end">
     {#if loading}
       <Spinner />

@@ -23,7 +23,7 @@
     return (
       freeEquipment?.map((e) => ({
         value: e.registrationCode,
-        name: e.registrationCode,
+        name: `${e.registrationCode} ${e.size ? "(" + e.size + ")" : ""}`,
       })) || []
     );
   }

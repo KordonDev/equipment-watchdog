@@ -6,6 +6,7 @@ export interface Equipment {
   type: EquipmentType;
   registrationCode: string;
   memberId?: number;
+  size: string;
 }
 
 export function getEquipmentByType(type: EquipmentType): Promise<Equipment[]> {

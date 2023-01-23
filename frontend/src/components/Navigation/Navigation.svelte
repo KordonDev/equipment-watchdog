@@ -6,11 +6,11 @@
 </script>
 
 <nav>
-  <a href={routes.MemberOverview.link} use:link>Übersicht</a>
-  <a href={routes.AddMember.link} use:link>Mitglied hinzufügen</a>
-  <a href={routes.Users.link} use:link>User</a>
+  <a href={routes.MemberOverview.link} use:link>Mitglieder</a> |
   <a href={`${routes.EquipmentType.link}${EquipmentType.Jacket}`} use:link>
     Ausrüstung
   </a>
+  |
+  <a href={routes.Users.link} use:link>User</a> |
   <button on:click={logout}>Ausloggen</button>
 </nav>

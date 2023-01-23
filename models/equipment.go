@@ -11,6 +11,7 @@ type DbEquipment struct {
 	Type             EquipmentType
 	RegistrationCode string `gorm:"unique"`
 	MemberID         uint64
+	Size             string
 }
 
 func (DbEquipment) TableName() string {
@@ -22,6 +23,7 @@ type Equipment struct {
 	Type             EquipmentType `json:"type"`
 	RegistrationCode string        `json:"registrationCode"`
 	MemberID         uint64        `json:"memberId"`
+	Size             string        `json:"size"`
 }
 
 func (e *Equipment) ToDb() *DbEquipment {
@@ -30,6 +32,7 @@ func (e *Equipment) ToDb() *DbEquipment {
 		Type:             e.Type,
 		RegistrationCode: e.RegistrationCode,
 		MemberID:         e.MemberID,
+		Size:             e.Size,
 	}
 }
 
@@ -39,5 +42,6 @@ func (dbe *DbEquipment) FromDB() *Equipment {
 		Type:             dbe.Type,
 		RegistrationCode: dbe.RegistrationCode,
 		MemberID:         dbe.MemberID,
+		Size:             dbe.Size,
 	}
 }
