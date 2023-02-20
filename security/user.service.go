@@ -7,6 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// TODO: refactor own user package?
 type userService struct {
 	db         *userDB
 	jwtService *JwtService

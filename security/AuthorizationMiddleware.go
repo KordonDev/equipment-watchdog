@@ -8,7 +8,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func AuthorizeJWTMiddleware(origin string, jwtService *JwtService) gin.HandlerFunc {
+func AuthorizeJWTMiddleware(_ string, jwtService *JwtService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 
 		var jwtCookie string

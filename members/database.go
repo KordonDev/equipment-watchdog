@@ -10,24 +10,24 @@ import (
 )
 
 type memberDB struct {
-	db *gorm.DB
+	*gorm.DB
 }
 
-func newMemberDB(db *gorm.DB) *memberDB {
+func NewMemberDB(db *gorm.DB) *memberDB {
 	err := db.AutoMigrate(&models.DbMember{})
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	return &memberDB{
-		db: db,
+		DB: db,
 	}
 }
 
 func (mdb *memberDB) GetAllMember() ([]*models.Member, error) {
 	var dbMembers []models.DbMember
 
-	err := mdb.db.Preload("Equipment").Find(&dbMembers).Error
+	err := mdb.Preload("Equipment").Find(&dbMembers).Error
 
 	if err != nil {
 		return nil, err

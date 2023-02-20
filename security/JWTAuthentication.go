@@ -78,15 +78,12 @@ type Claims struct {
 	StandardClaims `mapstructure:",squash"`
 }
 
-func (service *JwtService) GetClaims(token *jwt.Token) (*Claims, error) {
-	claims := token.Claims.(jwt.MapClaims)
-
-	var jwtData *Claims
-	err := mapstructure.Decode(claims, &jwtData)
-	if err != nil {
+func (service *JwtService) GetClaims(token *jwt.Token) (Claims, error) {
+	var claims Claims
+	if err := mapstructure.Decode(token.Claims.(jwt.MapClaims), &claims); err != nil {
 		fmt.Printf("Error parsing token: %v", err)
-		return nil, err
+		return Claims{}, err
 	}
 
-	return jwtData, nil
+	return claims, nil
 }

@@ -8,6 +8,7 @@ import (
 	"gorm.io/gorm"
 )
 
+// TODO: refactor own user package?
 type userDB struct {
 	db *gorm.DB
 }

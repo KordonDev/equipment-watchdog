@@ -3,23 +3,25 @@ package members
 import (
 	"net/http"
 
-	"github.com/kordondev/equipment-watchdog/equipment"
-	"github.com/kordondev/equipment-watchdog/models"
-	"gorm.io/gorm"
-
 	"github.com/cloudflare/cfssl/log"
 	"github.com/gin-gonic/gin"
+	"github.com/kordondev/equipment-watchdog/equipment"
+	"github.com/kordondev/equipment-watchdog/models"
 	"github.com/kordondev/equipment-watchdog/url"
 )
 
+type MemberDatabase interface {
+	GetMemberById(id uint64) (*models.Member, error)
+	GetAllMember() ([]*models.Member, error)
+}
 type MemberService struct {
-	db               *memberDB
+	db               MemberDatabase
 	equipmentService *equipment.EquipmentService
 }
 
-func NewMemberService(db *gorm.DB, equipmentService *equipment.EquipmentService) *MemberService {
+func NewMemberService(database MemberDatabase, equipmentService *equipment.EquipmentService) *MemberService {
 	return &MemberService{
-		db:               newMemberDB(db),
+		db:               database,
 		equipmentService: equipmentService,
 	}
 }
@@ -89,7 +91,7 @@ func (s *MemberService) UpdateMember(c *gin.Context) {
 
 	um.Id = em.Id
 	um.Equipment = um.ListToMap(equipments, um.Id)
-	err = s.db.SaveMember(&um)
+	err = s.SaveMember(&um)
 	if err != nil {
 		c.AbortWithStatus(http.StatusInternalServerError)
 		return

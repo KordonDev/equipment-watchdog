@@ -11,6 +11,7 @@ import (
 	"github.com/kordondev/equipment-watchdog/url"
 )
 
+// TODO: Controller to handle the request and the service returns results and errors
 type EquipmentService struct {
 	db *equipmentDB
 }

@@ -1,6 +1,7 @@
 package security
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 
@@ -18,10 +19,9 @@ type WebAuthNService struct {
 	domain       string
 }
 
-var AUTHORIZATION_COOKIE_KEY = "Authorization"
+const AUTHORIZATION_COOKIE_KEY = "Authorization"
 
-func NewWebAuthNService(userDB *userDB, origin string, domain string, jwtService *JwtService) *WebAuthNService {
-	var err error
+func NewWebAuthNService(userDB *userDB, origin string, domain string, jwtService *JwtService) (*WebAuthNService, error) {
 	webAuthn, err := webauthn.New(&webauthn.Config{
 		RPDisplayName: "equipment watchdog", // Display Name for your site
 		RPID:          domain,               // Generally the domain name for your site
@@ -29,17 +29,26 @@ func NewWebAuthNService(userDB *userDB, origin string, domain string, jwtService
 	})
 
 	if err != nil {
-		log.Fatal("Error creating webAuthn", err)
+		return nil, fmt.Errorf("could not create webAuth: %w", err)
 	}
 
 	sessionStore, err := session.NewStore()
 	if err != nil {
 		log.Fatal("Error creating sessionStore", err)
+		return nil, fmt.Errorf("could not create session-store: %w", err)
 	}
 
-	return &WebAuthNService{webAuthn: webAuthn, sessionStore: sessionStore, jwtService: jwtService, userDB: userDB, domain: domain}
+	return &WebAuthNService{
+		webAuthn:     webAuthn,
+		sessionStore: sessionStore,
+		jwtService:   jwtService,
+		userDB:       userDB,
+		domain:       domain,
+	}, nil
 }
 
+// FIXME: not really nice solution to cancle on this way the context - channel issue
+// try to make clean architecture
 func (w *WebAuthNService) StartRegister(c *gin.Context) {
 	username := c.Param("username")
 
@@ -81,7 +90,7 @@ func (w *WebAuthNService) StartRegister(c *gin.Context) {
 	c.JSON(http.StatusOK, options)
 }
 
-func (w WebAuthNService) FinishRegistration(c *gin.Context) {
+func (w *WebAuthNService) FinishRegistration(c *gin.Context) {
 	username := c.Param("username")
 
 	user, err := w.userDB.GetUser(username)

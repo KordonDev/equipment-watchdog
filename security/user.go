@@ -7,14 +7,17 @@ import (
 	"github.com/duo-labs/webauthn/webauthn"
 )
 
+// TODO: refactor own user package?
 type User struct {
-	ID          uint64                `json:"id"`
-	Name        string                `json:"name" mapstructure:"name"`
-	IsApproved  bool                  `json:"isApproved"`
-	IsAdmin     bool                  `json:"isAdmin"`
+	ID         uint64 `json:"id"`
+	Name       string `json:"name" mapstructure:"name"`
+	IsApproved bool   `json:"isApproved"`
+	IsAdmin    bool   `json:"isAdmin"`
+	// FIXME: Do you need the whole object or only the username and password?
 	Credentials []webauthn.Credential `json:"-"`
 }
 
+// FIXME: dead code?
 func NewUser(name string) *User {
 	return &User{
 		Name:        name,
@@ -22,26 +25,26 @@ func NewUser(name string) *User {
 	}
 }
 
-func (u User) WebAuthnID() []byte {
+func (u *User) WebAuthnID() []byte {
 	buf := make([]byte, binary.MaxVarintLen64)
 	binary.PutUvarint(buf, uint64(u.ID))
 	binary.LittleEndian.Uint64(buf)
 	return buf
 }
 
-func (u User) WebAuthnName() string {
+func (u *User) WebAuthnName() string {
 	return u.Name
 }
 
-func (u User) WebAuthnDisplayName() string {
+func (u *User) WebAuthnDisplayName() string {
 	return u.Name
 }
 
-func (u User) WebAuthnIcon() string {
+func (u *User) WebAuthnIcon() string {
 	return ""
 }
 
-func (u User) WebAuthnCredentials() []webauthn.Credential {
+func (u *User) WebAuthnCredentials() []webauthn.Credential {
 	return u.Credentials
 }
 
@@ -49,7 +52,7 @@ func (u *User) AddCredential(c webauthn.Credential) {
 	u.Credentials = append(u.Credentials, c)
 }
 
-func (u User) ExcludedCredentials() []protocol.CredentialDescriptor {
+func (u *User) ExcludedCredentials() []protocol.CredentialDescriptor {
 	excludeList := []protocol.CredentialDescriptor{}
 
 	for _, cred := range u.Credentials {
