@@ -12,6 +12,7 @@ import (
 	"github.com/kordondev/equipment-watchdog/config"
 	"github.com/kordondev/equipment-watchdog/equipment"
 	"github.com/kordondev/equipment-watchdog/members"
+	"github.com/kordondev/equipment-watchdog/orders"
 	"github.com/kordondev/equipment-watchdog/security"
 	"github.com/kordondev/equipment-watchdog/users"
 	"gorm.io/driver/sqlite"
@@ -59,6 +60,13 @@ func main() {
 
 	users.NewController(api, userService, configuration.Domain)
 	equipment.NewController(api, equipmentService)
+
+	orderService := orders.NewOrderService(db)
+	orderRoute := api.Group("/orders")
+	orderRoute.GET("/:id", orderService.GetById)
+	orderRoute.POST("/", orderService.Create)
+	orderRoute.PUT("/:id", orderService.Update)
+	orderRoute.DELETE("/:id", orderService.Delete)
 
 	router.Run(fmt.Sprintf("%s:8080", configuration.Domain))
 }
