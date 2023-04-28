@@ -7,9 +7,15 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+type UserDatabase interface {
+	GetUser(string) (*User, error)
+	GetAll() ([]*User, error)
+	SaveUser(*User) (*User, error)
+}
+
 // TODO: refactor own user package?
 type userService struct {
-	db         *userDB
+	db         UserDatabase
 	jwtService *JwtService
 }
 

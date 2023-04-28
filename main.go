@@ -58,7 +58,7 @@ func main() {
 	equipmentService := equipment.NewEquipmentService(db)
 	database := members.NewMemberDB(db)
 	memberService := members.NewMemberService(database, equipmentService)
-	membersRoute := api.Group("/members")
+  membersRoute := api.Group("/members")
 	{
 		membersRoute.GET("/", memberService.GetAllMembers)
 		membersRoute.POST("/", memberService.CreateMember)

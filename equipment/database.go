@@ -8,7 +8,7 @@ import (
 )
 
 type equipmentDB struct {
-	db *gorm.DB
+	*gorm.DB
 }
 
 func newEquipmentDB(db *gorm.DB) *equipmentDB {
@@ -18,13 +18,13 @@ func newEquipmentDB(db *gorm.DB) *equipmentDB {
 	}
 
 	return &equipmentDB{
-		db: db,
+		DB: db,
 	}
 }
 
 func (edb *equipmentDB) getById(id uint64) (*models.Equipment, error) {
 	var e models.DbEquipment
-	err := edb.db.Model(&models.DbEquipment{}).First(&e, "ID = ?", id).Error
+	err := edb.Model(&models.DbEquipment{}).First(&e, "ID = ?", id).Error
 
 	if err != nil {
 		return &models.Equipment{}, err
@@ -36,7 +36,7 @@ func (edb *equipmentDB) getById(id uint64) (*models.Equipment, error) {
 func (edb *equipmentDB) getByType(equipmentType string) ([]*models.Equipment, error) {
 	dbEquipment := make([]models.DbEquipment, 0)
 
-	err := edb.db.Where("type = ?", equipmentType).Find(&dbEquipment).Error
+	err := edb.Where("type = ?", equipmentType).Find(&dbEquipment).Error
 	if err != nil {
 		return make([]*models.Equipment, 0), err
 	}
@@ -44,9 +44,9 @@ func (edb *equipmentDB) getByType(equipmentType string) ([]*models.Equipment, er
 	return listFormDB(dbEquipment), nil
 }
 
-func (edb *equipmentDB) Create(equipment *models.Equipment) (*models.Equipment, error) {
+func (edb *equipmentDB) CreateEquipent(equipment *models.Equipment) (*models.Equipment, error) {
 	e := equipment.ToDb()
-	err := edb.db.Create(&e).Error
+	err := edb.Create(&e).Error
 	if err != nil {
 		return nil, err
 	}
@@ -54,13 +54,13 @@ func (edb *equipmentDB) Create(equipment *models.Equipment) (*models.Equipment, 
 }
 
 func (edb *equipmentDB) delete(id uint64) error {
-	return edb.db.Delete(&models.DbEquipment{}, id).Error
+	return edb.Delete(&models.DbEquipment{}, id).Error
 }
 
 func (edb *equipmentDB) getAllByIds(ids []uint64) ([]*models.Equipment, error) {
 	dbEquipment := make([]models.DbEquipment, 0)
 
-	err := edb.db.Where("id IN ?", ids).Find(&dbEquipment).Error
+	err := edb.Where("id IN ?", ids).Find(&dbEquipment).Error
 	if err != nil {
 		return make([]*models.Equipment, 0), err
 	}
@@ -71,7 +71,7 @@ func (edb *equipmentDB) getAllByIds(ids []uint64) ([]*models.Equipment, error) {
 func (edb *equipmentDB) getFreeEquipment() ([]*models.Equipment, error) {
 	dbEquipment := make([]models.DbEquipment, 0)
 
-	err := edb.db.Where("member_id IS null OR member_id is 0").Find(&dbEquipment).Error
+	err := edb.Where("member_id IS null OR member_id is 0").Find(&dbEquipment).Error
 	if err != nil {
 		return make([]*models.Equipment, 0), err
 	}

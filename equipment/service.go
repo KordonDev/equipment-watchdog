@@ -11,9 +11,19 @@ import (
 	"github.com/kordondev/equipment-watchdog/url"
 )
 
+type EquipmentDatabase interface {
+  getById(uint64) (*models.Equipment, error)
+  getByType(string) ([]*models.Equipment, error)
+  CreateEquipent(*models.Equipment) (*models.Equipment, error)
+  delete(uint64) error
+  getAllByIds([]uint64) ([]*models.Equipment, error)
+  getFreeEquipment() ([]*models.Equipment, error)
+
+}
+
 // TODO: Controller to handle the request and the service returns results and errors
 type EquipmentService struct {
-	db *equipmentDB
+	db EquipmentDatabase
 }
 
 func NewEquipmentService(db *gorm.DB) *EquipmentService {
@@ -64,7 +74,7 @@ func (s *EquipmentService) CreateEquipment(c *gin.Context) {
 		return
 	}
 
-	ce, err := s.db.Create(&e)
+	ce, err := s.db.CreateEquipent(&e)
 	if err != nil {
 		c.AbortWithError(http.StatusBadRequest, err)
 		return

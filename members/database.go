@@ -42,7 +42,7 @@ func (mdb *memberDB) GetAllMember() ([]*models.Member, error) {
 
 func (mdb *memberDB) GetMemberByName(name string) (*models.Member, error) {
 	var m models.DbMember
-	err := mdb.db.Preload("Equipment").Model(&models.DbMember{}).First(&m, "name = ?", name).Error
+	err := mdb.Preload("Equipment").Model(&models.DbMember{}).First(&m, "name = ?", name).Error
 
 	if err != nil {
 		return &models.Member{}, fmt.Errorf("error getting user: %s", name)
@@ -53,7 +53,7 @@ func (mdb *memberDB) GetMemberByName(name string) (*models.Member, error) {
 
 func (mdb *memberDB) GetMemberById(id uint64) (*models.Member, error) {
 	var m models.DbMember
-	err := mdb.db.Preload("Equipment").Model(&models.DbMember{}).First(&m, "ID = ?", id).Error
+	err := mdb.Preload("Equipment").Model(&models.DbMember{}).First(&m, "ID = ?", id).Error
 
 	if err != nil {
 		return &models.Member{}, fmt.Errorf("error getting user by id: %d", id)
@@ -64,14 +64,14 @@ func (mdb *memberDB) GetMemberById(id uint64) (*models.Member, error) {
 
 func (mdb *memberDB) SaveMember(member *models.Member) error {
 	dbm := member.ToDB()
-	err := mdb.db.Save(dbm).Error
-	mdb.db.Model(dbm).Association("Equipment").Replace(dbm.Equipment)
+	err := mdb.Save(dbm).Error
+	mdb.Model(dbm).Association("Equipment").Replace(dbm.Equipment)
 	return err
 }
 
 func (mdb *memberDB) CreateMember(member *models.Member) (*models.Member, error) {
 	m := member.ToDB()
-	err := mdb.db.Create(&m).Error
+	err := mdb.Create(&m).Error
 	if err != nil {
 		return nil, err
 	}
@@ -79,5 +79,5 @@ func (mdb *memberDB) CreateMember(member *models.Member) (*models.Member, error)
 }
 
 func (mdb *memberDB) DeleteMember(member *models.Member) error {
-	return mdb.db.Delete(member.ToDB()).Error
+	return mdb.Delete(member.ToDB()).Error
 }
