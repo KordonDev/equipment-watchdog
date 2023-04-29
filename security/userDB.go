@@ -10,7 +10,7 @@ import (
 
 // TODO: refactor own user package?
 type userDB struct {
-	db *gorm.DB
+	*gorm.DB
 }
 
 type DbAuthenticator struct {
@@ -54,13 +54,13 @@ func NewUserDB(db *gorm.DB) *userDB {
 	db.AutoMigrate(&DbUser{}, &DbCredential{}, &DbAuthenticator{})
 
 	return &userDB{
-		db: db,
+		db,
 	}
 }
 
 func (u *userDB) GetUser(username string) (*User, error) {
 	var dbu DbUser
-	err := u.db.Model(&DbUser{}).Preload("Credentials").First(&dbu, "name = ?", username).Error
+	err := u.Model(&DbUser{}).Preload("Credentials").First(&dbu, "name = ?", username).Error
 
 	if err != nil {
 		return &User{}, fmt.Errorf("error getting user: %s", username)
@@ -71,7 +71,7 @@ func (u *userDB) GetUser(username string) (*User, error) {
 
 func (u *userDB) GetAll() ([]*User, error) {
 	var dbUser []DbUser
-	err := u.db.Find(&dbUser).Error
+	err := u.Find(&dbUser).Error
 
 	if err != nil {
 		return nil, err
@@ -86,7 +86,7 @@ func (u *userDB) GetAll() ([]*User, error) {
 
 func (u *userDB) AddUser(user *User) (*User, error) {
 	us := user.toDBUser()
-	err := u.db.Create(us).Error
+	err := u.Create(us).Error
 	if err != nil {
 		return nil, err
 	}
@@ -94,13 +94,13 @@ func (u *userDB) AddUser(user *User) (*User, error) {
 }
 
 func (u *userDB) SaveUser(user *User) (*User, error) {
-	u.db.Save(user.toDBUser())
+	u.Save(user.toDBUser())
 	return u.GetUser(user.Name)
 }
 
 func (u *userDB) HasApprovedAndAdminUser() bool {
 	var dbu DbUser
-	err := u.db.Model(&DbUser{}).First(&dbu, "is_admin = 1 AND is_approved = 1").Error
+	err := u.Model(&DbUser{}).First(&dbu, "is_admin = 1 AND is_approved = 1").Error
 	if err != nil || dbu.ID == 0 {
 		return false
 	}

@@ -49,7 +49,7 @@ func NewWebAuthNService(userDB *userDB, origin string, domain string, jwtService
 
 // FIXME: not really nice solution to cancle on this way the context - channel issue
 // try to make clean architecture
-func (w *WebAuthNService) StartRegister(c *gin.Context) {
+func (w WebAuthNService) StartRegister(c *gin.Context) {
 	username := c.Param("username")
 
 	user, err := w.userDB.GetUser(username)
@@ -126,7 +126,7 @@ func (w *WebAuthNService) FinishRegistration(c *gin.Context) {
 	c.JSON(http.StatusOK, user)
 }
 
-func (w *WebAuthNService) StartLogin(c *gin.Context) {
+func (w WebAuthNService) StartLogin(c *gin.Context) {
 	username := c.Param("username")
 
 	user, err := w.userDB.GetUser(username)
@@ -150,7 +150,7 @@ func (w *WebAuthNService) StartLogin(c *gin.Context) {
 	c.JSON(http.StatusOK, options)
 }
 
-func (w *WebAuthNService) FinishLogin(c *gin.Context) {
+func (w WebAuthNService) FinishLogin(c *gin.Context) {
 	username := c.Param("username")
 
 	user, err := w.userDB.GetUser(username)
@@ -183,7 +183,7 @@ func (w *WebAuthNService) FinishLogin(c *gin.Context) {
 	c.JSON(http.StatusOK, user)
 }
 
-func (w *WebAuthNService) Logout(c *gin.Context) {
+func (w WebAuthNService) Logout(c *gin.Context) {
 	c.SetCookie(AUTHORIZATION_COOKIE_KEY, "", -1, "/", w.domain, true, true)
 	c.JSON(http.StatusUnauthorized, gin.H{
 		"redirect": "login",

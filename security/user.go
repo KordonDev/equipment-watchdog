@@ -17,14 +17,6 @@ type User struct {
 	Credentials []webauthn.Credential `json:"-"`
 }
 
-// FIXME: dead code?
-func NewUser(name string) *User {
-	return &User{
-		Name:        name,
-		Credentials: []webauthn.Credential{},
-	}
-}
-
 func (u *User) WebAuthnID() []byte {
 	buf := make([]byte, binary.MaxVarintLen64)
 	binary.PutUvarint(buf, uint64(u.ID))

@@ -13,9 +13,9 @@ import (
 type MemberDatabase interface {
 	GetMemberById(id uint64) (*models.Member, error)
 	GetAllMember() ([]*models.Member, error)
-  DeleteMember(*models.Member) (error)
-  CreateMember(*models.Member) (*models.Member, error)
-  SaveMember(*models.Member) error
+	DeleteMember(*models.Member) error
+	CreateMember(*models.Member) (*models.Member, error)
+	SaveMember(*models.Member) error
 }
 type MemberService struct {
 	db               MemberDatabase
@@ -126,7 +126,7 @@ func (s *MemberService) DeleteById(c *gin.Context) {
 		return
 	}
 
-  err = s.db.DeleteMember(&models.Member{Id: id})
+	err = s.db.DeleteMember(&models.Member{Id: id})
 	if err != nil {
 		log.Error(err)
 		c.AbortWithError(http.StatusNotFound, err)
