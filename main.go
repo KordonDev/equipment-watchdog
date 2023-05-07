@@ -48,27 +48,14 @@ func main() {
 	if err != nil {
 		panic(fmt.Sprintf("Error creating webAuthn: %v", err))
 	}
-	api.GET("/register/:username", webAuthNService.StartRegister)
-	api.POST("/register/:username", webAuthNService.FinishRegistration)
-	api.GET("/login/:username", webAuthNService.StartLogin)
-	api.POST("/login/:username", webAuthNService.FinishLogin)
-	api.POST("/logout", webAuthNService.Logout)
+	security.NewController(api, webAuthNService)
+	// TODO: security.Controller
 	api.Use(security.AuthorizeJWTMiddleware(configuration.Origin, jwtService))
 
 	equipmentService := equipment.NewEquipmentService(db)
 	database := members.NewMemberDB(db)
-	memberService := members.NewMemberService(database, equipmentService)
-  membersRoute := api.Group("/members")
-	{
-		membersRoute.GET("/", memberService.GetAllMembers)
-		membersRoute.POST("/", memberService.CreateMember)
-
-		membersRoute.GET("/:id", memberService.GetMemberById)
-		membersRoute.PUT("/:id", memberService.UpdateMember)
-		membersRoute.DELETE("/:id", memberService.DeleteById)
-
-		membersRoute.GET("/groups", memberService.GetAllGroups)
-	}
+	memberService := members.NewMemberService(database, &equipmentService)
+	members.NewController(api, memberService)
 
 	userService := security.NewUserService(userDB, jwtService)
 	api.GET("/me", userService.GetMe)
@@ -80,17 +67,7 @@ func main() {
 		userRoute.PATCH("/:username/toggle-admin", security.AdminOnlyMiddleware(), userService.ToggleAdmin)
 	}
 
-	equipmentRoute := api.Group("/equipment")
-	{
-		equipmentRoute.POST("/", equipmentService.CreateEquipment)
-
-		equipmentRoute.GET("/:id", equipmentService.GetEquipmentById)
-		equipmentRoute.DELETE("/:id", equipmentService.DeleteEquipment)
-
-		equipmentRoute.GET("/free", equipmentService.FreeEquipment)
-
-		equipmentRoute.GET("/type/:type", equipmentService.GetAllEquipmentByType)
-	}
+	equipment.NewController(api, equipmentService)
 
 	router.Run(fmt.Sprintf("%s:8080", configuration.Domain))
 }

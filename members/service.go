@@ -1,13 +1,9 @@
 package members
 
 import (
-	"net/http"
-
 	"github.com/cloudflare/cfssl/log"
-	"github.com/gin-gonic/gin"
 	"github.com/kordondev/equipment-watchdog/equipment"
 	"github.com/kordondev/equipment-watchdog/models"
-	"github.com/kordondev/equipment-watchdog/url"
 )
 
 type MemberDatabase interface {
@@ -22,62 +18,22 @@ type MemberService struct {
 	equipmentService *equipment.EquipmentService
 }
 
-func NewMemberService(database MemberDatabase, equipmentService *equipment.EquipmentService) *MemberService {
-	return &MemberService{
+func NewMemberService(database MemberDatabase, equipmentService *equipment.EquipmentService) MemberService {
+	return MemberService{
 		db:               database,
 		equipmentService: equipmentService,
 	}
 }
 
-func (s *MemberService) GetAllMembers(c *gin.Context) {
-	m, err := s.db.GetAllMember()
-
-	if err != nil {
-		c.AbortWithError(http.StatusInternalServerError, err)
-		return
-	}
-	c.JSON(http.StatusOK, m)
+func (s MemberService) GetAllMembers() ([]*models.Member, error) {
+	return s.db.GetAllMember()
 }
 
-func (s *MemberService) GetMemberById(c *gin.Context) {
-	id, err := url.ParseToInt(c, "id")
-	if err != nil {
-		log.Error(err)
-		c.AbortWithError(http.StatusBadRequest, err)
-		return
-	}
-
-	m, err := s.db.GetMemberById(id)
-	if err != nil {
-		log.Error(err)
-		c.AbortWithError(http.StatusNotFound, err)
-		return
-	}
-
-	c.JSON(http.StatusOK, m)
+func (s MemberService) GetMemberById(id uint64) (*models.Member, error) {
+	return s.db.GetMemberById(id)
 }
 
-func (s *MemberService) UpdateMember(c *gin.Context) {
-	id, err := url.ParseToInt(c, "id")
-	if err != nil {
-		log.Error(err)
-		c.AbortWithError(http.StatusNotFound, err)
-		return
-	}
-
-	em, err := s.db.GetMemberById(id)
-	if err != nil {
-		log.Error(err)
-		c.AbortWithError(http.StatusNotFound, err)
-		return
-	}
-
-	var um models.Member
-	if err := c.BindJSON(&um); err != nil {
-		c.AbortWithStatus(http.StatusBadRequest)
-		return
-	}
-
+func (s MemberService) UpdateMember(id uint64, um *models.Member) error {
 	eqIds := make([]uint64, 0)
 
 	for _, eT := range models.GroupWithEquipment[um.Group] {
@@ -88,54 +44,22 @@ func (s *MemberService) UpdateMember(c *gin.Context) {
 	equipments, err := s.equipmentService.GetAllByIds(eqIds)
 	if err != nil {
 		log.Error(err)
-		c.AbortWithError(http.StatusInternalServerError, err)
-		return
+		return err
 	}
 
-	um.Id = em.Id
+	um.Id = id
 	um.Equipment = um.ListToMap(equipments, um.Id)
-	err = s.db.SaveMember(&um)
-	if err != nil {
-		c.AbortWithStatus(http.StatusInternalServerError)
-		return
-	}
-	c.JSON(http.StatusOK, um)
+	return s.db.SaveMember(um)
 }
 
-func (s *MemberService) CreateMember(c *gin.Context) {
-	var m models.Member
-	if err := c.BindJSON(&m); err != nil {
-		c.AbortWithStatus(http.StatusBadRequest)
-		return
-	}
-
-	cm, err := s.db.CreateMember(&m)
-	if err != nil {
-		c.AbortWithStatus(http.StatusInternalServerError)
-		return
-	}
-
-	c.JSON(http.StatusCreated, cm)
+func (s MemberService) CreateMember(m *models.Member) (*models.Member, error) {
+	return s.db.CreateMember(m)
 }
 
-func (s *MemberService) DeleteById(c *gin.Context) {
-	id, err := url.ParseToInt(c, "id")
-	if err != nil {
-		log.Error(err)
-		c.AbortWithError(http.StatusNotFound, err)
-		return
-	}
-
-	err = s.db.DeleteMember(&models.Member{Id: id})
-	if err != nil {
-		log.Error(err)
-		c.AbortWithError(http.StatusNotFound, err)
-		return
-	}
-
-	c.Status(http.StatusOK)
+func (s MemberService) DeleteMemberById(id uint64) error {
+	return s.db.DeleteMember(&models.Member{Id: id})
 }
 
-func (s *MemberService) GetAllGroups(c *gin.Context) {
-	c.JSON(http.StatusOK, models.GroupWithEquipment)
+func (s MemberService) GetAllGroups() map[models.Group][]models.EquipmentType {
+	return models.GroupWithEquipment
 }

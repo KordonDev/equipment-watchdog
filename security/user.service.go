@@ -5,12 +5,13 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/kordondev/equipment-watchdog/models"
 )
 
 type UserDatabase interface {
-	GetUser(string) (*User, error)
-	GetAll() ([]*User, error)
-	SaveUser(*User) (*User, error)
+	GetUser(string) (*models.User, error)
+	GetAll() ([]*models.User, error)
+	SaveUser(*models.User) (*models.User, error)
 }
 
 // TODO: refactor own user package?

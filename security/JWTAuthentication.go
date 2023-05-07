@@ -6,6 +6,7 @@ import (
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
+	"github.com/kordondev/equipment-watchdog/models"
 	"github.com/mitchellh/mapstructure"
 )
 
@@ -20,7 +21,7 @@ type StandardClaims struct {
 }
 
 type AuthCustomClaims struct {
-	User               `mapstructure:",squash"`
+	models.User        `mapstructure:",squash"`
 	jwt.StandardClaims `mapstructure:",squash"`
 }
 
@@ -39,7 +40,7 @@ func NewJwtService(origin string, jwtSecret, domain string) *JwtService {
 	}
 }
 
-func (service *JwtService) GenerateToken(user User) string {
+func (service *JwtService) GenerateToken(user models.User) string {
 
 	claims := &AuthCustomClaims{
 		user,
@@ -74,7 +75,7 @@ func (service *JwtService) ValidateToken(encodedToken string) (*jwt.Token, error
 }
 
 type Claims struct {
-	User           `mapstructure:",squash"`
+	models.User    `mapstructure:",squash"`
 	StandardClaims `mapstructure:",squash"`
 }
 

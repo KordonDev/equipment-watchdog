@@ -1,120 +1,55 @@
 package equipment
 
 import (
-	"net/http"
-
 	"github.com/kordondev/equipment-watchdog/models"
 	"gorm.io/gorm"
-
-	"github.com/cloudflare/cfssl/log"
-	"github.com/gin-gonic/gin"
-	"github.com/kordondev/equipment-watchdog/url"
 )
 
 type EquipmentDatabase interface {
-  getById(uint64) (*models.Equipment, error)
-  getByType(string) ([]*models.Equipment, error)
-  CreateEquipent(*models.Equipment) (*models.Equipment, error)
-  delete(uint64) error
-  getAllByIds([]uint64) ([]*models.Equipment, error)
-  getFreeEquipment() ([]*models.Equipment, error)
-
+	getById(uint64) (*models.Equipment, error)
+	getByType(string) ([]*models.Equipment, error)
+	CreateEquipent(*models.Equipment) (*models.Equipment, error)
+	delete(uint64) error
+	getAllByIds([]uint64) ([]*models.Equipment, error)
+	getFreeEquipment() ([]*models.Equipment, error)
 }
 
-// TODO: Controller to handle the request and the service returns results and errors
 type EquipmentService struct {
 	db EquipmentDatabase
 }
 
-func NewEquipmentService(db *gorm.DB) *EquipmentService {
-	return &EquipmentService{
+func NewEquipmentService(db *gorm.DB) EquipmentService {
+	return EquipmentService{
 		db: newEquipmentDB(db),
 	}
 }
 
-func (s *EquipmentService) GetEquipmentById(c *gin.Context) {
-	id, err := url.ParseToInt(c, "id")
-	if err != nil {
-		log.Error(err)
-		c.AbortWithError(http.StatusBadRequest, err)
-		return
-	}
-
-	e, err := s.db.getById(id)
-	if err != nil {
-		log.Error(err)
-		c.AbortWithError(http.StatusNotFound, err)
-		return
-	}
-
-	c.JSON(http.StatusOK, e)
+func (s EquipmentService) GetEquipmentById(id uint64) (*models.Equipment, error) {
+	return s.db.getById(id)
 }
 
-func (s *EquipmentService) GetAllEquipmentByType(c *gin.Context) {
-	eType := c.Param("type")
-	if eType == "" {
-		c.AbortWithStatus(http.StatusBadRequest)
-		return
-	}
-
-	es, err := s.db.getByType(eType)
-	if err != nil {
-		log.Error(err)
-		c.AbortWithError(http.StatusInternalServerError, err)
-		return
-	}
-
-	c.JSON(http.StatusOK, es)
+func (s EquipmentService) GetAllEquipmentByType(eType string) ([]*models.Equipment, error) {
+	return s.db.getByType(eType)
 }
 
-func (s *EquipmentService) CreateEquipment(c *gin.Context) {
-	var e models.Equipment
-	if err := c.BindJSON(&e); err != nil {
-		c.AbortWithError(http.StatusBadRequest, err)
-		return
-	}
-
-	ce, err := s.db.CreateEquipent(&e)
-	if err != nil {
-		c.AbortWithError(http.StatusBadRequest, err)
-		return
-	}
-
-	c.JSON(http.StatusCreated, ce)
+func (s EquipmentService) CreateEquipment(e models.Equipment) (*models.Equipment, error) {
+	return s.db.CreateEquipent(&e)
 }
 
-func (s *EquipmentService) DeleteEquipment(c *gin.Context) {
-	id, err := url.ParseToInt(c, "id")
-	if err != nil {
-		log.Error(err)
-		c.AbortWithError(http.StatusBadRequest, err)
-		return
-	}
-
-	err = s.db.delete(id)
-	if err != nil {
-		log.Error(err)
-		c.AbortWithError(http.StatusInternalServerError, err)
-		return
-	}
-	c.Status(http.StatusOK)
+func (s EquipmentService) DeleteEquipment(id uint64) error {
+	return s.db.delete(id)
 }
 
-func (s *EquipmentService) GetAllByIds(ids []uint64) ([]*models.Equipment, error) {
+func (s EquipmentService) GetAllByIds(ids []uint64) ([]*models.Equipment, error) {
 	return s.db.getAllByIds(ids)
 }
 
-func (s *EquipmentService) FreeEquipment(c *gin.Context) {
+func (s EquipmentService) GetFreeEquipment() (map[models.EquipmentType][]*models.Equipment, error) {
 	equipment, err := s.db.getFreeEquipment()
 
 	equipments := make(map[models.EquipmentType][]*models.Equipment)
 	for _, e := range equipment {
 		equipments[e.Type] = append(equipments[e.Type], e)
 	}
-	if err != nil {
-		log.Error(err)
-		c.AbortWithError(http.StatusInternalServerError, err)
-		return
-	}
-	c.JSON(http.StatusOK, equipments)
+	return equipments, err
 }

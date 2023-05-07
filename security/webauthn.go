@@ -2,21 +2,19 @@ package security
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 
-	"github.com/duo-labs/webauthn.io/session"
 	"github.com/duo-labs/webauthn/protocol"
 	"github.com/duo-labs/webauthn/webauthn"
 	"github.com/gin-gonic/gin"
+	"github.com/kordondev/equipment-watchdog/models"
 )
 
 type WebAuthNService struct {
-	webAuthn     *webauthn.WebAuthn
-	sessionStore *session.Store
-	jwtService   *JwtService
-	userDB       *userDB
-	domain       string
+	webAuthn   *webauthn.WebAuthn
+	jwtService *JwtService
+	userDB     *userDB
+	domain     string
 }
 
 const AUTHORIZATION_COOKIE_KEY = "Authorization"
@@ -32,29 +30,20 @@ func NewWebAuthNService(userDB *userDB, origin string, domain string, jwtService
 		return nil, fmt.Errorf("could not create webAuth: %w", err)
 	}
 
-	sessionStore, err := session.NewStore()
-	if err != nil {
-		log.Fatal("Error creating sessionStore", err)
-		return nil, fmt.Errorf("could not create session-store: %w", err)
-	}
-
 	return &WebAuthNService{
-		webAuthn:     webAuthn,
-		sessionStore: sessionStore,
-		jwtService:   jwtService,
-		userDB:       userDB,
-		domain:       domain,
+		webAuthn:   webAuthn,
+		jwtService: jwtService,
+		userDB:     userDB,
+		domain:     domain,
 	}, nil
 }
 
 // FIXME: not really nice solution to cancle on this way the context - channel issue
 // try to make clean architecture
-func (w WebAuthNService) StartRegister(c *gin.Context) {
-	username := c.Param("username")
-
+func (w WebAuthNService) StartRegister(username string) (*protocol.CredentialCreation, *webauthn.SessionData, error) {
 	user, err := w.userDB.GetUser(username)
 	if err != nil {
-		user = &User{
+		user = &models.User{
 			Name:        username,
 			IsApproved:  false,
 			IsAdmin:     false,
@@ -62,8 +51,7 @@ func (w WebAuthNService) StartRegister(c *gin.Context) {
 		}
 		user, err = w.userDB.AddUser(user)
 		if err != nil {
-			c.AbortWithError(http.StatusBadRequest, err)
-			return
+			return nil, nil, err
 		}
 	}
 
@@ -76,39 +64,22 @@ func (w WebAuthNService) StartRegister(c *gin.Context) {
 		registerOpts,
 	)
 	if err != nil {
-		c.AbortWithError(http.StatusBadRequest, err)
-		return
+		return nil, nil, err
 	}
 
-	// store options
-	err = w.sessionStore.SaveWebauthnSession("registration", sessionData, c.Request, c.Writer)
-	if err != nil {
-		c.AbortWithError(http.StatusInternalServerError, err)
-		return
-	}
-
-	c.JSON(http.StatusOK, options)
+	return options, sessionData, nil
 }
 
-func (w *WebAuthNService) FinishRegistration(c *gin.Context) {
-	username := c.Param("username")
+func (w *WebAuthNService) FinishRegistration(username string, sessionData webauthn.SessionData, request *http.Request) (*models.User, error) {
 
 	user, err := w.userDB.GetUser(username)
 	if err != nil {
-		c.AbortWithError(http.StatusBadRequest, err)
-		return
+		return nil, err
 	}
 
-	sessionData, err := w.sessionStore.GetWebauthnSession("registration", c.Request)
+	credential, err := w.webAuthn.FinishRegistration(user, sessionData, request)
 	if err != nil {
-		c.AbortWithError(http.StatusBadRequest, err)
-		return
-	}
-
-	credential, err := w.webAuthn.FinishRegistration(user, sessionData, c.Request)
-	if err != nil {
-		c.AbortWithError(http.StatusBadRequest, err)
-		return
+		return nil, err
 	}
 
 	user.AddCredential(*credential)
@@ -120,72 +91,47 @@ func (w *WebAuthNService) FinishRegistration(c *gin.Context) {
 
 	user, err = w.userDB.SaveUser(user)
 	if err != nil {
-		c.AbortWithError(http.StatusBadRequest, err)
-		return
+		return nil, err
 	}
-	c.JSON(http.StatusOK, user)
+	return user, nil
 }
 
-func (w WebAuthNService) StartLogin(c *gin.Context) {
-	username := c.Param("username")
-
+func (w WebAuthNService) StartLogin(username string, request *http.Request) (*protocol.CredentialAssertion, *webauthn.SessionData, error) {
 	user, err := w.userDB.GetUser(username)
 	if err != nil {
-		c.AbortWithError(http.StatusBadRequest, err)
-		return
+		return nil, nil, err
 	}
+
 	options, sessionData, err := w.webAuthn.BeginLogin(user)
 	if err != nil {
-		c.AbortWithError(http.StatusInternalServerError, err)
-		return
-	}
-	err = w.sessionStore.SaveWebauthnSession("authentication", sessionData, c.Request, c.Writer)
-	if err != nil {
-		c.AbortWithError(http.StatusInternalServerError, err)
-		return
+		return nil, nil, err
 	}
 
 	w.userDB.SaveUser(user)
-
-	c.JSON(http.StatusOK, options)
+	return options, sessionData, nil
 }
 
-func (w WebAuthNService) FinishLogin(c *gin.Context) {
-	username := c.Param("username")
-
+func (w WebAuthNService) FinishLogin(username string, sessionData webauthn.SessionData, request *http.Request, c *gin.Context) (*models.User, error) {
 	user, err := w.userDB.GetUser(username)
 	if err != nil {
-		c.AbortWithError(http.StatusBadRequest, err)
-		return
+		return nil, err
 	}
 
-	sessionData, err := w.sessionStore.GetWebauthnSession("authentication", c.Request)
+	_, err = w.webAuthn.FinishLogin(user, sessionData, request)
 	if err != nil {
-		c.AbortWithError(http.StatusBadRequest, err)
-		return
-	}
-
-	_, err = w.webAuthn.FinishLogin(user, sessionData, c.Request)
-	if err != nil {
-		c.AbortWithError(http.StatusBadRequest, err)
-		return
+		return nil, err
 	}
 
 	user, err = w.userDB.SaveUser(user)
 	if err != nil {
-		c.AbortWithError(http.StatusBadRequest, err)
-		return
+		return nil, err
 	}
 
 	token := w.jwtService.GenerateToken(*user)
-
 	w.jwtService.SetCookie(c, token)
-	c.JSON(http.StatusOK, user)
+	return user, nil
 }
 
 func (w WebAuthNService) Logout(c *gin.Context) {
 	c.SetCookie(AUTHORIZATION_COOKIE_KEY, "", -1, "/", w.domain, true, true)
-	c.JSON(http.StatusUnauthorized, gin.H{
-		"redirect": "login",
-	})
 }
