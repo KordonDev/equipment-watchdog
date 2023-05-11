@@ -13,6 +13,7 @@ import (
 	"github.com/kordondev/equipment-watchdog/equipment"
 	"github.com/kordondev/equipment-watchdog/members"
 	"github.com/kordondev/equipment-watchdog/security"
+	"github.com/kordondev/equipment-watchdog/users"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
@@ -29,7 +30,7 @@ func main() {
 		panic(err)
 	}
 
-	userDB := security.NewUserDB(db)
+	userDB := users.NewDatebase(db)
 
 	jwtService := security.NewJwtService(configuration.Origin, configuration.JwtSecret, configuration.Domain)
 
@@ -43,8 +44,9 @@ func main() {
 
 	api := router.Group("/api")
 
+	userService := users.NewUserService(userDB, jwtService)
 	//TODO: webAuthController for all of the route mapping
-	webAuthNService, err := security.NewWebAuthNService(userDB, configuration.Origin, configuration.Domain, jwtService)
+	webAuthNService, err := security.NewWebAuthNService(userService, configuration.Origin, configuration.Domain, jwtService)
 	if err != nil {
 		panic(fmt.Sprintf("Error creating webAuthn: %v", err))
 	}
@@ -57,16 +59,7 @@ func main() {
 	memberService := members.NewMemberService(database, &equipmentService)
 	members.NewController(api, memberService)
 
-	userService := security.NewUserService(userDB, jwtService)
-	api.GET("/me", userService.GetMe)
-	userRoute := api.Group("/users")
-	{
-		userRoute.GET("/", security.AdminOnlyMiddleware(), userService.GetAll)
-
-		userRoute.PATCH("/:username/toggle-approve", security.AdminOnlyMiddleware(), userService.ToggleApprove)
-		userRoute.PATCH("/:username/toggle-admin", security.AdminOnlyMiddleware(), userService.ToggleAdmin)
-	}
-
+	users.NewController(api, userService)
 	equipment.NewController(api, equipmentService)
 
 	router.Run(fmt.Sprintf("%s:8080", configuration.Domain))

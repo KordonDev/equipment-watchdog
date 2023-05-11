@@ -10,16 +10,23 @@ import (
 	"github.com/kordondev/equipment-watchdog/models"
 )
 
+type userService interface {
+	GetUser(string) (*models.User, error)
+	AddUser(*models.User) (*models.User, error)
+	SaveUser(*models.User) (*models.User, error)
+	HasApprovedAndAdminUser() bool
+}
+
 type WebAuthNService struct {
-	webAuthn   *webauthn.WebAuthn
-	jwtService *JwtService
-	userDB     *userDB
-	domain     string
+	webAuthn    *webauthn.WebAuthn
+	jwtService  *JwtService
+	userService userService
+	domain      string
 }
 
 const AUTHORIZATION_COOKIE_KEY = "Authorization"
 
-func NewWebAuthNService(userDB *userDB, origin string, domain string, jwtService *JwtService) (*WebAuthNService, error) {
+func NewWebAuthNService(userService userService, origin string, domain string, jwtService *JwtService) (*WebAuthNService, error) {
 	webAuthn, err := webauthn.New(&webauthn.Config{
 		RPDisplayName: "equipment watchdog", // Display Name for your site
 		RPID:          domain,               // Generally the domain name for your site
@@ -31,17 +38,17 @@ func NewWebAuthNService(userDB *userDB, origin string, domain string, jwtService
 	}
 
 	return &WebAuthNService{
-		webAuthn:   webAuthn,
-		jwtService: jwtService,
-		userDB:     userDB,
-		domain:     domain,
+		webAuthn:    webAuthn,
+		jwtService:  jwtService,
+		userService: userService,
+		domain:      domain,
 	}, nil
 }
 
 // FIXME: not really nice solution to cancle on this way the context - channel issue
 // try to make clean architecture
 func (w WebAuthNService) StartRegister(username string) (*protocol.CredentialCreation, *webauthn.SessionData, error) {
-	user, err := w.userDB.GetUser(username)
+	user, err := w.userService.GetUser(username)
 	if err != nil {
 		user = &models.User{
 			Name:        username,
@@ -49,7 +56,7 @@ func (w WebAuthNService) StartRegister(username string) (*protocol.CredentialCre
 			IsAdmin:     false,
 			Credentials: []webauthn.Credential{},
 		}
-		user, err = w.userDB.AddUser(user)
+		user, err = w.userService.AddUser(user)
 		if err != nil {
 			return nil, nil, err
 		}
@@ -72,7 +79,7 @@ func (w WebAuthNService) StartRegister(username string) (*protocol.CredentialCre
 
 func (w *WebAuthNService) FinishRegistration(username string, sessionData webauthn.SessionData, request *http.Request) (*models.User, error) {
 
-	user, err := w.userDB.GetUser(username)
+	user, err := w.userService.GetUser(username)
 	if err != nil {
 		return nil, err
 	}
@@ -84,12 +91,12 @@ func (w *WebAuthNService) FinishRegistration(username string, sessionData webaut
 
 	user.AddCredential(*credential)
 
-	if !w.userDB.HasApprovedAndAdminUser() {
+	if !w.userService.HasApprovedAndAdminUser() {
 		user.IsApproved = true
 		user.IsAdmin = true
 	}
 
-	user, err = w.userDB.SaveUser(user)
+	user, err = w.userService.SaveUser(user)
 	if err != nil {
 		return nil, err
 	}
@@ -97,7 +104,7 @@ func (w *WebAuthNService) FinishRegistration(username string, sessionData webaut
 }
 
 func (w WebAuthNService) StartLogin(username string, request *http.Request) (*protocol.CredentialAssertion, *webauthn.SessionData, error) {
-	user, err := w.userDB.GetUser(username)
+	user, err := w.userService.GetUser(username)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -107,12 +114,12 @@ func (w WebAuthNService) StartLogin(username string, request *http.Request) (*pr
 		return nil, nil, err
 	}
 
-	w.userDB.SaveUser(user)
+	w.userService.SaveUser(user)
 	return options, sessionData, nil
 }
 
 func (w WebAuthNService) FinishLogin(username string, sessionData webauthn.SessionData, request *http.Request, c *gin.Context) (*models.User, error) {
-	user, err := w.userDB.GetUser(username)
+	user, err := w.userService.GetUser(username)
 	if err != nil {
 		return nil, err
 	}
@@ -122,7 +129,7 @@ func (w WebAuthNService) FinishLogin(username string, sessionData webauthn.Sessi
 		return nil, err
 	}
 
-	user, err = w.userDB.SaveUser(user)
+	user, err = w.userService.SaveUser(user)
 	if err != nil {
 		return nil, err
 	}

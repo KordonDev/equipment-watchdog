@@ -1,4 +1,4 @@
-package security
+package users
 
 import (
 	"fmt"
@@ -12,7 +12,7 @@ type userDB struct {
 	*gorm.DB
 }
 
-func NewUserDB(db *gorm.DB) *userDB {
+func NewDatebase(db *gorm.DB) *userDB {
 	db.AutoMigrate(&models.DbUser{}, &models.DbCredential{}, &models.DbAuthenticator{})
 
 	return &userDB{
