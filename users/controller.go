@@ -6,24 +6,26 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/kordondev/equipment-watchdog/models"
 	"github.com/kordondev/equipment-watchdog/security"
+	"github.com/kordondev/equipment-watchdog/url"
 )
 
 type Service interface {
 	GetAll() ([]*models.User, error)
-	GetUserWithToken(string, *gin.Context) (*models.User, error)
+	GetUserWithToken(string) (*models.User, string, error)
 	ToggleApprove(string) (*models.User, error)
 	ToggleAdmin(string) (*models.User, error)
 }
 
 type Controller struct {
 	service Service
+	domain  string
 }
 
-// TODO: or security as parameter?
-func NewController(baseUrl *gin.RouterGroup, service Service) error {
+func NewController(baseUrl *gin.RouterGroup, service Service, domain string) error {
 
 	ctrl := Controller{
 		service: service,
+		domain:  domain,
 	}
 
 	baseUrl.GET("/me", ctrl.GetMe)
@@ -39,13 +41,13 @@ func NewController(baseUrl *gin.RouterGroup, service Service) error {
 
 func (ctrl Controller) GetMe(c *gin.Context) {
 	username := c.GetString("username")
-	user, err := ctrl.service.GetUserWithToken(username, c)
+	user, token, err := ctrl.service.GetUserWithToken(username)
 
 	if err != nil {
 		c.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
-
+	url.SetCookie(c, token, ctrl.domain)
 	c.JSON(http.StatusOK, user)
 }
 

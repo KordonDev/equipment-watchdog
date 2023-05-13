@@ -6,7 +6,6 @@ import (
 
 	"github.com/duo-labs/webauthn/protocol"
 	"github.com/duo-labs/webauthn/webauthn"
-	"github.com/gin-gonic/gin"
 	"github.com/kordondev/equipment-watchdog/models"
 )
 
@@ -23,8 +22,6 @@ type WebAuthNService struct {
 	userService userService
 	domain      string
 }
-
-const AUTHORIZATION_COOKIE_KEY = "Authorization"
 
 func NewWebAuthNService(userService userService, origin string, domain string, jwtService *JwtService) (*WebAuthNService, error) {
 	webAuthn, err := webauthn.New(&webauthn.Config{
@@ -118,27 +115,22 @@ func (w WebAuthNService) StartLogin(username string, request *http.Request) (*pr
 	return options, sessionData, nil
 }
 
-func (w WebAuthNService) FinishLogin(username string, sessionData webauthn.SessionData, request *http.Request, c *gin.Context) (*models.User, error) {
+func (w WebAuthNService) FinishLogin(username string, sessionData webauthn.SessionData, request *http.Request) (*models.User, string, error) {
 	user, err := w.userService.GetUser(username)
 	if err != nil {
-		return nil, err
+		return nil, "", err
 	}
 
 	_, err = w.webAuthn.FinishLogin(user, sessionData, request)
 	if err != nil {
-		return nil, err
+		return nil, "", err
 	}
 
 	user, err = w.userService.SaveUser(user)
 	if err != nil {
-		return nil, err
+		return nil, "", err
 	}
 
 	token := w.jwtService.GenerateToken(*user)
-	w.jwtService.SetCookie(c, token)
-	return user, nil
-}
-
-func (w WebAuthNService) Logout(c *gin.Context) {
-	c.SetCookie(AUTHORIZATION_COOKIE_KEY, "", -1, "/", w.domain, true, true)
+	return user, token, nil
 }

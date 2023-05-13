@@ -1,7 +1,6 @@
 package users
 
 import (
-	"github.com/gin-gonic/gin"
 	"github.com/kordondev/equipment-watchdog/models"
 )
 
@@ -15,7 +14,6 @@ type UserDatabase interface {
 
 type JwtService interface {
 	GenerateToken(models.User) string
-	SetCookie(*gin.Context, string)
 }
 
 type userService struct {
@@ -30,14 +28,13 @@ func NewUserService(db *userDB, jwtService JwtService) *userService {
 	}
 }
 
-func (u *userService) GetUserWithToken(username string, c *gin.Context) (*models.User, error) {
+func (u *userService) GetUserWithToken(username string) (*models.User, string, error) {
 	user, err := u.GetUser(username)
 	if err != nil {
-		return nil, err
+		return nil, "", err
 	}
 	token := u.jwtService.GenerateToken(*user)
-	u.jwtService.SetCookie(c, token)
-	return user, nil
+	return user, token, nil
 }
 
 func (u *userService) GetUser(username string) (*models.User, error) {

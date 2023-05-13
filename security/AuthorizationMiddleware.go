@@ -6,9 +6,10 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
+	"github.com/kordondev/equipment-watchdog/url"
 )
 
-func AuthorizeJWTMiddleware(_ string, jwtService *JwtService) gin.HandlerFunc {
+func AuthorizeJWTMiddleware(_ string, jwtService *JwtService, domain string) gin.HandlerFunc {
 	return func(c *gin.Context) {
 
 		var jwtCookie string
@@ -55,6 +56,6 @@ func AuthorizeJWTMiddleware(_ string, jwtService *JwtService) gin.HandlerFunc {
 		c.Set("username", jwtData.Name)
 		c.Set("isApproved", jwtData.IsApproved)
 		c.Set("isAdmin", jwtData.IsAdmin)
-		jwtService.SetCookie(c, newToken)
+		url.SetCookie(c, newToken, domain)
 	}
 }

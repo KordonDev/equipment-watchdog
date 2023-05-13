@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
-	"github.com/gin-gonic/gin"
 	"github.com/kordondev/equipment-watchdog/models"
 	"github.com/mitchellh/mapstructure"
 )
@@ -28,15 +27,13 @@ type AuthCustomClaims struct {
 type JwtService struct {
 	secretKey string
 	issure    string
-	domain    string
 }
 
 // auth-jwt
-func NewJwtService(origin string, jwtSecret, domain string) *JwtService {
+func NewJwtService(origin string, jwtSecret string) *JwtService {
 	return &JwtService{
 		secretKey: jwtSecret,
 		issure:    origin,
-		domain:    domain,
 	}
 }
 
@@ -58,10 +55,6 @@ func (service *JwtService) GenerateToken(user models.User) string {
 		panic(err)
 	}
 	return t
-}
-
-func (service *JwtService) SetCookie(c *gin.Context, token string) {
-	c.SetCookie(AUTHORIZATION_COOKIE_KEY, token, 60*100, "/", service.domain, true, true)
 }
 
 func (service *JwtService) ValidateToken(encodedToken string) (*jwt.Token, error) {

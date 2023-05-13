@@ -32,9 +32,8 @@ func main() {
 
 	userDB := users.NewDatebase(db)
 
-	jwtService := security.NewJwtService(configuration.Origin, configuration.JwtSecret, configuration.Domain)
+	jwtService := security.NewJwtService(configuration.Origin, configuration.JwtSecret)
 
-	//TODO: discussion about 'who delivers the frontend?' - Multiple options
 	router := gin.Default()
 
 	corsConfig := cors.DefaultConfig()
@@ -45,21 +44,20 @@ func main() {
 	api := router.Group("/api")
 
 	userService := users.NewUserService(userDB, jwtService)
-	//TODO: webAuthController for all of the route mapping
 	webAuthNService, err := security.NewWebAuthNService(userService, configuration.Origin, configuration.Domain, jwtService)
 	if err != nil {
 		panic(fmt.Sprintf("Error creating webAuthn: %v", err))
 	}
-	security.NewController(api, webAuthNService)
+	security.NewController(api, webAuthNService, configuration.Domain)
 	// TODO: security.Controller
-	api.Use(security.AuthorizeJWTMiddleware(configuration.Origin, jwtService))
+	api.Use(security.AuthorizeJWTMiddleware(configuration.Origin, jwtService, configuration.Domain))
 
 	equipmentService := equipment.NewEquipmentService(db)
 	database := members.NewMemberDB(db)
 	memberService := members.NewMemberService(database, &equipmentService)
 	members.NewController(api, memberService)
 
-	users.NewController(api, userService)
+	users.NewController(api, userService, configuration.Domain)
 	equipment.NewController(api, equipmentService)
 
 	router.Run(fmt.Sprintf("%s:8080", configuration.Domain))
