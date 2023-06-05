@@ -2,7 +2,6 @@ package members
 
 import (
 	"github.com/cloudflare/cfssl/log"
-	"github.com/kordondev/equipment-watchdog/equipment"
 	"github.com/kordondev/equipment-watchdog/models"
 )
 
@@ -13,12 +12,15 @@ type MemberDatabase interface {
 	createMember(*models.Member) (*models.Member, error)
 	saveMember(*models.Member) error
 }
+type EquipmentService interface {
+	GetAllByIds([]uint64) ([]*models.Equipment, error)
+}
 type MemberService struct {
 	db               MemberDatabase
-	equipmentService *equipment.EquipmentService
+	equipmentService EquipmentService
 }
 
-func NewMemberService(database MemberDatabase, equipmentService *equipment.EquipmentService) MemberService {
+func NewMemberService(database MemberDatabase, equipmentService EquipmentService) MemberService {
 	return MemberService{
 		db:               database,
 		equipmentService: equipmentService,
