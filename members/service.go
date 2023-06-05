@@ -7,11 +7,11 @@ import (
 )
 
 type MemberDatabase interface {
-	GetMemberById(id uint64) (*models.Member, error)
-	GetAllMember() ([]*models.Member, error)
-	DeleteMember(*models.Member) error
-	CreateMember(*models.Member) (*models.Member, error)
-	SaveMember(*models.Member) error
+	getMemberById(id uint64) (*models.Member, error)
+	getAllMember() ([]*models.Member, error)
+	deleteMember(*models.Member) error
+	createMember(*models.Member) (*models.Member, error)
+	saveMember(*models.Member) error
 }
 type MemberService struct {
 	db               MemberDatabase
@@ -25,15 +25,15 @@ func NewMemberService(database MemberDatabase, equipmentService *equipment.Equip
 	}
 }
 
-func (s MemberService) GetAllMembers() ([]*models.Member, error) {
-	return s.db.GetAllMember()
+func (s MemberService) getAllMembers() ([]*models.Member, error) {
+	return s.db.getAllMember()
 }
 
-func (s MemberService) GetMemberById(id uint64) (*models.Member, error) {
-	return s.db.GetMemberById(id)
+func (s MemberService) getMemberById(id uint64) (*models.Member, error) {
+	return s.db.getMemberById(id)
 }
 
-func (s MemberService) UpdateMember(id uint64, um *models.Member) error {
+func (s MemberService) updateMember(id uint64, um *models.Member) error {
 	eqIds := make([]uint64, 0)
 
 	for _, eT := range models.GroupWithEquipment[um.Group] {
@@ -49,17 +49,17 @@ func (s MemberService) UpdateMember(id uint64, um *models.Member) error {
 
 	um.Id = id
 	um.Equipment = um.ListToMap(equipments, um.Id)
-	return s.db.SaveMember(um)
+	return s.db.saveMember(um)
 }
 
-func (s MemberService) CreateMember(m *models.Member) (*models.Member, error) {
-	return s.db.CreateMember(m)
+func (s MemberService) createMember(m *models.Member) (*models.Member, error) {
+	return s.db.createMember(m)
 }
 
-func (s MemberService) DeleteMemberById(id uint64) error {
-	return s.db.DeleteMember(&models.Member{Id: id})
+func (s MemberService) deleteMemberById(id uint64) error {
+	return s.db.deleteMember(&models.Member{Id: id})
 }
 
-func (s MemberService) GetAllGroups() map[models.Group][]models.EquipmentType {
+func (s MemberService) getAllGroups() map[models.Group][]models.EquipmentType {
 	return models.GroupWithEquipment
 }

@@ -8,11 +8,11 @@ import (
 )
 
 type Config struct {
-	Debug     bool
-	DSN       string
-	Domain    string
-	Origin    string
-	JwtSecret string
+	Debug              bool
+	DatebaseConnection string
+	Domain             string
+	Origin             string
+	JwtSecret          string
 }
 
 func New(path string) (Config, error) {

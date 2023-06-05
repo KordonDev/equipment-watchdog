@@ -9,11 +9,10 @@ import (
 )
 
 type User struct {
-	ID         uint64 `json:"id"`
-	Name       string `json:"name" mapstructure:"name"`
-	IsApproved bool   `json:"isApproved"`
-	IsAdmin    bool   `json:"isAdmin"`
-	// FIXME: Do you need the whole object or only the username and password?
+	ID          uint64                `json:"id"`
+	Name        string                `json:"name" mapstructure:"name"`
+	IsApproved  bool                  `json:"isApproved"`
+	IsAdmin     bool                  `json:"isAdmin"`
 	Credentials []webauthn.Credential `json:"-"`
 }
 

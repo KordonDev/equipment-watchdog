@@ -24,7 +24,7 @@ func newEquipmentDB(db *gorm.DB) *equipmentDB {
 
 func (edb *equipmentDB) getById(id uint64) (*models.Equipment, error) {
 	var e models.DbEquipment
-	err := edb.Model(&models.DbEquipment{}).First(&e, "ID = ?", id).Error
+	err := edb.Model(models.DbEquipment{}).First(&e, "ID = ?", id).Error
 
 	if err != nil {
 		return &models.Equipment{}, err

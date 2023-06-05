@@ -9,7 +9,7 @@ import (
 	"github.com/mitchellh/mapstructure"
 )
 
-type StandardClaims struct {
+type standardClaims struct {
 	Audience  string `json:"aud,omitempty" mapstructure:"aud,omitempty"`
 	ExpiresAt int64  `json:"exp,omitempty" mapstructure:"exp,omitempty"`
 	Id        string `json:"jti,omitempty" mapstructure:"jti,omitempty"`
@@ -57,7 +57,7 @@ func (service *JwtService) GenerateToken(user models.User) string {
 	return t
 }
 
-func (service *JwtService) ValidateToken(encodedToken string) (*jwt.Token, error) {
+func (service *JwtService) validateToken(encodedToken string) (*jwt.Token, error) {
 	return jwt.Parse(encodedToken, func(token *jwt.Token) (interface{}, error) {
 		if _, isvalid := token.Method.(*jwt.SigningMethodHMAC); !isvalid {
 			return nil, fmt.Errorf("invalid token %s", token.Header["alg"])
@@ -69,10 +69,10 @@ func (service *JwtService) ValidateToken(encodedToken string) (*jwt.Token, error
 
 type Claims struct {
 	models.User    `mapstructure:",squash"`
-	StandardClaims `mapstructure:",squash"`
+	standardClaims `mapstructure:",squash"`
 }
 
-func (service *JwtService) GetClaims(token *jwt.Token) (Claims, error) {
+func (service *JwtService) getClaims(token *jwt.Token) (Claims, error) {
 	var claims Claims
 	if err := mapstructure.Decode(token.Claims.(jwt.MapClaims), &claims); err != nil {
 		fmt.Printf("Error parsing token: %v", err)

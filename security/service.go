@@ -42,9 +42,7 @@ func NewWebAuthNService(userService userService, origin string, domain string, j
 	}, nil
 }
 
-// FIXME: not really nice solution to cancle on this way the context - channel issue
-// try to make clean architecture
-func (w WebAuthNService) StartRegister(username string) (*protocol.CredentialCreation, *webauthn.SessionData, error) {
+func (w WebAuthNService) startRegister(username string) (*protocol.CredentialCreation, *webauthn.SessionData, error) {
 	user, err := w.userService.GetUser(username)
 	if err != nil {
 		user = &models.User{
@@ -74,7 +72,7 @@ func (w WebAuthNService) StartRegister(username string) (*protocol.CredentialCre
 	return options, sessionData, nil
 }
 
-func (w *WebAuthNService) FinishRegistration(username string, sessionData webauthn.SessionData, request *http.Request) (*models.User, error) {
+func (w *WebAuthNService) finishRegistration(username string, sessionData webauthn.SessionData, request *http.Request) (*models.User, error) {
 
 	user, err := w.userService.GetUser(username)
 	if err != nil {
@@ -100,7 +98,7 @@ func (w *WebAuthNService) FinishRegistration(username string, sessionData webaut
 	return user, nil
 }
 
-func (w WebAuthNService) StartLogin(username string, request *http.Request) (*protocol.CredentialAssertion, *webauthn.SessionData, error) {
+func (w WebAuthNService) startLogin(username string, request *http.Request) (*protocol.CredentialAssertion, *webauthn.SessionData, error) {
 	user, err := w.userService.GetUser(username)
 	if err != nil {
 		return nil, nil, err
@@ -115,7 +113,7 @@ func (w WebAuthNService) StartLogin(username string, request *http.Request) (*pr
 	return options, sessionData, nil
 }
 
-func (w WebAuthNService) FinishLogin(username string, sessionData webauthn.SessionData, request *http.Request) (*models.User, string, error) {
+func (w WebAuthNService) finishLogin(username string, sessionData webauthn.SessionData, request *http.Request) (*models.User, string, error) {
 	user, err := w.userService.GetUser(username)
 	if err != nil {
 		return nil, "", err

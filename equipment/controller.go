@@ -9,11 +9,11 @@ import (
 )
 
 type Service interface {
-	CreateEquipment(models.Equipment) (*models.Equipment, error)
-	GetEquipmentById(uint64) (*models.Equipment, error)
-	DeleteEquipment(uint64) error
-  GetFreeEquipment() (map[models.EquipmentType][]*models.Equipment, error)
-  GetAllEquipmentByType(string)([]*models.Equipment, error)
+	createEquipment(models.Equipment) (*models.Equipment, error)
+	getEquipmentById(uint64) (*models.Equipment, error)
+	deleteEquipment(uint64) error
+	getFreeEquipment() (map[models.EquipmentType][]*models.Equipment, error)
+	getAllEquipmentByType(string) ([]*models.Equipment, error)
 }
 
 type Controller struct {
@@ -28,23 +28,23 @@ func NewController(baseRoute *gin.RouterGroup, service Service) {
 
 	equipmentRoute := baseRoute.Group("/equipment")
 	{
-		equipmentRoute.GET("/:id", ctrl.GetEquipmentById)
-		equipmentRoute.GET("/type/:type", ctrl.GetAllEquipmentByType)
-		equipmentRoute.GET("/free", ctrl.GetFreeEquipment)
-		equipmentRoute.POST("/", ctrl.CreateEquipment)
-		equipmentRoute.DELETE("/:id", ctrl.DeleteEquipment)
+		equipmentRoute.GET("/:id", ctrl.getEquipmentById)
+		equipmentRoute.GET("/type/:type", ctrl.getAllEquipmentByType)
+		equipmentRoute.GET("/free", ctrl.getFreeEquipment)
+		equipmentRoute.POST("/", ctrl.createEquipment)
+		equipmentRoute.DELETE("/:id", ctrl.deleteEquipment)
 	}
 
 }
 
-func (ctrl Controller) CreateEquipment(c *gin.Context) {
+func (ctrl Controller) createEquipment(c *gin.Context) {
 	var e models.Equipment
 	if err := c.BindJSON(&e); err != nil {
 		c.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
 
-	ce, err := ctrl.service.CreateEquipment(e)
+	ce, err := ctrl.service.createEquipment(e)
 	if err != nil {
 		c.AbortWithError(http.StatusBadRequest, err)
 		return
@@ -53,7 +53,7 @@ func (ctrl Controller) CreateEquipment(c *gin.Context) {
 	c.JSON(http.StatusCreated, ce)
 }
 
-func (ctrl Controller) GetEquipmentById(c *gin.Context) {
+func (ctrl Controller) getEquipmentById(c *gin.Context) {
 	id, err := url.ParseToInt(c, "id")
 	if err != nil {
 		log.Error(err)
@@ -61,7 +61,7 @@ func (ctrl Controller) GetEquipmentById(c *gin.Context) {
 		return
 	}
 
-	e, err := ctrl.service.GetEquipmentById(id)
+	e, err := ctrl.service.getEquipmentById(id)
 	if err != nil {
 		log.Error(err)
 		c.AbortWithError(http.StatusNotFound, err)
@@ -71,7 +71,7 @@ func (ctrl Controller) GetEquipmentById(c *gin.Context) {
 	c.JSON(http.StatusOK, e)
 }
 
-func (ctrl Controller) DeleteEquipment(c *gin.Context) {
+func (ctrl Controller) deleteEquipment(c *gin.Context) {
 	id, err := url.ParseToInt(c, "id")
 	if err != nil {
 		log.Error(err)
@@ -79,7 +79,7 @@ func (ctrl Controller) DeleteEquipment(c *gin.Context) {
 		return
 	}
 
-	err = ctrl.service.DeleteEquipment(id)
+	err = ctrl.service.deleteEquipment(id)
 	if err != nil {
 		log.Error(err)
 		c.AbortWithError(http.StatusInternalServerError, err)
@@ -88,8 +88,8 @@ func (ctrl Controller) DeleteEquipment(c *gin.Context) {
 	c.Status(http.StatusOK)
 }
 
-func (ctrl Controller) GetFreeEquipment(c *gin.Context) {
-  equipments, err := ctrl.service.GetFreeEquipment()
+func (ctrl Controller) getFreeEquipment(c *gin.Context) {
+	equipments, err := ctrl.service.getFreeEquipment()
 	if err != nil {
 		log.Error(err)
 		c.AbortWithError(http.StatusInternalServerError, err)
@@ -98,14 +98,14 @@ func (ctrl Controller) GetFreeEquipment(c *gin.Context) {
 	c.JSON(http.StatusOK, equipments)
 }
 
-func (ctrl Controller) GetAllEquipmentByType(c *gin.Context) {
+func (ctrl Controller) getAllEquipmentByType(c *gin.Context) {
 	eType := c.Param("type")
 	if eType == "" {
 		c.AbortWithStatus(http.StatusBadRequest)
 		return
 	}
 
-	es, err := ctrl.service.GetAllEquipmentByType(eType)
+	es, err := ctrl.service.getAllEquipmentByType(eType)
 	if err != nil {
 		log.Error(err)
 		c.AbortWithError(http.StatusInternalServerError, err)

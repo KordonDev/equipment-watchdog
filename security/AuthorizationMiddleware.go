@@ -29,7 +29,7 @@ func AuthorizeJWTMiddleware(_ string, jwtService *JwtService, domain string) gin
 			return
 		}
 
-		token, err := jwtService.ValidateToken(jwtCookie)
+		token, err := jwtService.validateToken(jwtCookie)
 		if !token.Valid || err != nil {
 			fmt.Println(err)
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
@@ -38,7 +38,7 @@ func AuthorizeJWTMiddleware(_ string, jwtService *JwtService, domain string) gin
 			return
 		}
 
-		jwtData, err := jwtService.GetClaims(token)
+		jwtData, err := jwtService.getClaims(token)
 		if !jwtData.IsApproved {
 			fmt.Println("Token not approved")
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{

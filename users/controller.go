@@ -10,10 +10,11 @@ import (
 )
 
 type Service interface {
-	GetAll() ([]*models.User, error)
-	GetUserWithToken(string) (*models.User, string, error)
-	ToggleApprove(string) (*models.User, error)
-	ToggleAdmin(string) (*models.User, error)
+	GetUser(string) (*models.User, error)
+	getAll() ([]*models.User, error)
+	getTokenForUser(*models.User) string
+	toggleApprove(string) (*models.User, error)
+	toggleAdmin(string) (*models.User, error)
 }
 
 type Controller struct {
@@ -28,31 +29,33 @@ func NewController(baseUrl *gin.RouterGroup, service Service, domain string) err
 		domain:  domain,
 	}
 
-	baseUrl.GET("/me", ctrl.GetMe)
+	baseUrl.GET("/me", ctrl.getMe)
 	userRoute := baseUrl.Group("/users")
 	{
-		userRoute.GET("/", security.AdminOnlyMiddleware(), ctrl.GetAll)
+		userRoute.GET("/", security.AdminOnlyMiddleware(), ctrl.getAll)
 
-		userRoute.PATCH("/:username/toggle-approve", security.AdminOnlyMiddleware(), ctrl.ToggleApprove)
-		userRoute.PATCH("/:username/toggle-admin", security.AdminOnlyMiddleware(), ctrl.ToggleAdmin)
+		userRoute.PATCH("/:username/toggle-approve", security.AdminOnlyMiddleware(), ctrl.toggleApprove)
+		userRoute.PATCH("/:username/toggle-admin", security.AdminOnlyMiddleware(), ctrl.toggleAdmin)
 	}
 	return nil
 }
 
-func (ctrl Controller) GetMe(c *gin.Context) {
+func (ctrl Controller) getMe(c *gin.Context) {
 	username := c.GetString("username")
-	user, token, err := ctrl.service.GetUserWithToken(username)
 
-	if err != nil {
-		c.AbortWithError(http.StatusBadRequest, err)
+	user, err := ctrl.service.GetUser(username)
+	if user != nil {
+		c.AbortWithError(http.StatusNotFound, err)
 		return
 	}
+
+	token := ctrl.service.getTokenForUser(user)
 	url.SetCookie(c, token, ctrl.domain)
 	c.JSON(http.StatusOK, user)
 }
 
-func (ctrl Controller) GetAll(c *gin.Context) {
-	users, err := ctrl.service.GetAll()
+func (ctrl Controller) getAll(c *gin.Context) {
+	users, err := ctrl.service.getAll()
 
 	if err != nil {
 		c.AbortWithError(http.StatusInternalServerError, err)
@@ -61,14 +64,14 @@ func (ctrl Controller) GetAll(c *gin.Context) {
 	c.JSON(http.StatusOK, users)
 }
 
-func (ctrl Controller) ToggleApprove(c *gin.Context) {
+func (ctrl Controller) toggleApprove(c *gin.Context) {
 	username := c.Param("username")
 	if username == "" {
 		c.AbortWithStatus(http.StatusBadRequest)
 		return
 	}
 
-	user, err := ctrl.service.ToggleApprove(username)
+	user, err := ctrl.service.toggleApprove(username)
 	if err != nil {
 		c.AbortWithError(http.StatusNotFound, err)
 		return
@@ -77,14 +80,14 @@ func (ctrl Controller) ToggleApprove(c *gin.Context) {
 	c.JSON(http.StatusOK, user)
 }
 
-func (ctrl Controller) ToggleAdmin(c *gin.Context) {
+func (ctrl Controller) toggleAdmin(c *gin.Context) {
 	username := c.Param("username")
 	if username == "" {
 		c.AbortWithStatus(http.StatusBadRequest)
 		return
 	}
 
-	user, err := ctrl.service.ToggleAdmin(username)
+	user, err := ctrl.service.toggleAdmin(username)
 	if err != nil {
 		c.AbortWithError(http.StatusNotFound, err)
 		return

@@ -24,7 +24,7 @@ func NewMemberDB(db *gorm.DB) *memberDB {
 	}
 }
 
-func (mdb *memberDB) GetAllMember() ([]*models.Member, error) {
+func (mdb *memberDB) getAllMember() ([]*models.Member, error) {
 	var dbMembers []models.DbMember
 
 	err := mdb.Preload("Equipment").Find(&dbMembers).Error
@@ -40,7 +40,7 @@ func (mdb *memberDB) GetAllMember() ([]*models.Member, error) {
 	return members, nil
 }
 
-func (mdb *memberDB) GetMemberByName(name string) (*models.Member, error) {
+func (mdb *memberDB) getMemberByName(name string) (*models.Member, error) {
 	var m models.DbMember
 	err := mdb.Preload("Equipment").Model(&models.DbMember{}).First(&m, "name = ?", name).Error
 
@@ -51,7 +51,7 @@ func (mdb *memberDB) GetMemberByName(name string) (*models.Member, error) {
 	return m.FromDB(), nil
 }
 
-func (mdb *memberDB) GetMemberById(id uint64) (*models.Member, error) {
+func (mdb *memberDB) getMemberById(id uint64) (*models.Member, error) {
 	var m models.DbMember
 	err := mdb.Preload("Equipment").Model(&models.DbMember{}).First(&m, "ID = ?", id).Error
 
@@ -62,14 +62,14 @@ func (mdb *memberDB) GetMemberById(id uint64) (*models.Member, error) {
 	return m.FromDB(), nil
 }
 
-func (mdb *memberDB) SaveMember(member *models.Member) error {
+func (mdb *memberDB) saveMember(member *models.Member) error {
 	dbm := member.ToDB()
 	err := mdb.Save(dbm).Error
 	mdb.Model(dbm).Association("Equipment").Replace(dbm.Equipment)
 	return err
 }
 
-func (mdb *memberDB) CreateMember(member *models.Member) (*models.Member, error) {
+func (mdb *memberDB) createMember(member *models.Member) (*models.Member, error) {
 	m := member.ToDB()
 	err := mdb.Create(&m).Error
 	if err != nil {
@@ -78,6 +78,6 @@ func (mdb *memberDB) CreateMember(member *models.Member) (*models.Member, error)
 	return m.FromDB(), nil
 }
 
-func (mdb *memberDB) DeleteMember(member *models.Member) error {
+func (mdb *memberDB) deleteMember(member *models.Member) error {
 	return mdb.Delete(member.ToDB()).Error
 }

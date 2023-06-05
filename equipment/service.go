@@ -24,19 +24,19 @@ func NewEquipmentService(db *gorm.DB) EquipmentService {
 	}
 }
 
-func (s EquipmentService) GetEquipmentById(id uint64) (*models.Equipment, error) {
+func (s EquipmentService) getEquipmentById(id uint64) (*models.Equipment, error) {
 	return s.db.getById(id)
 }
 
-func (s EquipmentService) GetAllEquipmentByType(eType string) ([]*models.Equipment, error) {
+func (s EquipmentService) getAllEquipmentByType(eType string) ([]*models.Equipment, error) {
 	return s.db.getByType(eType)
 }
 
-func (s EquipmentService) CreateEquipment(e models.Equipment) (*models.Equipment, error) {
+func (s EquipmentService) createEquipment(e models.Equipment) (*models.Equipment, error) {
 	return s.db.CreateEquipent(&e)
 }
 
-func (s EquipmentService) DeleteEquipment(id uint64) error {
+func (s EquipmentService) deleteEquipment(id uint64) error {
 	return s.db.delete(id)
 }
 
@@ -44,7 +44,7 @@ func (s EquipmentService) GetAllByIds(ids []uint64) ([]*models.Equipment, error)
 	return s.db.getAllByIds(ids)
 }
 
-func (s EquipmentService) GetFreeEquipment() (map[models.EquipmentType][]*models.Equipment, error) {
+func (s EquipmentService) getFreeEquipment() (map[models.EquipmentType][]*models.Equipment, error) {
 	equipment, err := s.db.getFreeEquipment()
 
 	equipments := make(map[models.EquipmentType][]*models.Equipment)

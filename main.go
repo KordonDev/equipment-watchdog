@@ -25,7 +25,7 @@ func main() {
 		panic(err)
 	}
 
-	db, err := createDB(configuration.Debug, configuration.DSN)
+	db, err := createDB(configuration.Debug, configuration.DatebaseConnection)
 	if err != nil {
 		panic(err)
 	}

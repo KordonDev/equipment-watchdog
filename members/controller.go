@@ -9,12 +9,12 @@ import (
 )
 
 type Service interface {
-	CreateMember(*models.Member) (*models.Member, error)
-	GetMemberById(uint64) (*models.Member, error)
-	UpdateMember(uint64, *models.Member) error
-	DeleteMemberById(uint64) error
-	GetAllGroups() map[models.Group][]models.EquipmentType
-	GetAllMembers() ([]*models.Member, error)
+	createMember(*models.Member) (*models.Member, error)
+	getMemberById(uint64) (*models.Member, error)
+	updateMember(uint64, *models.Member) error
+	deleteMemberById(uint64) error
+	getAllGroups() map[models.Group][]models.EquipmentType
+	getAllMembers() ([]*models.Member, error)
 }
 
 type Controller struct {
@@ -29,17 +29,17 @@ func NewController(baseRoute *gin.RouterGroup, service Service) {
 
 	membersRoute := baseRoute.Group("/members")
 	{
-		membersRoute.GET("/", ctrl.GetAllMembers)
-		membersRoute.GET("/:id", ctrl.GetMemberById)
-		membersRoute.POST("/", ctrl.CreateMember)
-		membersRoute.PUT("/:id", ctrl.UpdateMember)
-		membersRoute.DELETE("/:id", ctrl.DeleteMemberById)
-		membersRoute.GET("/groups", ctrl.GetAllGroups)
+		membersRoute.GET("/", ctrl.getAllMembers)
+		membersRoute.GET("/:id", ctrl.getMemberById)
+		membersRoute.POST("/", ctrl.createMember)
+		membersRoute.PUT("/:id", ctrl.updateMember)
+		membersRoute.DELETE("/:id", ctrl.deleteMemberById)
+		membersRoute.GET("/groups", ctrl.getAllGroups)
 	}
 }
 
-func (ctrl Controller) GetAllMembers(c *gin.Context) {
-	m, err := ctrl.service.GetAllMembers()
+func (ctrl Controller) getAllMembers(c *gin.Context) {
+	m, err := ctrl.service.getAllMembers()
 
 	if err != nil {
 		c.AbortWithError(http.StatusInternalServerError, err)
@@ -49,14 +49,14 @@ func (ctrl Controller) GetAllMembers(c *gin.Context) {
 
 }
 
-func (ctrl Controller) CreateMember(c *gin.Context) {
+func (ctrl Controller) createMember(c *gin.Context) {
 	var m models.Member
 	if err := c.BindJSON(&m); err != nil {
 		c.AbortWithStatus(http.StatusBadRequest)
 		return
 	}
 
-	cm, err := ctrl.service.CreateMember(&m)
+	cm, err := ctrl.service.createMember(&m)
 	if err != nil {
 		c.AbortWithStatus(http.StatusInternalServerError)
 		return
@@ -65,7 +65,7 @@ func (ctrl Controller) CreateMember(c *gin.Context) {
 	c.JSON(http.StatusCreated, cm)
 }
 
-func (ctrl Controller) GetMemberById(c *gin.Context) {
+func (ctrl Controller) getMemberById(c *gin.Context) {
 	id, err := url.ParseToInt(c, "id")
 	if err != nil {
 		log.Error(err)
@@ -73,7 +73,7 @@ func (ctrl Controller) GetMemberById(c *gin.Context) {
 		return
 	}
 
-	m, err := ctrl.service.GetMemberById(id)
+	m, err := ctrl.service.getMemberById(id)
 	if err != nil {
 		log.Error(err)
 		c.AbortWithError(http.StatusNotFound, err)
@@ -83,7 +83,7 @@ func (ctrl Controller) GetMemberById(c *gin.Context) {
 	c.JSON(http.StatusOK, m)
 }
 
-func (ctrl Controller) UpdateMember(c *gin.Context) {
+func (ctrl Controller) updateMember(c *gin.Context) {
 	id, err := url.ParseToInt(c, "id")
 	if err != nil {
 		log.Error(err)
@@ -91,7 +91,7 @@ func (ctrl Controller) UpdateMember(c *gin.Context) {
 		return
 	}
 
-	if _, err = ctrl.service.GetMemberById(id); err != nil {
+	if _, err = ctrl.service.getMemberById(id); err != nil {
 		log.Error(err)
 		c.AbortWithError(http.StatusNotFound, err)
 		return
@@ -103,7 +103,7 @@ func (ctrl Controller) UpdateMember(c *gin.Context) {
 		return
 	}
 
-	err = ctrl.service.UpdateMember(id, &um)
+	err = ctrl.service.updateMember(id, &um)
 	if err != nil {
 		c.AbortWithError(http.StatusInternalServerError, err)
 		return
@@ -111,7 +111,7 @@ func (ctrl Controller) UpdateMember(c *gin.Context) {
 	c.JSON(http.StatusOK, um)
 }
 
-func (ctrl Controller) DeleteMemberById(c *gin.Context) {
+func (ctrl Controller) deleteMemberById(c *gin.Context) {
 	id, err := url.ParseToInt(c, "id")
 	if err != nil {
 		log.Error(err)
@@ -119,7 +119,7 @@ func (ctrl Controller) DeleteMemberById(c *gin.Context) {
 		return
 	}
 
-	if err = ctrl.service.DeleteMemberById(id); err != nil {
+	if err = ctrl.service.deleteMemberById(id); err != nil {
 		log.Error(err)
 		c.AbortWithError(http.StatusNotFound, err)
 		return
@@ -128,6 +128,6 @@ func (ctrl Controller) DeleteMemberById(c *gin.Context) {
 	c.Status(http.StatusOK)
 }
 
-func (ctrl Controller) GetAllGroups(c *gin.Context) {
-	c.JSON(http.StatusOK, ctrl.service.GetAllGroups())
+func (ctrl Controller) getAllGroups(c *gin.Context) {
+	c.JSON(http.StatusOK, ctrl.service.getAllGroups())
 }

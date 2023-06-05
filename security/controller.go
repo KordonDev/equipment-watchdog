@@ -14,10 +14,10 @@ import (
 )
 
 type Service interface {
-	StartRegister(string) (*protocol.CredentialCreation, *webauthn.SessionData, error)
-	FinishRegistration(string, webauthn.SessionData, *http.Request) (*models.User, error)
-	StartLogin(string, *http.Request) (*protocol.CredentialAssertion, *webauthn.SessionData, error)
-	FinishLogin(string, webauthn.SessionData, *http.Request) (*models.User, string, error)
+	startRegister(string) (*protocol.CredentialCreation, *webauthn.SessionData, error)
+	finishRegistration(string, webauthn.SessionData, *http.Request) (*models.User, error)
+	startLogin(string, *http.Request) (*protocol.CredentialAssertion, *webauthn.SessionData, error)
+	finishLogin(string, webauthn.SessionData, *http.Request) (*models.User, string, error)
 }
 
 type Controller struct {
@@ -38,19 +38,19 @@ func NewController(baseUrl *gin.RouterGroup, service Service, domain string) err
 		sessionStore: sessionStore,
 		domain:       domain,
 	}
-	baseUrl.GET("/register/:username", ctrl.StartRegister)
-	baseUrl.POST("/register/:username", ctrl.FinishRegistration)
-	baseUrl.GET("/login/:username", ctrl.StartLogin)
-	baseUrl.POST("/login/:username", ctrl.FinishLogin)
-	baseUrl.POST("/logout", ctrl.Logout)
+	baseUrl.GET("/register/:username", ctrl.startRegister)
+	baseUrl.POST("/register/:username", ctrl.finishRegistration)
+	baseUrl.GET("/login/:username", ctrl.startLogin)
+	baseUrl.POST("/login/:username", ctrl.finishLogin)
+	baseUrl.POST("/logout", ctrl.logout)
 
 	return nil
 }
 
-func (ctrl Controller) StartRegister(c *gin.Context) {
+func (ctrl Controller) startRegister(c *gin.Context) {
 	username := c.Param("username")
 
-	options, sessionData, err := ctrl.service.StartRegister(username)
+	options, sessionData, err := ctrl.service.startRegister(username)
 	if err != nil {
 		c.AbortWithError(http.StatusBadRequest, err)
 		return
@@ -65,7 +65,7 @@ func (ctrl Controller) StartRegister(c *gin.Context) {
 	c.JSON(http.StatusOK, options)
 }
 
-func (ctrl Controller) FinishRegistration(c *gin.Context) {
+func (ctrl Controller) finishRegistration(c *gin.Context) {
 	username := c.Param("username")
 
 	sessionData, err := ctrl.sessionStore.GetWebauthnSession("registration", c.Request)
@@ -74,7 +74,7 @@ func (ctrl Controller) FinishRegistration(c *gin.Context) {
 		return
 	}
 
-	user, err := ctrl.service.FinishRegistration(username, sessionData, c.Request)
+	user, err := ctrl.service.finishRegistration(username, sessionData, c.Request)
 	if err != nil {
 		c.AbortWithError(http.StatusBadRequest, err)
 		return
@@ -83,10 +83,10 @@ func (ctrl Controller) FinishRegistration(c *gin.Context) {
 	c.JSON(http.StatusOK, user)
 }
 
-func (ctrl Controller) StartLogin(c *gin.Context) {
+func (ctrl Controller) startLogin(c *gin.Context) {
 	username := c.Param("username")
 
-	options, sessionData, err := ctrl.service.StartLogin(username, c.Request)
+	options, sessionData, err := ctrl.service.startLogin(username, c.Request)
 
 	if err != nil {
 		c.AbortWithError(http.StatusInternalServerError, err)
@@ -102,7 +102,7 @@ func (ctrl Controller) StartLogin(c *gin.Context) {
 	c.JSON(http.StatusOK, options)
 }
 
-func (ctrl Controller) FinishLogin(c *gin.Context) {
+func (ctrl Controller) finishLogin(c *gin.Context) {
 	username := c.Param("username")
 
 	sessionData, err := ctrl.sessionStore.GetWebauthnSession("authentication", c.Request)
@@ -111,7 +111,7 @@ func (ctrl Controller) FinishLogin(c *gin.Context) {
 		return
 	}
 
-	user, token, err := ctrl.service.FinishLogin(username, sessionData, c.Request)
+	user, token, err := ctrl.service.finishLogin(username, sessionData, c.Request)
 	if err != nil {
 		c.AbortWithError(http.StatusBadRequest, err)
 		return
@@ -121,7 +121,7 @@ func (ctrl Controller) FinishLogin(c *gin.Context) {
 	c.JSON(http.StatusOK, user)
 }
 
-func (ctrl Controller) Logout(c *gin.Context) {
+func (ctrl Controller) logout(c *gin.Context) {
 	url.RemoveCookie(c, ctrl.domain)
 	c.JSON(http.StatusUnauthorized, gin.H{
 		"redirect": "login",

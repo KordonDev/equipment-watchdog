@@ -15,7 +15,6 @@ const (
 	TShirt   EquipmentType = "tshirt"
 )
 
-// FIXME: move this into the equiqment package
 type DbEquipment struct {
 	ID               uint64 `gorm:"primarykey"`
 	CreatedAt        time.Time
