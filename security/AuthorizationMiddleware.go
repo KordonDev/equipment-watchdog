@@ -6,9 +6,10 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
+	"github.com/kordondev/equipment-watchdog/url"
 )
 
-func AuthorizeJWTMiddleware(origin string, jwtService *JwtService) gin.HandlerFunc {
+func AuthorizeJWTMiddleware(_ string, jwtService *JwtService, domain string) gin.HandlerFunc {
 	return func(c *gin.Context) {
 
 		var jwtCookie string
@@ -28,7 +29,7 @@ func AuthorizeJWTMiddleware(origin string, jwtService *JwtService) gin.HandlerFu
 			return
 		}
 
-		token, err := jwtService.ValidateToken(jwtCookie)
+		token, err := jwtService.validateToken(jwtCookie)
 		if !token.Valid || err != nil {
 			fmt.Println(err)
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
@@ -37,7 +38,7 @@ func AuthorizeJWTMiddleware(origin string, jwtService *JwtService) gin.HandlerFu
 			return
 		}
 
-		jwtData, err := jwtService.GetClaims(token)
+		jwtData, err := jwtService.getClaims(token)
 		if !jwtData.IsApproved {
 			fmt.Println("Token not approved")
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
@@ -55,6 +56,6 @@ func AuthorizeJWTMiddleware(origin string, jwtService *JwtService) gin.HandlerFu
 		c.Set("username", jwtData.Name)
 		c.Set("isApproved", jwtData.IsApproved)
 		c.Set("isAdmin", jwtData.IsAdmin)
-		jwtService.SetCookie(c, newToken)
+		url.SetCookie(c, newToken, domain)
 	}
 }

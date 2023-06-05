@@ -5,11 +5,11 @@ import (
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
-	"github.com/gin-gonic/gin"
+	"github.com/kordondev/equipment-watchdog/models"
 	"github.com/mitchellh/mapstructure"
 )
 
-type StandardClaims struct {
+type standardClaims struct {
 	Audience  string `json:"aud,omitempty" mapstructure:"aud,omitempty"`
 	ExpiresAt int64  `json:"exp,omitempty" mapstructure:"exp,omitempty"`
 	Id        string `json:"jti,omitempty" mapstructure:"jti,omitempty"`
@@ -20,26 +20,24 @@ type StandardClaims struct {
 }
 
 type AuthCustomClaims struct {
-	User               `mapstructure:",squash"`
+	models.User        `mapstructure:",squash"`
 	jwt.StandardClaims `mapstructure:",squash"`
 }
 
 type JwtService struct {
 	secretKey string
 	issure    string
-	domain    string
 }
 
 // auth-jwt
-func NewJwtService(origin string, jwtSecret, domain string) *JwtService {
+func NewJwtService(origin string, jwtSecret string) *JwtService {
 	return &JwtService{
 		secretKey: jwtSecret,
 		issure:    origin,
-		domain:    domain,
 	}
 }
 
-func (service *JwtService) GenerateToken(user User) string {
+func (service *JwtService) GenerateToken(user models.User) string {
 
 	claims := &AuthCustomClaims{
 		user,
@@ -59,11 +57,7 @@ func (service *JwtService) GenerateToken(user User) string {
 	return t
 }
 
-func (service *JwtService) SetCookie(c *gin.Context, token string) {
-	c.SetCookie(AUTHORIZATION_COOKIE_KEY, token, 60*100, "/", service.domain, true, true)
-}
-
-func (service *JwtService) ValidateToken(encodedToken string) (*jwt.Token, error) {
+func (service *JwtService) validateToken(encodedToken string) (*jwt.Token, error) {
 	return jwt.Parse(encodedToken, func(token *jwt.Token) (interface{}, error) {
 		if _, isvalid := token.Method.(*jwt.SigningMethodHMAC); !isvalid {
 			return nil, fmt.Errorf("invalid token %s", token.Header["alg"])
@@ -74,19 +68,16 @@ func (service *JwtService) ValidateToken(encodedToken string) (*jwt.Token, error
 }
 
 type Claims struct {
-	User           `mapstructure:",squash"`
-	StandardClaims `mapstructure:",squash"`
+	models.User    `mapstructure:",squash"`
+	standardClaims `mapstructure:",squash"`
 }
 
-func (service *JwtService) GetClaims(token *jwt.Token) (*Claims, error) {
-	claims := token.Claims.(jwt.MapClaims)
-
-	var jwtData *Claims
-	err := mapstructure.Decode(claims, &jwtData)
-	if err != nil {
+func (service *JwtService) getClaims(token *jwt.Token) (Claims, error) {
+	var claims Claims
+	if err := mapstructure.Decode(token.Claims.(jwt.MapClaims), &claims); err != nil {
 		fmt.Printf("Error parsing token: %v", err)
-		return nil, err
+		return Claims{}, err
 	}
 
-	return jwtData, nil
+	return claims, nil
 }

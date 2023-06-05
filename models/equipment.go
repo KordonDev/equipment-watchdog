@@ -4,6 +4,17 @@ import (
 	"time"
 )
 
+type EquipmentType string
+
+const (
+	Helmet   EquipmentType = "helmet"
+	Jacket   EquipmentType = "jacket"
+	Gloves   EquipmentType = "gloves"
+	Trousers EquipmentType = "trousers"
+	Boots    EquipmentType = "boots"
+	TShirt   EquipmentType = "tshirt"
+)
+
 type DbEquipment struct {
 	ID               uint64 `gorm:"primarykey"`
 	CreatedAt        time.Time

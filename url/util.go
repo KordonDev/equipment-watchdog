@@ -16,3 +16,13 @@ func ParseToInt(c *gin.Context, paramName string) (uint64, error) {
 	}
 	return paramValueNumber, nil
 }
+
+const authorizationCookieKey = "Authorization"
+
+func SetCookie(c *gin.Context, token string, domain string) {
+	c.SetCookie(authorizationCookieKey, token, 60*100, "/", domain, true, true)
+}
+
+func RemoveCookie(c *gin.Context, domain string) {
+	c.SetCookie(authorizationCookieKey, "", 60*100, "/", domain, true, true)
+}

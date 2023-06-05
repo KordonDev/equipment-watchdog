@@ -1,15 +1,59 @@
-package security
+package models
 
 import (
-	"fmt"
+	"encoding/binary"
 	"time"
 
+	"github.com/duo-labs/webauthn/protocol"
 	"github.com/duo-labs/webauthn/webauthn"
-	"gorm.io/gorm"
 )
 
-type userDB struct {
-	db *gorm.DB
+type User struct {
+	ID          uint64                `json:"id"`
+	Name        string                `json:"name" mapstructure:"name"`
+	IsApproved  bool                  `json:"isApproved"`
+	IsAdmin     bool                  `json:"isAdmin"`
+	Credentials []webauthn.Credential `json:"-"`
+}
+
+func (u *User) WebAuthnID() []byte {
+	buf := make([]byte, binary.MaxVarintLen64)
+	binary.PutUvarint(buf, uint64(u.ID))
+	binary.LittleEndian.Uint64(buf)
+	return buf
+}
+
+func (u *User) WebAuthnName() string {
+	return u.Name
+}
+
+func (u *User) WebAuthnDisplayName() string {
+	return u.Name
+}
+
+func (u *User) WebAuthnIcon() string {
+	return ""
+}
+
+func (u *User) WebAuthnCredentials() []webauthn.Credential {
+	return u.Credentials
+}
+
+func (u *User) AddCredential(c webauthn.Credential) {
+	u.Credentials = append(u.Credentials, c)
+}
+
+func (u *User) ExcludedCredentials() []protocol.CredentialDescriptor {
+	excludeList := []protocol.CredentialDescriptor{}
+
+	for _, cred := range u.Credentials {
+		descriptor := protocol.CredentialDescriptor{
+			Type:         protocol.PublicKeyCredentialType,
+			CredentialID: cred.ID,
+		}
+		excludeList = append(excludeList, descriptor)
+	}
+	return excludeList
 }
 
 type DbAuthenticator struct {
@@ -49,64 +93,7 @@ func (DbUser) TableName() string {
 	return "users"
 }
 
-func NewUserDB(db *gorm.DB) *userDB {
-	db.AutoMigrate(&DbUser{}, &DbCredential{}, &DbAuthenticator{})
-
-	return &userDB{
-		db: db,
-	}
-}
-
-func (u *userDB) GetUser(username string) (*User, error) {
-	var dbu DbUser
-	err := u.db.Model(&DbUser{}).Preload("Credentials").First(&dbu, "name = ?", username).Error
-
-	if err != nil {
-		return &User{}, fmt.Errorf("error getting user: %s", username)
-	}
-
-	return dbu.toUser(), nil
-}
-
-func (u *userDB) GetAll() ([]*User, error) {
-	var dbUser []DbUser
-	err := u.db.Find(&dbUser).Error
-
-	if err != nil {
-		return nil, err
-	}
-
-	users := make([]*User, 0)
-	for _, user := range dbUser {
-		users = append(users, user.toUser())
-	}
-	return users, nil
-}
-
-func (u *userDB) AddUser(user *User) (*User, error) {
-	us := user.toDBUser()
-	err := u.db.Create(us).Error
-	if err != nil {
-		return nil, err
-	}
-	return us.toUser(), nil
-}
-
-func (u *userDB) SaveUser(user *User) (*User, error) {
-	u.db.Save(user.toDBUser())
-	return u.GetUser(user.Name)
-}
-
-func (u *userDB) HasApprovedAndAdminUser() bool {
-	var dbu DbUser
-	err := u.db.Model(&DbUser{}).First(&dbu, "is_admin = 1 AND is_approved = 1").Error
-	if err != nil || dbu.ID == 0 {
-		return false
-	}
-	return true
-}
-
-func (u *User) toDBUser() *DbUser {
+func (u *User) ToDBUser() *DbUser {
 	var c []DbCredential
 	for _, cr := range u.Credentials {
 		a := DbAuthenticator{
@@ -134,7 +121,7 @@ func (u *User) toDBUser() *DbUser {
 	return &dbu
 }
 
-func (dbu *DbUser) toUser() *User {
+func (dbu *DbUser) ToUser() *User {
 	var c []webauthn.Credential
 	for _, cr := range dbu.Credentials {
 		a := webauthn.Authenticator{
