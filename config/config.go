@@ -9,7 +9,7 @@ import (
 
 type Config struct {
 	Debug              bool
-	DatebaseConnection string
+	DatabaseConnection string
 	Domain             string
 	Origin             string
 	JwtSecret          string
@@ -25,5 +25,6 @@ func New(path string) (Config, error) {
 	if err := yaml.NewDecoder(configFile).Decode(&config); err != nil {
 		return Config{}, fmt.Errorf("failed to decode config file: %w", err)
 	}
+
 	return config, nil
 }

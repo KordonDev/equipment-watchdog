@@ -26,7 +26,7 @@ func main() {
 		panic(err)
 	}
 
-	db, err := createDB(configuration.Debug, configuration.DatebaseConnection)
+	db, err := createDB(configuration.Debug, configuration.DatabaseConnection)
 	if err != nil {
 		panic(err)
 	}
@@ -62,11 +62,7 @@ func main() {
 	equipment.NewController(api, equipmentService)
 
 	orderService := orders.NewOrderService(db)
-	orderRoute := api.Group("/orders")
-	orderRoute.GET("/:id", orderService.GetById)
-	orderRoute.POST("/", orderService.Create)
-	orderRoute.PUT("/:id", orderService.Update)
-	orderRoute.DELETE("/:id", orderService.Delete)
+	orders.NewController(api, orderService)
 
 	router.Run(fmt.Sprintf("%s:8080", configuration.Domain))
 }

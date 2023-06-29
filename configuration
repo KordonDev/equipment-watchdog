@@ -1,4 +1,5 @@
 debug: false
 domain: localhost
 origin: http://localhost:5173
-jwtSecret: changeMe
+jwtsecret: changeMe
+databaseconnection: ./test.db
