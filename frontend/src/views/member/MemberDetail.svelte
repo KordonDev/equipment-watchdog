@@ -8,7 +8,7 @@
     Alert,
   } from "flowbite-svelte";
   import { routes } from "../../routes";
-  import { push } from "svelte-spa-router";
+  import { push, link } from "svelte-spa-router";
   import {
     errorNotification,
     successNotification,
@@ -78,6 +78,10 @@
     loading={false}
     hideEquipment={false}
   />
+
+  <div class="mb-4">
+    <a href={`${routes.AddOrder.link}${params.id}`} use:link>Ausrüstung bestellen</a>
+  </div>
 
   <Button color="red" on:click={() => (deleteModalOpen = true)}>
     Mitglied löschen

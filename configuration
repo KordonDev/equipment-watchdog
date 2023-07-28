@@ -1,4 +1,4 @@
-debug: false
+debug: true
 domain: localhost
 origin: http://localhost:5173
 jwtsecret: changeMe

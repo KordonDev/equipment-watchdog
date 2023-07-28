@@ -37,6 +37,18 @@ export const routes = {
     path: "/equipment/details/:id",
     link: `/equipment/details/`,
   },
+  Orders: {
+    path: "/orders/",
+    link: "/orders",
+  },
+  OrderDetails: {
+    path: "/orders/:id",
+    link: "/orders/",
+  },
+  AddOrder: {
+    path: "/orders/members/:memberId",
+    link: "/orders/members/",
+  },
   NotApproved: {
     path: "/not-approved",
     link: "/not-approved",

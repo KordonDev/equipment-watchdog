@@ -11,6 +11,8 @@
     Ausrüstung
   </a>
   |
+  <a href={routes.Orders.link} use:link>Bestellungen</a>
+  |
   <a href={routes.Users.link} use:link>User</a> |
   <button on:click={logout}>Ausloggen</button>
 </nav>

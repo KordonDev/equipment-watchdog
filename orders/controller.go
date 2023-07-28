@@ -13,6 +13,7 @@ type Service interface {
 	create(models.Order) (models.Order, error)
 	update(uint64, models.Order) (models.Order, error)
 	delete(uint64) error
+	getAll(bool) ([]models.Order, error)
 }
 
 type Controller struct {
@@ -27,11 +28,31 @@ func NewController(baseRoute *gin.RouterGroup, service Service) {
 
 	ordersRoute := baseRoute.Group("/orders")
 	{
+		ordersRoute.GET("/", ctrl.getAllNotFulfilled)
+		ordersRoute.GET("/fullfilled", ctrl.getAllFulfilled)
 		ordersRoute.GET("/:id", ctrl.getById)
 		ordersRoute.POST("/", ctrl.create)
 		ordersRoute.PUT("/:id", ctrl.update)
 		ordersRoute.DELETE("/:id", ctrl.delete)
 	}
+}
+
+func (ctrl Controller) getAllNotFulfilled(c *gin.Context) {
+	orders, err := ctrl.service.getAll(false)
+	if err != nil {
+		c.AbortWithStatus(http.StatusInternalServerError)
+		return
+	}
+	c.JSON(http.StatusOK, orders)
+}
+
+func (ctrl Controller) getAllFulfilled(c *gin.Context) {
+	orders, err := ctrl.service.getAll(true)
+	if err != nil {
+		c.AbortWithStatus(http.StatusInternalServerError)
+		return
+	}
+	c.JSON(http.StatusOK, orders)
 }
 
 func (ctrl Controller) getById(c *gin.Context) {

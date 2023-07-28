@@ -40,6 +40,7 @@
 <h1>Ausrüstung vom Typ {translateEquipmentType(params.type)}</h1>
 
 <a href={routes.EquipmentAdd.link} use:link>Neue Ausrüstung anlegen</a>
+<a href={routes.EquipmentAdd.link} use:link>Ausrüstung bestellen</a>
 
 <Label class="mb-4">
   <div class="mb-2">Art</div>

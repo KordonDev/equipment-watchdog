@@ -42,3 +42,7 @@ func (s OrderService) update(id uint64, update models.Order) (models.Order, erro
 func (s OrderService) delete(id uint64) error {
 	return s.db.delete(id)
 }
+
+func (s OrderService) getAll(fulfilled bool) ([]models.Order, error) {
+	return s.db.getAll(fulfilled)
+}

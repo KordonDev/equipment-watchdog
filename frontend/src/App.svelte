@@ -12,6 +12,9 @@
   import CreateEquipment from "./views/equipment/NewEquipment.svelte";
   import EquipmentByType from "./views/equipment/EquipmentByType.svelte";
   import EquipmentDetails from "./views/equipment/EquipmentDetails.svelte";
+  import Orders from "./views/order/Orders.svelte";
+  import OrderDetails from "./views/order/OrderDetails.svelte";
+  import AddOrder from "./views/order/NewOrder.svelte";
 
   if (window.location.pathname === "/" && window.location.hash === "") {
     replace(routes.MemberOverview.link);
@@ -30,6 +33,9 @@
       [routes.EquipmentType.path]: EquipmentByType,
       [routes.EquipmentAdd.path]: CreateEquipment,
       [routes.EquipmentDetails.path]: EquipmentDetails,
+      [routes.Orders.path]: Orders,
+      [routes.OrderDetails.path]: OrderDetails,
+      [routes.AddOrder.path]: AddOrder,
       [routes.NotApproved.path]: NotApproved,
     }}
   />

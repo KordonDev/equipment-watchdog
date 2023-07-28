@@ -3,12 +3,13 @@ package models
 import "time"
 
 type DBOrder struct {
-	ID        uint64 `gorm:"primarykey"`
-	CreatedAt time.Time
-	UpdatedAt time.Time
-	Type      EquipmentType
-	MemberID  uint64
-	Size      string
+	ID          uint64 `gorm:"primarykey"`
+	CreatedAt   time.Time
+	UpdatedAt   time.Time
+	FulfilledAt time.Time
+	Type        EquipmentType
+	MemberID    uint64
+	Size        string
 }
 
 func (DBOrder) TableName() string {

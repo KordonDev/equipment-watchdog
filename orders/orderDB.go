@@ -49,3 +49,36 @@ func (odb orderDB) save(order *models.Order) error {
 func (odb orderDB) delete(id uint64) error {
 	return odb.db.Delete(&models.DBOrder{}, id).Error
 }
+
+func (odb orderDB) getAll(fulfilled bool) ([]models.Order, error) {
+	var err error
+	var result []models.DBOrder
+	if fulfilled == true {
+		result, err = odb.getAllFulfilled()
+	} else {
+		result, err = odb.getAllOpen()
+	}
+
+	if err != nil {
+		return nil, err
+	}
+
+	orders := make([]models.Order, 0)
+	for _, order := range result {
+		orders = append(orders, order.FromDB())
+	}
+
+	return orders, nil
+}
+
+func (odb orderDB) getAllOpen() ([]models.DBOrder, error) {
+	var result []models.DBOrder
+	err := odb.db.Model(&models.DBOrder{}).Find(&result, "fulfilled_at = \"0001-01-01 00:00:00+00:00\"").Error
+	return result, err
+}
+
+func (odb orderDB) getAllFulfilled() ([]models.DBOrder, error) {
+	var result []models.DBOrder
+	err := odb.db.Model(&models.DBOrder{}).Find(&result, "fulfilled_at !=  \"0001-01-01 00:00:00+00:00\"").Error
+	return result, err
+}
