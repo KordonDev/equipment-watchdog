@@ -61,7 +61,7 @@ func main() {
 	users.NewController(api, userService, configuration.Domain)
 	equipment.NewController(api, equipmentService)
 
-	orderService := orders.NewOrderService(db)
+	orderService := orders.NewOrderService(db, &equipmentService)
 	orders.NewController(api, orderService)
 
 	router.Run(fmt.Sprintf("%s:8080", configuration.Domain))

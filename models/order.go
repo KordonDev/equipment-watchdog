@@ -1,6 +1,8 @@
 package models
 
-import "time"
+import (
+	"time"
+)
 
 type DBOrder struct {
 	ID          uint64 `gorm:"primarykey"`
@@ -17,29 +19,32 @@ func (DBOrder) TableName() string {
 }
 
 type Order struct {
-	ID        uint64        `json:"id"`
-	CreatedAt time.Time     `json:"createdAt"`
-	Type      EquipmentType `json:"type"`
-	MemberID  uint64        `json:"memberId"`
-	Size      string        `json:"size"`
+	ID          uint64        `json:"id"`
+	CreatedAt   time.Time     `json:"createdAt"`
+	Type        EquipmentType `json:"type"`
+	MemberID    uint64        `json:"memberId"`
+	Size        string        `json:"size"`
+	FulfilledAt time.Time     `json:"fulfilledAt"`
 }
 
 func (o DBOrder) FromDB() Order {
 	return Order{
-		ID:        o.ID,
-		CreatedAt: o.CreatedAt,
-		Type:      o.Type,
-		MemberID:  o.MemberID,
-		Size:      o.Size,
+		ID:          o.ID,
+		CreatedAt:   o.CreatedAt,
+		Type:        o.Type,
+		MemberID:    o.MemberID,
+		Size:        o.Size,
+		FulfilledAt: o.FulfilledAt,
 	}
 }
 
 func (o Order) ToDB() DBOrder {
 	return DBOrder{
-		ID:        o.ID,
-		Type:      o.Type,
-		MemberID:  o.MemberID,
-		Size:      o.Size,
-		CreatedAt: o.CreatedAt,
+		ID:          o.ID,
+		Type:        o.Type,
+		MemberID:    o.MemberID,
+		Size:        o.Size,
+		CreatedAt:   o.CreatedAt,
+		FulfilledAt: o.FulfilledAt,
 	}
 }

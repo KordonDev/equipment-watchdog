@@ -1,6 +1,7 @@
 <script lang="ts">
   import Navigation from "../../components/Navigation/Navigation.svelte";
-  import { deleteOrder, getOrder } from "./order.service";
+  import FulfillOrderModal from './FulfillOrderModal.svelte';
+  import { deleteOrder, getOrder, fulfillOrder } from "./order.service";
   import { Alert, Button, Modal, Spinner } from "flowbite-svelte";
   import { createNotification } from "../../components/Notification/notificationStore";
   import { push } from "svelte-spa-router";
@@ -52,6 +53,7 @@
     <p>Lieferdatum {order.fulfilledAt || "-"}</p>
     <p>Größe {order.size || "-"}</p>
   </div>
+  <FulfillOrderModal order={order}/>
   <Button color="red" on:click={() => (deleteModalOpen = true)}>
     Bestellung löschen
   </Button>

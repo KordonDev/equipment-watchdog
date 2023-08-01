@@ -1,17 +1,26 @@
 package orders
 
 import (
+	"time"
+
 	"github.com/kordondev/equipment-watchdog/models"
 	"gorm.io/gorm"
 )
 
 type OrderService struct {
-	db *orderDB
+	db               *orderDB
+	equipmentService EquipmentService
 }
 
-func NewOrderService(db *gorm.DB) *OrderService {
+type EquipmentService interface {
+	CreateEquipmentFromOrder(models.Order, string) (*models.Equipment, error)
+	ReplaceEquipmentForMember(models.Equipment) (*models.Equipment, error)
+}
+
+func NewOrderService(db *gorm.DB, equipmentService EquipmentService) *OrderService {
 	return &OrderService{
-		db: newOrderDB(db),
+		db:               newOrderDB(db),
+		equipmentService: equipmentService,
 	}
 }
 
@@ -45,4 +54,25 @@ func (s OrderService) delete(id uint64) error {
 
 func (s OrderService) getAll(fulfilled bool) ([]models.Order, error) {
 	return s.db.getAll(fulfilled)
+}
+
+func (s OrderService) fulfill(order models.Order, registrationCode string) (*models.Equipment, error) {
+	equipment, err := s.equipmentService.CreateEquipmentFromOrder(order, registrationCode)
+	if err != nil {
+		return nil, err
+	}
+
+	equipment.MemberID = order.MemberID
+	_, err = s.equipmentService.ReplaceEquipmentForMember(*equipment)
+	if err != nil {
+		return nil, err
+	}
+
+	order.FulfilledAt = time.Now()
+	_, err = s.update(order.ID, order)
+	if err != nil {
+		return nil, err
+	}
+
+	return equipment, err
 }

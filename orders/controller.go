@@ -14,6 +14,7 @@ type Service interface {
 	update(uint64, models.Order) (models.Order, error)
 	delete(uint64) error
 	getAll(bool) ([]models.Order, error)
+	fulfill(models.Order, string) (*models.Equipment, error)
 }
 
 type Controller struct {
@@ -32,6 +33,7 @@ func NewController(baseRoute *gin.RouterGroup, service Service) {
 		ordersRoute.GET("/fullfilled", ctrl.getAllFulfilled)
 		ordersRoute.GET("/:id", ctrl.getById)
 		ordersRoute.POST("/", ctrl.create)
+		ordersRoute.POST("/:registrationCode/toEquipment", ctrl.createEquipmentFromOrder)
 		ordersRoute.PUT("/:id", ctrl.update)
 		ordersRoute.DELETE("/:id", ctrl.delete)
 	}
@@ -126,4 +128,28 @@ func (ctrl Controller) delete(c *gin.Context) {
 		return
 	}
 	c.Status(http.StatusOK)
+}
+
+func (ctrl Controller) createEquipmentFromOrder(c *gin.Context) {
+	registrationCode, err := url.ParseToString(c, "registrationCode")
+	if err != nil {
+		log.Error(err)
+		c.AbortWithError(http.StatusNotFound, err)
+		return
+	}
+
+	var order models.Order
+	if err := c.BindJSON(&order); err != nil {
+		c.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+
+	equipment, err := ctrl.service.fulfill(order, registrationCode)
+	if err != nil {
+		log.Error(err)
+		c.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
+
+	c.JSON(http.StatusOK, equipment)
 }
