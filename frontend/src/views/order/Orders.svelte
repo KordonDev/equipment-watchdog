@@ -5,6 +5,7 @@
   import { Alert, Card, Label, Select, Spinner } from "flowbite-svelte";
   import EquipmentIcon from "../../components/Equipment/EquipmentIcon.svelte";
   import { getOrders } from "./order.service";
+  import {formatToDate } from "../../components/timeHelper";
 
   let orderPromise = getOrders();
 </script>
@@ -22,18 +23,18 @@
     <div class="flex flex-wrap">
       {#each orders as order}
         <div>
-          <Card class="m-4">
+          <Card class="m-4 flex items-center">
             <EquipmentIcon
               equipmentType={order.type}
               registrationCode={undefined}
             />
-            <h3>
+            <h3> 
               <a href={`${routes.OrderDetails.link}${order.id}`} use:link>
                 {order.id}
               </a>
             </h3>
             <p>Größe: {order.size || "-"}</p>
-            <p>Bestelldatum: {order.createdAt}</p>
+            <p>Bestelldatum: {formatToDate(order.createdAt)}</p>
           </Card>
         </div>
       {/each}
