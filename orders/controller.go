@@ -10,6 +10,7 @@ import (
 
 type Service interface {
 	getById(uint64) (models.Order, error)
+  getForMember(uint64) ([]models.Order, error)
 	create(models.Order) (models.Order, error)
 	update(uint64, models.Order) (models.Order, error)
 	delete(uint64) error
@@ -31,6 +32,7 @@ func NewController(baseRoute *gin.RouterGroup, service Service) {
 	{
 		ordersRoute.GET("/", ctrl.getAllNotFulfilled)
 		ordersRoute.GET("/fullfilled", ctrl.getAllFulfilled)
+    ordersRoute.GET("/member/:id", ctrl.getForMember)
 		ordersRoute.GET("/:id", ctrl.getById)
 		ordersRoute.POST("/", ctrl.create)
 		ordersRoute.POST("/:registrationCode/toEquipment", ctrl.createEquipmentFromOrder)
@@ -70,6 +72,22 @@ func (ctrl Controller) getById(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, o)
+}
+
+func (ctrl Controller) getForMember(c *gin.Context) {
+	id, err := url.ParseToInt(c, "id")
+	if err != nil {
+		c.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+
+	orders, err := ctrl.service.getForMember(id)
+	if err != nil {
+		c.AbortWithStatus(http.StatusNotFound)
+		return
+	}
+
+	c.JSON(http.StatusOK, orders)
 }
 
 func (ctrl Controller) create(c *gin.Context) {
@@ -153,3 +171,4 @@ func (ctrl Controller) createEquipmentFromOrder(c *gin.Context) {
 
 	c.JSON(http.StatusOK, equipment)
 }
+

@@ -1,6 +1,6 @@
 <script lang="ts">
   import Navigation from "../../components/Navigation/Navigation.svelte";
-  import FulfillOrderModal from './FulfillOrderModal.svelte';
+  import FulfillOrderModal from "./FulfillOrderModal.svelte";
   import { deleteOrder, getOrder, fulfillOrder } from "./order.service";
   import { Alert, Button, Modal, Spinner } from "flowbite-svelte";
   import { createNotification } from "../../components/Notification/notificationStore";
@@ -8,7 +8,7 @@
   import { routes } from "../../routes";
   import { translateEquipmentType } from "../equipment/equipment.service";
   import { getMember } from "../member/member.service";
-  import {formatToDate } from "../../components/timeHelper";
+  import { formatToDate } from "../../components/timeHelper";
 
   export let params = { id: undefined };
 
@@ -16,11 +16,10 @@
   let loading = false;
   let order: Order;
   let orderPromise = getOrder(params.id);
-  let memberPromise = orderPromise
-    .then(o => {
-      order = o;
-      return getMember(o.memberId);
-    });
+  let memberPromise = orderPromise.then((o) => {
+    order = o;
+    return getMember(o.memberId);
+  });
 
   function deleteOrderInternal(id: number) {
     deleteOrder(id)
@@ -62,7 +61,7 @@
     <p>Größe {order.size || "-"}</p>
     <p>Mitglied: {member.name}</p>
   </div>
-  <FulfillOrderModal order={order}/>
+  <FulfillOrderModal {order} />
   <Button color="red" on:click={() => (deleteModalOpen = true)}>
     Bestellung löschen
   </Button>

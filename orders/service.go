@@ -7,8 +7,17 @@ import (
 	"gorm.io/gorm"
 )
 
+type OrderDatabase interface {
+   create(models.Order) (models.Order, error)
+   getById(uint64) (models.Order, error)
+   getForMember(uint64) ([]models.Order, error)
+   save(*models.Order) error
+   delete(uint64) error
+   getAll(bool) ([]models.Order, error)
+}
+
 type OrderService struct {
-	db               *orderDB
+	db               OrderDatabase
 	equipmentService EquipmentService
 }
 
@@ -30,6 +39,10 @@ func (s OrderService) create(o models.Order) (models.Order, error) {
 
 func (s OrderService) getById(id uint64) (models.Order, error) {
 	return s.db.getById(id)
+}
+
+func (s OrderService) getForMember(id uint64) ([]models.Order, error) {
+	return s.db.getForMember(id)
 }
 
 func (s OrderService) update(id uint64, update models.Order) (models.Order, error) {

@@ -20,6 +20,11 @@ export function getFulfilledOrders(): Promise<Order[]> {
   return fetchApi(`/orders/fulfilled`);
 }
 
+export function getOrdersForMember(id: string): Promise<Order[]> {
+  return fetchApi(`/orders/member/${id}`)
+    .then(orders => orders.map(parseOrderDates));
+}
+
 export function getOrder(id: string): Promise<Order> {
   return fetchApi(`/orders/${id}`)
     .then(parseOrderDates);

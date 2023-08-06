@@ -31,6 +31,23 @@ func (odb orderDB) getById(id uint64) (models.Order, error) {
 	return o.FromDB(), nil
 }
 
+func (odb orderDB) getForMember(id uint64) ([]models.Order, error) {
+  orders := make([]models.DBOrder, 0)
+	err := odb.db.Where("member_id = ?", id).Find(&orders).Error
+
+	if err != nil {
+		return nil, err
+	}
+
+  result := make([]models.Order, 0)
+  for _, o := range(orders) {
+    result = append(result, o.FromDB())
+  }
+
+
+	return result, nil
+}
+
 func (odb orderDB) create(order models.Order) (models.Order, error) {
 	o := order.ToDB()
 	err := odb.db.Create(&o).Error

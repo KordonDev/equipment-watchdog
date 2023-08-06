@@ -1,5 +1,6 @@
 debug: true
 domain: localhost
 origin: http://localhost:5173
+# are these keys correct?
 jwtsecret: changeMe
 databaseconnection: ./test.db

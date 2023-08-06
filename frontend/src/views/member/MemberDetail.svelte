@@ -1,12 +1,5 @@
 <script lang="ts">
-  import {
-    Button,
-    Label,
-    Modal,
-    Select,
-    Spinner,
-    Alert,
-  } from "flowbite-svelte";
+  import { Button, Modal, Spinner, Alert, Heading } from "flowbite-svelte";
   import { routes } from "../../routes";
   import { push, link } from "svelte-spa-router";
   import {
@@ -23,14 +16,16 @@
   import MemberCard from "./MemberCard.svelte";
   import Navigation from "../../components/Navigation/Navigation.svelte";
   import { writable } from "svelte/store";
+  import OrderCard from "../order/OrderCard.svelte";
+  import { getOrdersForMember } from "../order/order.service"
 
   export let params = { id: undefined };
   const member = writable<Member | undefined>();
-  let loadingError = false;
 
-  getMember(params.id)
+  const memberPromise = getMember(params.id)
     .then((m) => member.set(m))
-    .catch(() => (loadingError = true));
+
+  const ordersPromise = getOrdersForMember(params.id);
   let deleteModalOpen = false;
 
   let loading = false;
@@ -68,19 +63,33 @@
 
 <Navigation />
 
-{#if $member !== undefined}
-  <MemberCard member={$member} columns={6} />
-
-  <MemberForm
-    memberStore={member}
-    onSubmit={updateMemberInternal}
-    submitText="Speichern"
-    loading={false}
-    hideEquipment={false}
-  />
+{#await memberPromise}
+  <Spinner />
+{:then} 
+  
+  <div class="mb-4">
+    <MemberCard member={$member} columns={6} />
+    <MemberForm
+      memberStore={member}
+      onSubmit={updateMemberInternal}
+      submitText="Speichern"
+      loading={false}
+      hideEquipment={false}
+    />
+  </div>
 
   <div class="mb-4">
+    <Heading tag="h3">Bestellungen</Heading>
     <a href={`${routes.AddOrder.link}${params.id}`} use:link>Ausrüstung bestellen</a>
+    {#await ordersPromise }
+      <Spinner />
+    {:then orders}
+      <div class="flex flex-wrap">
+        {#each orders as order}
+          <OrderCard order={order} />
+        {/each}
+      </div>
+    {/await}
   </div>
 
   <Button color="red" on:click={() => (deleteModalOpen = true)}>
@@ -109,7 +118,6 @@
       {/if}
     </svelte:fragment>
   </Modal>
-{/if}
-{#if loadingError}
+{:catch}
   <Alert class="mb-4" color="red">Mitglied konnte nicht geladen werden.</Alert>
-{/if}
+{/await}
