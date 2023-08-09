@@ -17,7 +17,7 @@
     Aktuell {orders.length} Bestellungen offen
     <div class="flex flex-wrap">
       {#each orders as order}
-        <OrderCard order={order} />
+        <OrderCard order={order} withMember={true} />
       {/each}
     </div>
   </div>
