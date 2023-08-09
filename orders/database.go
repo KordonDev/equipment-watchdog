@@ -8,7 +8,7 @@ import (
 )
 
 type orderDB struct {
-	db *gorm.DB
+	*gorm.DB
 }
 
 func newOrderDB(db *gorm.DB) *orderDB {
@@ -18,12 +18,13 @@ func newOrderDB(db *gorm.DB) *orderDB {
 	}
 
 	return &orderDB{
-		db: db,
+		db,
 	}
 }
+
 func (odb orderDB) getById(id uint64) (models.Order, error) {
 	var o models.DBOrder
-	err := odb.db.Model(&models.DBOrder{}).First(&o, "ID = ?", id).Error
+	err := odb.Model(&models.DBOrder{}).First(&o, "ID = ?", id).Error
 
 	if err != nil {
 		return models.Order{}, err
@@ -33,7 +34,7 @@ func (odb orderDB) getById(id uint64) (models.Order, error) {
 
 func (odb orderDB) getForMember(id uint64) ([]models.Order, error) {
   orders := make([]models.DBOrder, 0)
-	err := odb.db.Where("member_id = ?", id).Find(&orders).Error
+	err := odb.Where("member_id = ?", id).Find(&orders).Error
 
 	if err != nil {
 		return nil, err
@@ -50,7 +51,7 @@ func (odb orderDB) getForMember(id uint64) ([]models.Order, error) {
 
 func (odb orderDB) create(order models.Order) (models.Order, error) {
 	o := order.ToDB()
-	err := odb.db.Create(&o).Error
+	err := odb.Create(&o).Error
 	if err != nil {
 		return models.Order{}, err
 	}
@@ -59,12 +60,12 @@ func (odb orderDB) create(order models.Order) (models.Order, error) {
 
 func (odb orderDB) save(order *models.Order) error {
 	o := order.ToDB()
-	err := odb.db.Save(&o).Error
+	err := odb.Save(&o).Error
 	return err
 }
 
 func (odb orderDB) delete(id uint64) error {
-	return odb.db.Delete(&models.DBOrder{}, id).Error
+	return odb.Delete(&models.DBOrder{}, id).Error
 }
 
 func (odb orderDB) getAll(fulfilled bool) ([]models.Order, error) {
@@ -90,12 +91,12 @@ func (odb orderDB) getAll(fulfilled bool) ([]models.Order, error) {
 
 func (odb orderDB) getAllOpen() ([]models.DBOrder, error) {
 	var result []models.DBOrder
-	err := odb.db.Model(&models.DBOrder{}).Find(&result, "fulfilled_at = \"0001-01-01 00:00:00+00:00\"").Error
+	err := odb.Model(&models.DBOrder{}).Find(&result, "fulfilled_at = \"0001-01-01 00:00:00+00:00\"").Error
 	return result, err
 }
 
 func (odb orderDB) getAllFulfilled() ([]models.DBOrder, error) {
 	var result []models.DBOrder
-	err := odb.db.Model(&models.DBOrder{}).Find(&result, "fulfilled_at !=  \"0001-01-01 00:00:00+00:00\"").Error
+	err := odb.Model(&models.DBOrder{}).Find(&result, "fulfilled_at !=  \"0001-01-01 00:00:00+00:00\"").Error
 	return result, err
 }
