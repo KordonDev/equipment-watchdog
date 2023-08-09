@@ -1,5 +1,5 @@
 <script lang="ts">
-  import Router, { link, replace } from "svelte-spa-router";
+  import Router, { replace } from "svelte-spa-router";
   import Login from "./views/security/Login.svelte";
   import { routes } from "./routes";
   import Register from "./views/security/Register.svelte";
@@ -15,6 +15,7 @@
   import Orders from "./views/order/Orders.svelte";
   import OrderDetails from "./views/order/OrderDetails.svelte";
   import AddOrder from "./views/order/NewOrder.svelte";
+  import FulfilledOrders from "./views/order/FulfilledOrders.svelte";
 
   if (window.location.pathname === "/" && window.location.hash === "") {
     replace(routes.MemberOverview.link);
@@ -34,6 +35,7 @@
       [routes.EquipmentAdd.path]: CreateEquipment,
       [routes.EquipmentDetails.path]: EquipmentDetails,
       [routes.Orders.path]: Orders,
+      [routes.OrdersFulfilled.path]: FulfilledOrders,
       [routes.OrderDetails.path]: OrderDetails,
       [routes.AddOrder.path]: AddOrder,
       [routes.NotApproved.path]: NotApproved,

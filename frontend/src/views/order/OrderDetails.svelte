@@ -9,17 +9,13 @@
   import { translateEquipmentType } from "../equipment/equipment.service";
   import { getMember } from "../member/member.service";
   import { formatToDate } from "../../components/timeHelper";
+    import OrderCard from "./OrderCard.svelte";
 
   export let params = { id: undefined };
 
   let deleteModalOpen = false;
   let loading = false;
-  let order: Order;
   let orderPromise = getOrder(params.id);
-  let memberPromise = orderPromise.then((o) => {
-    order = o;
-    return getMember(o.memberId);
-  });
 
   function deleteOrderInternal(id: number) {
     deleteOrder(id)
@@ -50,16 +46,11 @@
 
 <Navigation />
 
-{#await memberPromise}
+{#await orderPromise}
   <Spinner />
-{:then member}
-  <div>
-    <h3>{translateEquipmentType(order.type)}</h3>
-    <p>Bestell Id {order.id}</p>
-    <p>Bestelldatum: {formatToDate(order.createdAt)}</p>
-    <p>Lieferdatum: {formatToDate(order.fulfilledAt)}</p>
-    <p>Größe {order.size || "-"}</p>
-    <p>Mitglied: {member.name}</p>
+{:then order}
+  <div class="flex flex-col items-center">
+    <OrderCard order={order} withMember={true} withDuration={true} />
   </div>
   <FulfillOrderModal {order} />
   <Button color="red" on:click={() => (deleteModalOpen = true)}>

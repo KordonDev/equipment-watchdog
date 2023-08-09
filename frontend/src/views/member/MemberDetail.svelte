@@ -87,6 +87,8 @@
       <div class="flex flex-wrap">
         {#each orders as order}
           <OrderCard order={order} />
+        {:else}
+          <p>Keine offenen Bestellungen</p>
         {/each}
       </div>
     {/await}

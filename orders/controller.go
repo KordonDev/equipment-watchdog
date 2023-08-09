@@ -31,7 +31,7 @@ func NewController(baseRoute *gin.RouterGroup, service Service) {
 	ordersRoute := baseRoute.Group("/orders")
 	{
 		ordersRoute.GET("/", ctrl.getAllNotFulfilled)
-		ordersRoute.GET("/fullfilled", ctrl.getAllFulfilled)
+		ordersRoute.GET("/fulfilled", ctrl.getAllFulfilled)
     ordersRoute.GET("/member/:id", ctrl.getForMember)
 		ordersRoute.GET("/:id", ctrl.getById)
 		ordersRoute.POST("/", ctrl.create)

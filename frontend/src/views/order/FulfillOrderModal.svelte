@@ -1,19 +1,16 @@
 <script lang="ts">
-  import Navigation from "../../components/Navigation/Navigation.svelte";
-  import { deleteOrder, getOrder, fulfillOrder } from "./order.service";
-  import { Alert,Label, Input, Button, Modal, Spinner } from "flowbite-svelte";
+  import { fulfillOrder, type Order } from "./order.service";
+  import { Label, Input, Button, Modal, Spinner } from "flowbite-svelte";
   import { createNotification } from "../../components/Notification/notificationStore";
   import { push } from "svelte-spa-router";
   import { routes } from "../../routes";
   import { translateEquipmentType } from "../equipment/equipment.service";
 
-  export let order = {};
+  export let order: Order;
 
   let fulfillModalOpen = false;
   let loading = false;
   let registrationCode = "";
-
-  console.log(order)
 
   function fulfillOrder_internal() {
     loading = true;

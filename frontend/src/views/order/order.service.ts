@@ -17,7 +17,8 @@ export function getOrders(): Promise<Order[]> {
 }
 
 export function getFulfilledOrders(): Promise<Order[]> {
-  return fetchApi(`/orders/fulfilled`);
+  return fetchApi(`/orders/fulfilled`)
+    .then(orders => orders.map(parseOrderDates));
 }
 
 export function getOrdersForMember(id: string): Promise<Order[]> {

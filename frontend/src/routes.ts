@@ -41,6 +41,10 @@ export const routes = {
     path: "/orders/",
     link: "/orders",
   },
+  OrdersFulfilled: {
+    path: "/orders/fulfilled",
+    link: "/orders/fulfilled",
+  },
   OrderDetails: {
     path: "/orders/:id",
     link: "/orders/",

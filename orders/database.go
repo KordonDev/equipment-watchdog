@@ -34,7 +34,7 @@ func (odb orderDB) getById(id uint64) (models.Order, error) {
 
 func (odb orderDB) getForMember(id uint64) ([]models.Order, error) {
   orders := make([]models.DBOrder, 0)
-	err := odb.Where("member_id = ?", id).Find(&orders).Error
+	err := odb.Where("member_id = ? and fulfilled_at =  \"0001-01-01 00:00:00+00:00\"", id).Find(&orders).Error
 
 	if err != nil {
 		return nil, err
