@@ -1,6 +1,5 @@
-debug: true
+debug: false
 domain: localhost
 origin: http://localhost:5173
-# are these keys correct?
-jwtsecret: changeMe
-databaseconnection: ./test.db
+jwtSecret: changeMe
+databaseConnection: ./test.db
