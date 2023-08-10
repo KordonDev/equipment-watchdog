@@ -1,5 +1,3 @@
-import { EquipmentType } from "./views/equipment/equipment.service";
-
 export const routes = {
   Login: {
     path: "/login",

@@ -33,18 +33,17 @@ func (odb orderDB) getById(id uint64) (models.Order, error) {
 }
 
 func (odb orderDB) getForMember(id uint64) ([]models.Order, error) {
-  orders := make([]models.DBOrder, 0)
+	orders := make([]models.DBOrder, 0)
 	err := odb.Where("member_id = ? and fulfilled_at =  \"0001-01-01 00:00:00+00:00\"", id).Find(&orders).Error
 
 	if err != nil {
 		return nil, err
 	}
 
-  result := make([]models.Order, 0)
-  for _, o := range(orders) {
-    result = append(result, o.FromDB())
-  }
-
+	result := make([]models.Order, 0)
+	for _, o := range orders {
+		result = append(result, o.FromDB())
+	}
 
 	return result, nil
 }

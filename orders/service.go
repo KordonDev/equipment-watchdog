@@ -8,22 +8,22 @@ import (
 )
 
 type OrderDatabase interface {
-   create(models.Order) (models.Order, error)
-   getById(uint64) (models.Order, error)
-   getForMember(uint64) ([]models.Order, error)
-   save(*models.Order) error
-   delete(uint64) error
-   getAll(bool) ([]models.Order, error)
-}
-
-type OrderService struct {
-	db               OrderDatabase
-	equipmentService EquipmentService
+	create(models.Order) (models.Order, error)
+	getById(uint64) (models.Order, error)
+	getForMember(uint64) ([]models.Order, error)
+	save(*models.Order) error
+	delete(uint64) error
+	getAll(bool) ([]models.Order, error)
 }
 
 type EquipmentService interface {
 	CreateEquipmentFromOrder(models.Order, string) (*models.Equipment, error)
 	ReplaceEquipmentForMember(models.Equipment) (*models.Equipment, error)
+}
+
+type OrderService struct {
+	db               OrderDatabase
+	equipmentService EquipmentService
 }
 
 func NewOrderService(db *gorm.DB, equipmentService EquipmentService) *OrderService {

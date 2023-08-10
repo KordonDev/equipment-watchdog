@@ -10,7 +10,7 @@ import (
 
 type Service interface {
 	getById(uint64) (models.Order, error)
-  getForMember(uint64) ([]models.Order, error)
+	getForMember(uint64) ([]models.Order, error)
 	create(models.Order) (models.Order, error)
 	update(uint64, models.Order) (models.Order, error)
 	delete(uint64) error
@@ -32,7 +32,7 @@ func NewController(baseRoute *gin.RouterGroup, service Service) {
 	{
 		ordersRoute.GET("/", ctrl.getAllNotFulfilled)
 		ordersRoute.GET("/fulfilled", ctrl.getAllFulfilled)
-    ordersRoute.GET("/member/:id", ctrl.getForMember)
+		ordersRoute.GET("/member/:id", ctrl.getForMember)
 		ordersRoute.GET("/:id", ctrl.getById)
 		ordersRoute.POST("/", ctrl.create)
 		ordersRoute.POST("/:registrationCode/toEquipment", ctrl.createEquipmentFromOrder)
@@ -171,4 +171,3 @@ func (ctrl Controller) createEquipmentFromOrder(c *gin.Context) {
 
 	c.JSON(http.StatusOK, equipment)
 }
-

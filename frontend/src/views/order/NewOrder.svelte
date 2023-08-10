@@ -8,14 +8,9 @@
   import {
     EquipmentType,
     translatedEquipmentTypes,
-    type Equipment,
   } from "../equipment/equipment.service";
-  import {
-    createOrder,
-  } from "./order.service";
-  import {
-    getMember
-  } from '../member/member.service'
+  import { createOrder, type Order } from "./order.service";
+  import { getMember } from "../member/member.service";
   import Navigation from "../../components/Navigation/Navigation.svelte";
 
   export let params = { memberId: undefined };
@@ -26,19 +21,16 @@
     id: 0,
     size: "",
     memberId: memberId,
+    createdAt: undefined,
   };
   let loading = false;
   let memberName = "";
-  
+
   onMount(() => {
-    getMember(memberId)
-      .then((member) => {
-        memberName = member.name;
-        console.log(memberName)
-      });
-  })
-
-
+    getMember(memberId.toString()).then((member) => {
+      memberName = member.name;
+    });
+  });
 
   function handleSubmit() {
     loading = true;
@@ -69,21 +61,11 @@
 <h1>Neue Bestellung</h1>
 <form on:submit|preventDefault={handleSubmit} disabled={loading}>
   <Label for="name" class="block mb-2">Für</Label>
-  <Input
-    required
-    class="mb-4"
-    id="name"
-    disabled
-    bind:value={memberName}
-  />
+  <Input required class="mb-4" id="name" disabled bind:value={memberName} />
 
   <Label class="mb-4">
     <div class="mb-2">Art</div>
-    <Select
-      required
-      items={translatedEquipmentTypes}
-      bind:value={order.type}
-    />
+    <Select required items={translatedEquipmentTypes} bind:value={order.type} />
   </Label>
 
   <Label for="size" class="block mb-2">Größe</Label>

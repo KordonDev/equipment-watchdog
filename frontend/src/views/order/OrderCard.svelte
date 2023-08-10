@@ -9,18 +9,18 @@
 
   export let order: Order;
   export let withMember: boolean = false;
-  export let withDuration: boolean = false; 
+  export let withDuration: boolean = false;
 
-  const memberPromise: Promise<Member> = withMember ?
-    getMember(order.memberId.toString()) :
-    Promise.resolve({} as Member);
+  const memberPromise: Promise<Member> = withMember
+    ? getMember(order.memberId.toString())
+    : Promise.resolve({} as Member);
 
   const durationForOrder = (order: Order) => {
-    const end = order.fulfilledAt && new Date();
-    const diff = end.getTime() - order.createdAt.getTime();
-    const days = Math.round(diff / 1000 / 60 / 60 / 24);
+    const endDate = order.fulfilledAt && new Date();
+    const diffMs = endDate.getTime() - order.createdAt.getTime();
+    const days = Math.round(diffMs / 1000 / 60 / 60 / 24);
     return days;
-  }
+  };
 </script>
 
 <Card class="m-4 flex items-center">
@@ -39,8 +39,12 @@
   {#if withMember}
     {#await memberPromise}
       <Spinner />
-    {:then member} 
-      <p>Für: <a href={`${routes.MemberDetail.link}${member.id}`} use:link>{member.name}</a></p>
+    {:then member}
+      <p>
+        Für: <a href={`${routes.MemberDetail.link}${member.id}`} use:link
+          >{member.name}</a
+        >
+      </p>
     {/await}
   {/if}
 </Card>
