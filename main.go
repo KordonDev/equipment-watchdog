@@ -12,6 +12,7 @@ import (
 	"github.com/kordondev/equipment-watchdog/config"
 	"github.com/kordondev/equipment-watchdog/equipment"
 	"github.com/kordondev/equipment-watchdog/members"
+	"github.com/kordondev/equipment-watchdog/orders"
 	"github.com/kordondev/equipment-watchdog/security"
 	"github.com/kordondev/equipment-watchdog/users"
 	"gorm.io/driver/sqlite"
@@ -25,7 +26,7 @@ func main() {
 		panic(err)
 	}
 
-	db, err := createDB(configuration.Debug, configuration.DatebaseConnection)
+	db, err := createDB(configuration.Debug, configuration.DatabaseConnection)
 	if err != nil {
 		panic(err)
 	}
@@ -59,6 +60,9 @@ func main() {
 
 	users.NewController(api, userService, configuration.Domain)
 	equipment.NewController(api, equipmentService)
+
+	orderService := orders.NewOrderService(db, &equipmentService)
+	orders.NewController(api, orderService)
 
 	router.Run(fmt.Sprintf("%s:8080", configuration.Domain))
 }

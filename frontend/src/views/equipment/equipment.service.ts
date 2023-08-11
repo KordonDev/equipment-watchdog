@@ -76,6 +76,7 @@ export const NoEquipment: Equipment = {
   id: 0,
   registrationCode: "Keine",
   type: EquipmentType.TShirt,
+  size: ""
 };
 
 export function addNoneEquipment(equipments: EquipmentByType): EquipmentByType {

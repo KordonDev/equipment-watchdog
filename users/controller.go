@@ -44,7 +44,7 @@ func (ctrl Controller) getMe(c *gin.Context) {
 	username := c.GetString("username")
 
 	user, err := ctrl.service.GetUser(username)
-	if user != nil {
+	if err != nil {
 		c.AbortWithError(http.StatusNotFound, err)
 		return
 	}

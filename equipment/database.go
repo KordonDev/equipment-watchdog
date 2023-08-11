@@ -79,6 +79,24 @@ func (edb *equipmentDB) getFreeEquipment() ([]*models.Equipment, error) {
 	return listFormDB(dbEquipment), nil
 }
 
+func (edb *equipmentDB) save(equipment *models.Equipment) (*models.Equipment, error) {
+	e := equipment.ToDb()
+	err := edb.Save(&e).Error
+	if err != nil {
+		return nil, err
+	}
+	return e.FromDB(), nil
+}
+
+func (edb *equipmentDB) getByMemberIdAndType(memberId uint64, eType models.EquipmentType) (*models.Equipment, error) {
+	dbEquipment := models.DbEquipment{}
+	err := edb.Where("type = ? AND member_id = ?", eType, memberId).Find(&dbEquipment).Error
+	if err != nil {
+		return nil, err
+	}
+	return dbEquipment.FromDB(), err
+}
+
 func listFormDB(dbEquipment []models.DbEquipment) []*models.Equipment {
 	equipment := make([]*models.Equipment, 0)
 	for _, v := range dbEquipment {
