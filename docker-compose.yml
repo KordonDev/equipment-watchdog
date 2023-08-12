@@ -1,0 +1,9 @@
+version: '3.4'
+
+services:
+  equipment-watchdog-backend:
+    image: ew-1
+    ports:
+      - "8080:8080"
+    volumes:
+      - "./configuration:/app/configuration:ro"
