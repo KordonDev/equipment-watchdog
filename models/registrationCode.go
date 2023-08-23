@@ -13,7 +13,7 @@ type DbRegistrationCode struct {
 }
 
 func (DbRegistrationCode) TableName() string {
-	return "registrationCodes"
+	return "registration_codes"
 }
 
 func (r *RegistrationCode) ToDb() *DbRegistrationCode {

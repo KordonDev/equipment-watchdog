@@ -1,6 +1,7 @@
 package equipment
 
 import (
+	"errors"
 	"log"
 
 	"github.com/kordondev/equipment-watchdog/models"
@@ -104,4 +105,10 @@ func listFormDB(dbEquipment []models.DbEquipment) []*models.Equipment {
 	}
 
 	return equipment
+}
+
+func (edb *equipmentDB) registrationCodeExists(rc string) bool {
+	var e models.DbEquipment
+	err := edb.Model(&models.DbEquipment{}).First(&e, "registration_code = ?", rc).Error
+	return !errors.Is(err, gorm.ErrRecordNotFound)
 }

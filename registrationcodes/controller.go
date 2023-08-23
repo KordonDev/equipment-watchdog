@@ -7,27 +7,31 @@ import (
 	"github.com/kordondev/equipment-watchdog/models"
 )
 
-type Service interface {
-  getRegistrationCode() models.RegistrationCode
+type RCService interface {
+	getRegistrationCode() (models.RegistrationCode, error)
 }
 
 type RegistrationCodesController struct {
-  service Service
+	service RCService
 }
 
-func NewController(baseRoute *gin.RouterGroup, service Service) {
-  ctrl := RegistrationCodesController{
-    service,
-  }
+func NewController(baseRoute *gin.RouterGroup, service RCService) {
+	ctrl := RegistrationCodesController{
+		service,
+	}
 
-	registrationCodesRoute := baseRoute.Group("/orders")
+	registrationCodesRoute := baseRoute.Group("/registrationCode")
 	{
 		registrationCodesRoute.GET("/", ctrl.getRegistrationCode)
-  }
+	}
 }
 
 func (ctrl RegistrationCodesController) getRegistrationCode(c *gin.Context) {
-  registrationCode := ctrl.service.getRegistrationCode()
+	registrationCode, err := ctrl.service.getRegistrationCode()
+
+	if err != nil {
+		c.AbortWithError(http.StatusInternalServerError, err)
+	}
 
 	c.JSON(http.StatusOK, registrationCode)
 }

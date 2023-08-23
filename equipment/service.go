@@ -14,6 +14,7 @@ type EquipmentDatabase interface {
 	getFreeEquipment() ([]*models.Equipment, error)
 	save(*models.Equipment) (*models.Equipment, error)
 	getByMemberIdAndType(uint64, models.EquipmentType) (*models.Equipment, error)
+	registrationCodeExists(string) bool
 }
 
 type EquipmentService struct {
@@ -93,4 +94,8 @@ func (s EquipmentService) ReplaceEquipmentForMember(equipment models.Equipment) 
 	}
 
 	return e, nil
+}
+
+func (s EquipmentService) RegistrationCodeExists(rc string) bool {
+	return s.db.registrationCodeExists(rc)
 }

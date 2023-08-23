@@ -1,6 +1,8 @@
 package registrationcodes
 
 import (
+	"errors"
+
 	"github.com/cloudflare/cfssl/log"
 	"github.com/kordondev/equipment-watchdog/models"
 	"gorm.io/gorm"
@@ -22,14 +24,11 @@ func newDatabase(db *gorm.DB) *registrationCodesDB {
 }
 
 func (rdb registrationCodesDB) save(rc models.RegistrationCode) error {
-  return rdb.Save(rc).Error
+	return rdb.Save(rc.ToDb()).Error
 }
 
 func (rdb registrationCodesDB) exists(ID string) bool {
-  var rc models.RegistrationCode
-	err := rdb.Model(&models.DbRegistrationCode{}).First(&rc, "ID = ", ID).Error
-  if err != nil {
-    return true
-  }
-  return rc.ID == ID
+	var rc models.DbRegistrationCode
+	err := rdb.Model(&models.DbRegistrationCode{}).First(&rc, "ID = ?", ID).Error
+	return !errors.Is(err, gorm.ErrRecordNotFound)
 }

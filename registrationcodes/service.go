@@ -1,47 +1,82 @@
 package registrationcodes
 
 import (
+	"math/rand"
 	"time"
+
+	"github.com/cloudflare/cfssl/log"
 
 	"github.com/kordondev/equipment-watchdog/models"
 	"gorm.io/gorm"
 )
 
 type database interface {
-  save(models.RegistrationCode) error
+	save(models.RegistrationCode) error
+	exists(string) bool
 }
 
-type service struct {
-  db database
+type equipmentService interface {
+	RegistrationCodeExists(string) bool
 }
 
-func NewService(db *gorm.DB) *service {
-  registrationCodesDB := newDatabase(db)
-
-  return &service{
-    db: registrationCodesDB,
-  }
+type Service struct {
+	db               database
+	equipmentService equipmentService
 }
 
-func (s service) getRegistrationCode() (models.RegistrationCode, error) {
-  registrationCode := createRandomRegistrationCode()
+func NewService(db *gorm.DB, equipmentService equipmentService) Service {
+	registrationCodesDB := newDatabase(db)
 
-  if err := s.save(registrationCode); err != nil {
-    return models.RegistrationCode{}, err
-  }
-
-  return registrationCode, nil
+	return Service{
+		db:               registrationCodesDB,
+		equipmentService: equipmentService,
+	}
 }
 
-func (s service) save(registrationCode models.RegistrationCode) error {
-  return s.db.save(registrationCode);
+func (s Service) getRegistrationCode() (models.RegistrationCode, error) {
+	registrationCode := s.createRandomRegistrationCode()
+
+	if err := s.save(registrationCode); err != nil {
+		return models.RegistrationCode{}, err
+	}
+
+	return registrationCode, nil
 }
 
-func createRandomRegistrationCode() models.RegistrationCode {
-  // TODO: Loop if code exists in registrationCodesDB or equipmentDB
-  return models.RegistrationCode{
-    ID: "123",
-    ReservedUntil: time.Now().Add(time.Hour),
-  }
+func (s Service) save(registrationCode models.RegistrationCode) error {
+	return s.db.save(registrationCode)
+}
 
+func (s Service) createRandomRegistrationCode() models.RegistrationCode {
+	exists := true
+	var ID string
+	for exists {
+		ID = randomString(4)
+		log.Debug(ID)
+		rcE := s.db.exists(ID)
+		eE := s.equipmentService.RegistrationCodeExists(ID)
+
+		log.Debug("rc %v, e %v", rcE, eE)
+
+		exists = s.db.exists(ID) || s.equipmentService.RegistrationCodeExists(ID)
+	}
+	return models.RegistrationCode{
+		ID:            ID,
+		ReservedUntil: time.Now().Add(time.Hour),
+	}
+}
+
+const firstLetter = "abcdefghiklmnopqrstuwxyz123456789123456789"
+const allLetters = "0" + firstLetter
+
+func randomString(n int) string {
+	b := make([]byte, n)
+	for i := range b {
+		if i == 0 {
+			b[i] = firstLetter[rand.Intn(len(firstLetter))]
+		} else {
+			b[i] = allLetters[rand.Intn(len(allLetters))]
+		}
+	}
+	return string(b)
 }
