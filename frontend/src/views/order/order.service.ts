@@ -1,6 +1,7 @@
 import { getDate } from "../../components/timeHelper";
 import { fetchApi } from "../apiService";
 import type { Equipment, EquipmentType } from "../equipment/equipment.service";
+import { useRegistrationCode } from "../registrationCode/registrationCode.service";
 
 export interface Order<T = Date> {
   id: number;
@@ -61,6 +62,10 @@ export function fulfillOrder(order: Order, registrationCode: string): Promise<Eq
     method: "POST",
     body: JSON.stringify(order)
   })
+    .then(e => {
+      useRegistrationCode(e.registrationCode);
+      return e;
+    })
 }
 
 function parseOrderDates(order: Order<string>): Order {

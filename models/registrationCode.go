@@ -4,7 +4,7 @@ import "time"
 
 type RegistrationCode struct {
 	ID            string    `json:"id"`
-	ReservedUntil time.Time `json:"registrationCode"`
+	ReservedUntil time.Time `json:"reservedUntil"`
 }
 
 type DbRegistrationCode struct {
