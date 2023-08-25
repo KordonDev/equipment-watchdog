@@ -65,12 +65,6 @@ func (s Service) createRandomRegistrationCode() models.RegistrationCode {
 	var ID string
 	for exists {
 		ID = randomString(4)
-		log.Debug(ID)
-		rcE := s.db.exists(ID)
-		eE := s.equipmentService.RegistrationCodeExists(ID)
-
-		log.Debug("rc %v, e %v", rcE, eE)
-
 		exists = s.db.exists(ID) || s.equipmentService.RegistrationCodeExists(ID)
 	}
 	return models.RegistrationCode{
