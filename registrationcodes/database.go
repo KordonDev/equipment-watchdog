@@ -2,6 +2,7 @@ package registrationcodes
 
 import (
 	"errors"
+	"time"
 
 	"github.com/cloudflare/cfssl/log"
 	"github.com/kordondev/equipment-watchdog/models"
@@ -31,4 +32,8 @@ func (rdb registrationCodesDB) exists(ID string) bool {
 	var rc models.DbRegistrationCode
 	err := rdb.Model(&models.DbRegistrationCode{}).First(&rc, "ID = ?", ID).Error
 	return !errors.Is(err, gorm.ErrRecordNotFound)
+}
+
+func (rdb registrationCodesDB) deleteOutdated() error {
+	return rdb.Where("reserved_until < ?", time.Now()).Delete(&models.DbRegistrationCode{}).Error
 }

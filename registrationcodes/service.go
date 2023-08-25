@@ -13,6 +13,7 @@ import (
 type database interface {
 	save(models.RegistrationCode) error
 	exists(string) bool
+	deleteOutdated() error
 }
 
 type equipmentService interface {
@@ -27,10 +28,13 @@ type Service struct {
 func NewService(db *gorm.DB, equipmentService equipmentService) Service {
 	registrationCodesDB := newDatabase(db)
 
-	return Service{
+	s := Service{
 		db:               registrationCodesDB,
 		equipmentService: equipmentService,
 	}
+
+	s.deleteOutdated()
+	return s
 }
 
 func (s Service) getRegistrationCode() (models.RegistrationCode, error) {
@@ -45,6 +49,10 @@ func (s Service) getRegistrationCode() (models.RegistrationCode, error) {
 
 func (s Service) save(registrationCode models.RegistrationCode) error {
 	return s.db.save(registrationCode)
+}
+
+func (s Service) deleteOutdated() error {
+	return s.db.deleteOutdated()
 }
 
 func (s Service) createRandomRegistrationCode() models.RegistrationCode {
