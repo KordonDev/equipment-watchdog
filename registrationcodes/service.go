@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/cloudflare/cfssl/log"
+	"github.com/go-co-op/gocron"
 
 	"github.com/kordondev/equipment-watchdog/models"
 	"gorm.io/gorm"
@@ -28,13 +29,16 @@ type Service struct {
 func NewService(db *gorm.DB, equipmentService equipmentService) Service {
 	registrationCodesDB := newDatabase(db)
 
-	s := Service{
+	rcs := Service{
 		db:               registrationCodesDB,
 		equipmentService: equipmentService,
 	}
 
-	s.deleteOutdated()
-	return s
+	s := gocron.NewScheduler(time.UTC)
+	s.Every(1).Hour().Do(rcs.deleteOutdated())
+	s.StartAsync()
+
+	return rcs
 }
 
 func (s Service) getRegistrationCode() (models.RegistrationCode, error) {
@@ -52,6 +56,7 @@ func (s Service) save(registrationCode models.RegistrationCode) error {
 }
 
 func (s Service) deleteOutdated() error {
+	log.Info("delete outdated rc (Now: ", time.Now().Format("2006-01-02 15:04:05"), ")")
 	return s.db.deleteOutdated()
 }
 
