@@ -1,4 +1,5 @@
 <script lang="ts">
+  import {onMount} from 'svelte';
   import { Label, Input, Select, Button, Spinner } from "flowbite-svelte";
   import { createNotification } from "../../components/Notification/notificationStore";
   import { routes } from "../../routes";
@@ -9,6 +10,7 @@
     translatedEquipmentTypes,
     type Equipment,
   } from "./equipment.service";
+  import { getRegistrationCode } from "../registrationCode/registrationCode.service"
   import Navigation from "../../components/Navigation/Navigation.svelte";
 
   let equipment: Equipment = {
@@ -18,6 +20,16 @@
     size: "",
   };
   let loading = false;
+
+  
+  onMount(() => {
+    getRegistrationCode()
+      .then(rc => {
+        if (equipment.registrationCode === "") {
+          equipment.registrationCode = rc.id
+        }
+      })
+  })
 
   function handleSubmit() {
     loading = true;
@@ -47,7 +59,7 @@
 
 <h1>Neues Kleidungsstück</h1>
 <form on:submit|preventDefault={handleSubmit} disabled={loading}>
-  <Label for="name" class="block mb-2">Registrierungsnummer</Label>
+ <Label for="name" class="block mb-2">Registrierungsnummer</Label>
   <Input
     required
     class="mb-4"

@@ -1,5 +1,6 @@
 import { fetchApi } from "../apiService";
 import type { EquipmentByType } from "../member/member.service";
+import { useRegistrationCode } from "../registrationCode/registrationCode.service";
 
 export interface Equipment {
   id: number;
@@ -24,7 +25,11 @@ export function createEquipment(equipment: Equipment): Promise<Equipment> {
       ...equipment,
       id: 0,
     }),
-  });
+  })
+    .then(e => {
+      useRegistrationCode(e.registrationCode);
+      return e;
+    });
 }
 
 export function deleteEquipment(id: number): Promise<void> {

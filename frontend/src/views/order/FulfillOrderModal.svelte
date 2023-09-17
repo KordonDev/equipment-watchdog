@@ -1,16 +1,27 @@
 <script lang="ts">
+  import { onMount } from "svelte";
   import { fulfillOrder, type Order } from "./order.service";
   import { Label, Input, Button, Modal, Spinner } from "flowbite-svelte";
   import { createNotification } from "../../components/Notification/notificationStore";
   import { push } from "svelte-spa-router";
   import { routes } from "../../routes";
   import { translateEquipmentType } from "../equipment/equipment.service";
+  import { getRegistrationCode } from "../registrationCode/registrationCode.service";
 
   export let order: Order;
 
   let fulfillModalOpen = false;
   let loading = false;
   let registrationCode = "";
+
+  onMount(() => {
+    getRegistrationCode()
+      .then(rc => {
+        if (registrationCode === "") {
+          registrationCode = rc.id
+        }
+      })
+  })
 
   function fulfillOrder_internal() {
     loading = true;
