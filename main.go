@@ -9,6 +9,7 @@ import (
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	"github.com/kordondev/equipment-watchdog/changes"
 	"github.com/kordondev/equipment-watchdog/config"
 	"github.com/kordondev/equipment-watchdog/equipment"
 	"github.com/kordondev/equipment-watchdog/members"
@@ -54,6 +55,8 @@ func main() {
 	// TODO: security.Controller
 	api.Use(security.AuthorizeJWTMiddleware(configuration.Origin, jwtService, configuration.Domain))
 
+	changeService := changes.NewChangeService(db, userService)
+
 	equipmentService := equipment.NewEquipmentService(db)
 	database := members.NewMemberDB(db)
 	memberService := members.NewMemberService(database, &equipmentService)
@@ -63,7 +66,7 @@ func main() {
 	equipment.NewController(api, equipmentService)
 
 	orderService := orders.NewOrderService(db, &equipmentService)
-	orders.NewController(api, orderService)
+	orders.NewController(api, orderService, changeService)
 
 	registrationCodesService := registrationcodes.NewService(db, equipmentService)
 	registrationcodes.NewController(api, registrationCodesService)

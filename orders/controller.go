@@ -19,13 +19,19 @@ type Service interface {
 }
 
 type Controller struct {
-	service Service
+	service       Service
+	changeService ChangeService
 }
 
-func NewController(baseRoute *gin.RouterGroup, service Service) {
+type ChangeService interface {
+	Save(models.Change, *gin.Context) (*models.Change, error)
+}
+
+func NewController(baseRoute *gin.RouterGroup, service Service, changeService ChangeService) {
 
 	ctrl := Controller{
-		service: service,
+		service:       service,
+		changeService: changeService,
 	}
 
 	ordersRoute := baseRoute.Group("/orders")
@@ -102,6 +108,11 @@ func (ctrl Controller) create(c *gin.Context) {
 		c.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
+	ctrl.changeService.Save(models.Change{
+		Order:    co.ID,
+		ToMember: co.MemberID,
+		Action:   models.OrderEquipment,
+	}, c)
 
 	c.JSON(http.StatusCreated, co)
 }
@@ -128,6 +139,12 @@ func (ctrl Controller) update(c *gin.Context) {
 		return
 	}
 
+	ctrl.changeService.Save(models.Change{
+		Order:    order.ID,
+		ToMember: order.MemberID,
+		Action:   models.UpdateOrder,
+	}, c)
+
 	c.JSON(http.StatusOK, order)
 }
 
@@ -145,6 +162,12 @@ func (ctrl Controller) delete(c *gin.Context) {
 		c.AbortWithError(http.StatusInternalServerError, err)
 		return
 	}
+
+	ctrl.changeService.Save(models.Change{
+		Order:  id,
+		Action: models.DeleteOrder,
+	}, c)
+
 	c.Status(http.StatusOK)
 }
 
