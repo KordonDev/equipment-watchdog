@@ -19,19 +19,19 @@ type Service interface {
 }
 
 type Controller struct {
-	service       Service
-	changeService ChangeService
+	service      Service
+	changeWriter ChangeWriter
 }
 
-type ChangeService interface {
+type ChangeWriter interface {
 	Save(models.Change, *gin.Context) (*models.Change, error)
 }
 
-func NewController(baseRoute *gin.RouterGroup, service Service, changeService ChangeService) {
+func NewController(baseRoute *gin.RouterGroup, service Service, changeService ChangeWriter) {
 
 	ctrl := Controller{
-		service:       service,
-		changeService: changeService,
+		service:      service,
+		changeWriter: changeService,
 	}
 
 	ordersRoute := baseRoute.Group("/orders")
@@ -108,7 +108,7 @@ func (ctrl Controller) create(c *gin.Context) {
 		c.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
-	ctrl.changeService.Save(models.Change{
+	ctrl.changeWriter.Save(models.Change{
 		Order:    co.ID,
 		ToMember: co.MemberID,
 		Action:   models.OrderEquipment,
@@ -139,7 +139,7 @@ func (ctrl Controller) update(c *gin.Context) {
 		return
 	}
 
-	ctrl.changeService.Save(models.Change{
+	ctrl.changeWriter.Save(models.Change{
 		Order:    order.ID,
 		ToMember: order.MemberID,
 		Action:   models.UpdateOrder,
@@ -163,7 +163,7 @@ func (ctrl Controller) delete(c *gin.Context) {
 		return
 	}
 
-	ctrl.changeService.Save(models.Change{
+	ctrl.changeWriter.Save(models.Change{
 		Order:  id,
 		Action: models.DeleteOrder,
 	}, c)
@@ -191,6 +191,13 @@ func (ctrl Controller) createEquipmentFromOrder(c *gin.Context) {
 		c.AbortWithError(http.StatusInternalServerError, err)
 		return
 	}
+
+	ctrl.changeWriter.Save(models.Change{
+		Action:    models.OrderToEquipment,
+		Order:     order.ID,
+		Equipment: equipment.Id,
+		ToMember:  equipment.MemberID,
+	}, c)
 
 	c.JSON(http.StatusOK, equipment)
 }

@@ -55,21 +55,24 @@ func main() {
 	// TODO: security.Controller
 	api.Use(security.AuthorizeJWTMiddleware(configuration.Origin, jwtService, configuration.Domain))
 
-	changeService := changes.NewChangeService(db, userService)
+	changeWriter := changes.NewChangeWriterService(db, userService)
 
 	equipmentService := equipment.NewEquipmentService(db)
 	database := members.NewMemberDB(db)
 	memberService := members.NewMemberService(database, &equipmentService)
-	members.NewController(api, memberService)
+	members.NewController(api, memberService, changeWriter)
 
 	users.NewController(api, userService, configuration.Domain)
-	equipment.NewController(api, equipmentService)
+	equipment.NewController(api, equipmentService, changeWriter)
 
 	orderService := orders.NewOrderService(db, &equipmentService)
-	orders.NewController(api, orderService, changeService)
+	orders.NewController(api, orderService, changeWriter)
 
 	registrationCodesService := registrationcodes.NewService(db, equipmentService)
 	registrationcodes.NewController(api, registrationCodesService)
+
+	changeService := changes.NewChangeService(db)
+	changes.NewController(api, changeService)
 
 	router.Run(fmt.Sprintf("%s:8080", configuration.Domain))
 }

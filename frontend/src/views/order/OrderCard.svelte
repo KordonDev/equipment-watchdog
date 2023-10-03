@@ -16,7 +16,7 @@
     : Promise.resolve({} as Member);
 
   const durationForOrder = (order: Order) => {
-    const endDate = order.fulfilledAt && new Date();
+    const endDate = order.fulfilledAt || new Date();
     const diffMs = endDate.getTime() - order.createdAt.getTime();
     const days = Math.round(diffMs / 1000 / 60 / 60 / 24);
     return days;

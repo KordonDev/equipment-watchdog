@@ -18,13 +18,19 @@ type Service interface {
 }
 
 type Controller struct {
-	service Service
+	service      Service
+	changeWriter ChangeWriter
 }
 
-func NewController(baseRoute *gin.RouterGroup, service Service) {
+type ChangeWriter interface {
+	Save(models.Change, *gin.Context) (*models.Change, error)
+}
+
+func NewController(baseRoute *gin.RouterGroup, service Service, changeWriter ChangeWriter) {
 
 	ctrl := Controller{
-		service: service,
+		service:      service,
+		changeWriter: changeWriter,
 	}
 
 	membersRoute := baseRoute.Group("/members")
@@ -61,6 +67,11 @@ func (ctrl Controller) createMember(c *gin.Context) {
 		c.AbortWithStatus(http.StatusInternalServerError)
 		return
 	}
+
+	ctrl.changeWriter.Save(models.Change{
+		Action:   models.CreateMember,
+		ToMember: cm.Id,
+	}, c)
 
 	c.JSON(http.StatusCreated, cm)
 }
@@ -108,6 +119,13 @@ func (ctrl Controller) updateMember(c *gin.Context) {
 		c.AbortWithError(http.StatusInternalServerError, err)
 		return
 	}
+
+	// FixMe: is this also changing equipment, how can we log the changes?
+	ctrl.changeWriter.Save(models.Change{
+		Action:   models.UpdateMember,
+		ToMember: um.Id,
+	}, c)
+
 	c.JSON(http.StatusOK, um)
 }
 
@@ -124,6 +142,11 @@ func (ctrl Controller) deleteMemberById(c *gin.Context) {
 		c.AbortWithError(http.StatusNotFound, err)
 		return
 	}
+
+	ctrl.changeWriter.Save(models.Change{
+		Action:   models.DeleteMember,
+		ToMember: id,
+	}, c)
 
 	c.Status(http.StatusOK)
 }

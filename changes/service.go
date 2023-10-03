@@ -1,37 +1,24 @@
 package changes
 
 import (
-	"github.com/gin-gonic/gin"
 	"github.com/kordondev/equipment-watchdog/models"
 	"gorm.io/gorm"
 )
 
 type ChangeDatabase interface {
-	save(models.Change) (*models.Change, error)
+	getAllChanges() ([]*models.Change, error)
 }
 
 type ChangeService struct {
-	db          ChangeDatabase
-	userService UserService
+	db ChangeDatabase
 }
 
-type UserService interface {
-	GetUser(string) (*models.User, error)
-}
-
-func NewChangeService(db *gorm.DB, userService UserService) ChangeService {
+func NewChangeService(db *gorm.DB) ChangeService {
 	return ChangeService{
-		db:          newChangeDB(db),
-		userService: userService,
+		db: newChangeDB(db),
 	}
 }
 
-func (cs ChangeService) Save(change models.Change, c *gin.Context) (*models.Change, error) {
-	username := c.GetString("username")
-	if user, err := cs.userService.GetUser(username); err != nil {
-		change.ByUser = user.ID
-	}
-
-	return cs.db.save(change)
-
+func (cs ChangeService) getAll() ([]*models.Change, error) {
+	return cs.db.getAllChanges()
 }

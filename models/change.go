@@ -23,9 +23,15 @@ type Change struct {
 }
 
 const (
-	OrderEquipment string = "order-equipment"
-	DeleteOrder           = "delete-order"
-	UpdateOrder           = "update-order"
+	OrderEquipment   string = "order-equipment"
+	DeleteOrder             = "delete-order"
+	UpdateOrder             = "update-order"
+	OrderToEquipment        = "order-to-equipment"
+	CreateMember            = "create-member"
+	UpdateMember            = "update-member"
+	DeleteMember            = "delete-member"
+	CreateEquipment         = "create-equipment"
+	DeleteEquipment         = "delete-equipment"
 )
 
 func (dbc DbChange) FromDB() *Change {

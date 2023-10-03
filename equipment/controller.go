@@ -17,13 +17,19 @@ type Service interface {
 }
 
 type Controller struct {
-	service Service
+	service      Service
+	changeWriter ChangeWriter
 }
 
-func NewController(baseRoute *gin.RouterGroup, service Service) {
+type ChangeWriter interface {
+	Save(models.Change, *gin.Context) (*models.Change, error)
+}
+
+func NewController(baseRoute *gin.RouterGroup, service Service, changeWriter ChangeWriter) {
 
 	ctrl := Controller{
-		service: service,
+		service:      service,
+		changeWriter: changeWriter,
 	}
 
 	equipmentRoute := baseRoute.Group("/equipment")
@@ -49,6 +55,12 @@ func (ctrl Controller) createEquipment(c *gin.Context) {
 		c.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
+
+	ctrl.changeWriter.Save(models.Change{
+		Action:    models.CreateEquipment,
+		Equipment: ce.Id,
+		ToMember:  ce.MemberID,
+	}, c)
 
 	c.JSON(http.StatusCreated, ce)
 }
@@ -85,6 +97,12 @@ func (ctrl Controller) deleteEquipment(c *gin.Context) {
 		c.AbortWithError(http.StatusInternalServerError, err)
 		return
 	}
+
+	ctrl.changeWriter.Save(models.Change{
+		Action:    models.DeleteEquipment,
+		Equipment: id,
+	}, c)
+
 	c.Status(http.StatusOK)
 }
 
@@ -113,5 +131,4 @@ func (ctrl Controller) getAllEquipmentByType(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, es)
-
 }
