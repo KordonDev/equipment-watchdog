@@ -11,7 +11,7 @@ import (
 type Service interface {
 	createMember(*models.Member) (*models.Member, error)
 	getMemberById(uint64) (*models.Member, error)
-	updateMember(uint64, *models.Member) error
+	updateMember(uint64, *models.Member) ([]uint64, error)
 	deleteMemberById(uint64) error
 	getAllGroups() map[models.Group][]models.EquipmentType
 	getAllMembers() ([]*models.Member, error)
@@ -114,17 +114,19 @@ func (ctrl Controller) updateMember(c *gin.Context) {
 		return
 	}
 
-	err = ctrl.service.updateMember(id, &um)
+	changedEquipments, err := ctrl.service.updateMember(id, &um)
 	if err != nil {
 		c.AbortWithError(http.StatusInternalServerError, err)
 		return
 	}
 
-	// FixMe: is this also changing equipment, how can we log the changes?
-	ctrl.changeWriter.Save(models.Change{
-		Action:   models.UpdateMember,
-		ToMember: um.Id,
-	}, c)
+	for _, id := range changedEquipments {
+		ctrl.changeWriter.Save(models.Change{
+			Action:    models.UpdateMember,
+			ToMember:  um.Id,
+			Equipment: id,
+		}, c)
+	}
 
 	c.JSON(http.StatusOK, um)
 }

@@ -35,7 +35,7 @@ func (s MemberService) getMemberById(id uint64) (*models.Member, error) {
 	return s.db.getMemberById(id)
 }
 
-func (s MemberService) updateMember(id uint64, um *models.Member) error {
+func (s MemberService) updateMember(id uint64, um *models.Member) ([]uint64, error) {
 	eqIds := make([]uint64, 0)
 
 	for _, eT := range models.GroupWithEquipment[um.Group] {
@@ -43,15 +43,17 @@ func (s MemberService) updateMember(id uint64, um *models.Member) error {
 			eqIds = append(eqIds, um.Equipment[eT].Id)
 		}
 	}
+
 	equipments, err := s.equipmentService.GetAllByIds(eqIds)
 	if err != nil {
 		log.Error(err)
-		return err
+		return nil, err
 	}
 
+	changeIds := s.diffEquipment(id, um)
 	um.Id = id
 	um.Equipment = um.ListToMap(equipments, um.Id)
-	return s.db.saveMember(um)
+	return changeIds, s.db.saveMember(um)
 }
 
 func (s MemberService) createMember(m *models.Member) (*models.Member, error) {
@@ -64,4 +66,26 @@ func (s MemberService) deleteMemberById(id uint64) error {
 
 func (s MemberService) getAllGroups() map[models.Group][]models.EquipmentType {
 	return models.GroupWithEquipment
+}
+
+func (s MemberService) diffEquipment(id uint64, nm *models.Member) []uint64 {
+	om, _ := s.getMemberById(id)
+	changeIds := make([]uint64, 0)
+	if om != nil {
+		for _, eT := range models.GroupWithEquipment[om.Group] {
+			oldId := uint64(0)
+			if om.Equipment[eT] != nil {
+				oldId = om.Equipment[eT].Id
+			}
+			newId := uint64(0)
+			if nm.Equipment[eT] != nil {
+				newId = nm.Equipment[eT].Id
+			}
+			if oldId != newId {
+				changeIds = append(changeIds, newId)
+			}
+		}
+	}
+
+	return changeIds
 }
