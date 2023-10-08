@@ -58,7 +58,7 @@ func (edb *equipmentDB) delete(id uint64) error {
 	return edb.Delete(&models.DbEquipment{}, id).Error
 }
 
-func (edb *equipmentDB) getAllByIds(ids []uint64) ([]*models.Equipment, error) {
+func (edb *equipmentDB) getForIds(ids []uint64) ([]*models.Equipment, error) {
 	dbEquipment := make([]models.DbEquipment, 0)
 
 	err := edb.Where("id IN ?", ids).Find(&dbEquipment).Error

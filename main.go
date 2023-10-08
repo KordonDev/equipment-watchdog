@@ -71,7 +71,7 @@ func main() {
 	registrationCodesService := registrationcodes.NewService(db, equipmentService)
 	registrationcodes.NewController(api, registrationCodesService)
 
-	changeService := changes.NewChangeService(db)
+	changeService := changes.NewChangeService(db, equipmentService, memberService, userService, orderService)
 	changes.NewController(api, changeService)
 
 	router.Run(fmt.Sprintf("%s:8080", configuration.Domain))

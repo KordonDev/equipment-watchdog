@@ -10,7 +10,7 @@ type EquipmentDatabase interface {
 	getById(uint64) (*models.Equipment, error)
 	getByType(string) ([]*models.Equipment, error)
 	delete(uint64) error
-	getAllByIds([]uint64) ([]*models.Equipment, error)
+	getForIds([]uint64) ([]*models.Equipment, error)
 	getFreeEquipment() ([]*models.Equipment, error)
 	save(*models.Equipment) (*models.Equipment, error)
 	getByMemberIdAndType(uint64, models.EquipmentType) (*models.Equipment, error)
@@ -43,8 +43,8 @@ func (s EquipmentService) deleteEquipment(id uint64) error {
 	return s.db.delete(id)
 }
 
-func (s EquipmentService) GetAllByIds(ids []uint64) ([]*models.Equipment, error) {
-	return s.db.getAllByIds(ids)
+func (s EquipmentService) GetForIds(ids []uint64) ([]*models.Equipment, error) {
+	return s.db.getForIds(ids)
 }
 
 func (s EquipmentService) getFreeEquipment() (map[models.EquipmentType][]*models.Equipment, error) {

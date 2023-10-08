@@ -6,14 +6,16 @@ import (
 )
 
 type MemberDatabase interface {
-	getMemberById(id uint64) (*models.Member, error)
+	getMemberById(uint64) (*models.Member, error)
 	getAllMember() ([]*models.Member, error)
 	deleteMember(*models.Member) error
 	createMember(*models.Member) (*models.Member, error)
 	saveMember(*models.Member) error
+	getForIds([]uint64) ([]*models.Member, error)
 }
+
 type EquipmentService interface {
-	GetAllByIds([]uint64) ([]*models.Equipment, error)
+	GetForIds([]uint64) ([]*models.Equipment, error)
 }
 type MemberService struct {
 	db               MemberDatabase
@@ -44,7 +46,7 @@ func (s MemberService) updateMember(id uint64, um *models.Member) ([]uint64, err
 		}
 	}
 
-	equipments, err := s.equipmentService.GetAllByIds(eqIds)
+	equipments, err := s.equipmentService.GetForIds(eqIds)
 	if err != nil {
 		log.Error(err)
 		return nil, err
@@ -66,6 +68,10 @@ func (s MemberService) deleteMemberById(id uint64) error {
 
 func (s MemberService) getAllGroups() map[models.Group][]models.EquipmentType {
 	return models.GroupWithEquipment
+}
+
+func (s MemberService) GetForIds(ids []uint64) ([]*models.Member, error) {
+	return s.db.getForIds(ids)
 }
 
 func (s MemberService) diffEquipment(id uint64, nm *models.Member) []uint64 {

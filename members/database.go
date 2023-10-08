@@ -81,3 +81,23 @@ func (mdb *memberDB) createMember(member *models.Member) (*models.Member, error)
 func (mdb *memberDB) deleteMember(member *models.Member) error {
 	return mdb.Delete(member.ToDB()).Error
 }
+
+func (mdb *memberDB) getForIds(ids []uint64) ([]*models.Member, error) {
+	dbMember := make([]models.DbMember, 0)
+
+	err := mdb.Where("ID IN ?", ids).Find(&dbMember).Error
+	if err != nil {
+		return make([]*models.Member, 0), err
+	}
+
+	return listFromDB(dbMember), nil
+}
+
+func listFromDB(dbMember []models.DbMember) []*models.Member {
+	member := make([]*models.Member, 0)
+	for _, v := range dbMember {
+		member = append(member, v.FromDB())
+	}
+
+	return member
+}

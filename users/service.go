@@ -10,6 +10,7 @@ type UserDatabase interface {
 	saveUser(*models.User) (*models.User, error)
 	addUser(*models.User) (*models.User, error)
 	hasApprovedAndAdminUser() bool
+	getForIds([]uint64) ([]*models.User, error)
 }
 
 type JwtService interface {
@@ -72,4 +73,8 @@ func (u *userService) SaveUser(user *models.User) (*models.User, error) {
 
 func (u *userService) HasApprovedAndAdminUser() bool {
 	return u.db.hasApprovedAndAdminUser()
+}
+
+func (u *userService) GetForIds(ids []uint64) ([]*models.User, error) {
+	return u.db.getForIds(ids)
 }
