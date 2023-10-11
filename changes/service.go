@@ -102,10 +102,22 @@ func (cs ChangeService) enrich(chs []*models.Change) []string {
 		t := getTimeMessage(c.CreatedAt)
 
 		switch c.Action {
-		case models.UpdateOrder:
+		case models.UpdateMember:
 			msg = fmt.Sprintf("Ausrüstung (%v) vergeben an %v durch %v (%v)\n", e, m, u, t)
 		case models.OrderEquipment:
 			msg = fmt.Sprintf("Bestellung %v erstellt von %v (%v)\n", o, u, t)
+		case models.DeleteOrder:
+			msg = fmt.Sprintf("Bestellung %v gelöscht von %v (%v)\n", o, u, t)
+		case models.OrderToEquipment:
+			msg = fmt.Sprintf("Bestellung %v zu %v gemacht und %v zugewiesen von %v (%v)\n", o, e, m, u, t)
+		case models.CreateMember:
+			msg = fmt.Sprintf("Mitglied %v erstellt von %v (%v)\n", m, u, t)
+		case models.DeleteMember:
+			msg = fmt.Sprintf("Mitglied %v gelöscht von %v (%v)\n", m, u, t)
+		case models.CreateEquipment:
+			msg = fmt.Sprintf("Mitglied %v gelöscht von %v (%v)\n", m, u, t)
+		default:
+			msg = c.Action
 		}
 		changes = append(changes, msg)
 	}
@@ -120,6 +132,7 @@ func getEquipmentMessage(eqs []*models.Equipment, eId uint64) string {
 	if idx >= 0 && idx < len(eqs) {
 		return fmt.Sprintf("%v (%v - %v)", eqs[idx].Type, eqs[idx].Size, eqs[idx].RegistrationCode)
 	}
+	log.Warningf("Equipment id %v nof found in %+v", eId, eqs)
 	return fmt.Sprintf("id %v", eId)
 }
 
@@ -154,5 +167,6 @@ func getOrderMessage(ors []models.Order, oId uint64) string {
 }
 
 func getTimeMessage(t time.Time) string {
-	return t.Format("Mon 01.02.2006 15:45 Uhr")
+	//return t.Format("Mon 01.02.2006 15:45 Uhr")
+	return time.Now().Format("Mon 01.02.2006 15:45")
 }
