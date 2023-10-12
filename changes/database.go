@@ -27,16 +27,44 @@ func (mdb *changeDB) getAllChanges() ([]*models.Change, error) {
 	var dbChanges []models.DbChange
 
 	err := mdb.Find(&dbChanges).Error
-
 	if err != nil {
 		return nil, err
 	}
 
-	changes := make([]*models.Change, 0)
-	for _, c := range dbChanges {
-		changes = append(changes, c.FromDB())
+	return listFromDB(dbChanges), nil
+}
+
+func (mdb *changeDB) getForEquipment(id uint64) ([]*models.Change, error) {
+	var dbChanges []models.DbChange
+
+	err := mdb.Where("equipment == ?", id).Find(&dbChanges).Error
+	if err != nil {
+		return nil, err
 	}
-	return changes, nil
+
+	return listFromDB(dbChanges), nil
+}
+
+func (mdb *changeDB) getForOrder(id uint64) ([]*models.Change, error) {
+	var dbChanges []models.DbChange
+
+	err := mdb.Where("order == ?", id).Find(&dbChanges).Error
+	if err != nil {
+		return nil, err
+	}
+
+	return listFromDB(dbChanges), nil
+}
+
+func (mdb *changeDB) getForMember(id uint64) ([]*models.Change, error) {
+	var dbChanges []models.DbChange
+
+	err := mdb.Where("by_member == ?", id).Find(&dbChanges).Error
+	if err != nil {
+		return nil, err
+	}
+
+	return listFromDB(dbChanges), nil
 }
 
 func (mdb *changeDB) save(change models.Change) (*models.Change, error) {
@@ -46,4 +74,12 @@ func (mdb *changeDB) save(change models.Change) (*models.Change, error) {
 		return nil, err
 	}
 	return c.FromDB(), nil
+}
+
+func listFromDB(dbChanges []models.DbChange) []*models.Change {
+	changes := make([]*models.Change, 0)
+	for _, c := range dbChanges {
+		changes = append(changes, c.FromDB())
+	}
+	return changes
 }

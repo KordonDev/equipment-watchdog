@@ -2,16 +2,17 @@ package changes
 
 import (
 	"fmt"
-	"sort"
 	"time"
 
-	"github.com/cloudflare/cfssl/log"
 	"github.com/kordondev/equipment-watchdog/models"
 	"gorm.io/gorm"
 )
 
 type ChangeDatabase interface {
 	getAllChanges() ([]*models.Change, error)
+	getForEquipment(uint64) ([]*models.Change, error)
+	getForOrder(uint64) ([]*models.Change, error)
+	getForMember(uint64) ([]*models.Change, error)
 }
 
 type ChangeService struct {
@@ -45,15 +46,40 @@ func NewChangeService(db *gorm.DB, es equipmentService, ms memberService, us use
 	}
 }
 
-func (cs ChangeService) getAll() ([]*models.Change, error) {
+func (cs ChangeService) getAll() ([]string, error) {
 	chs, err := cs.db.getAllChanges()
 	if err != nil {
 		return nil, err
 	}
 
-	log.Infof("changes: v", cs.enrich(chs))
+	return cs.enrich(chs), nil
+}
 
-	return chs, nil
+func (cs ChangeService) getForEquipment(id uint64) ([]string, error) {
+	chs, err := cs.db.getForEquipment(id)
+	if err != nil {
+		return nil, err
+	}
+
+	return cs.enrich(chs), nil
+}
+
+func (cs ChangeService) getForOrder(id uint64) ([]string, error) {
+	chs, err := cs.db.getForOrder(id)
+	if err != nil {
+		return nil, err
+	}
+
+	return cs.enrich(chs), nil
+}
+
+func (cs ChangeService) getForMember(id uint64) ([]string, error) {
+	chs, err := cs.db.getForMember(id)
+	if err != nil {
+		return nil, err
+	}
+
+	return cs.enrich(chs), nil
 }
 
 func (cs ChangeService) enrich(chs []*models.Change) []string {
@@ -126,47 +152,41 @@ func (cs ChangeService) enrich(chs []*models.Change) []string {
 }
 
 func getEquipmentMessage(eqs []*models.Equipment, eId uint64) string {
-	idx := sort.Search(len(eqs), func(i int) bool {
-		return eqs[i].Id == eId
-	})
-	if idx >= 0 && idx < len(eqs) {
-		return fmt.Sprintf("%v (%v - %v)", eqs[idx].Type, eqs[idx].Size, eqs[idx].RegistrationCode)
+	for _, eq := range eqs {
+		if eq.Id == eId {
+			return fmt.Sprintf("%v (%v - %v)", eq.Type, eq.Size, eq.RegistrationCode)
+		}
 	}
-	log.Warningf("Equipment id %v nof found in %+v", eId, eqs)
 	return fmt.Sprintf("id %v", eId)
 }
 
 func getUserMessage(uss []*models.User, uId uint64) string {
-	idx := sort.Search(len(uss), func(i int) bool {
-		return uss[i].ID == uId
-	})
-	if idx >= 0 && idx < len(uss) {
-		return fmt.Sprintf("Nutzer %v", uss[idx].Name)
+	for _, us := range uss {
+		if us.ID == uId {
+			return fmt.Sprintf("Nutzer %v", us.Name)
+		}
 	}
 	return fmt.Sprintf("Nutzer id %v", uId)
 }
 
 func getMemberMessage(mes []*models.Member, mId uint64) string {
-	idx := sort.Search(len(mes), func(i int) bool {
-		return mes[i].Id == mId
-	})
-	if idx >= 0 && idx < len(mes) {
-		return fmt.Sprintf("Mitglied %v", mes[idx].Name)
+	for _, me := range mes {
+		if me.Id == mId {
+			return fmt.Sprintf("Mitglied %v", me.Name)
+		}
 	}
 	return fmt.Sprintf("Mitglied id %v", mId)
 }
 
 func getOrderMessage(ors []models.Order, oId uint64) string {
-	idx := sort.Search(len(ors), func(i int) bool {
-		return ors[i].ID == oId
-	})
-	if idx >= 0 && idx < len(ors) {
-		return fmt.Sprintf("Bestellung %v (%v)", ors[idx].Type, ors[idx].Size)
+	for _, or := range ors {
+		if or.ID == oId {
+			return fmt.Sprintf("Bestellung %v (%v)", or.Type, or.Size)
+		}
 	}
 	return fmt.Sprintf("Bestellung id %v", oId)
 }
 
 func getTimeMessage(t time.Time) string {
-	//return t.Format("Mon 01.02.2006 15:45 Uhr")
-	return time.Now().Format("Mon 01.02.2006 15:45")
+	return t.Format("Mon 02.01.2006 15:04")
 }

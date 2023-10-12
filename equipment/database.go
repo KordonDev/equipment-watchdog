@@ -42,7 +42,7 @@ func (edb *equipmentDB) getByType(equipmentType string) ([]*models.Equipment, er
 		return make([]*models.Equipment, 0), err
 	}
 
-	return listFormDB(dbEquipment), nil
+	return listFromDB(dbEquipment), nil
 }
 
 func (edb *equipmentDB) CreateEquipent(equipment *models.Equipment) (*models.Equipment, error) {
@@ -66,7 +66,7 @@ func (edb *equipmentDB) getForIds(ids []uint64) ([]*models.Equipment, error) {
 		return make([]*models.Equipment, 0), err
 	}
 
-	return listFormDB(dbEquipment), nil
+	return listFromDB(dbEquipment), nil
 }
 
 func (edb *equipmentDB) getFreeEquipment() ([]*models.Equipment, error) {
@@ -77,7 +77,7 @@ func (edb *equipmentDB) getFreeEquipment() ([]*models.Equipment, error) {
 		return make([]*models.Equipment, 0), err
 	}
 
-	return listFormDB(dbEquipment), nil
+	return listFromDB(dbEquipment), nil
 }
 
 func (edb *equipmentDB) save(equipment *models.Equipment) (*models.Equipment, error) {
@@ -98,7 +98,7 @@ func (edb *equipmentDB) getByMemberIdAndType(memberId uint64, eType models.Equip
 	return dbEquipment.FromDB(), err
 }
 
-func listFormDB(dbEquipment []models.DbEquipment) []*models.Equipment {
+func listFromDB(dbEquipment []models.DbEquipment) []*models.Equipment {
 	equipment := make([]*models.Equipment, 0)
 	for _, v := range dbEquipment {
 		equipment = append(equipment, v.FromDB())
