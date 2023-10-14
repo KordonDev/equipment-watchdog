@@ -119,7 +119,7 @@ func (cs ChangeService) enrich(chs []*models.Change) []string {
 	ors, _ := cs.orderService.GetForIds(oids)
 	var msg string
 
-	for _, c := range chs {
+	for i, c := range chs {
 
 		e := getEquipmentMessage(eqs, c.Equipment)
 		m := getMemberMessage(mes, c.ToMember)
@@ -131,7 +131,7 @@ func (cs ChangeService) enrich(chs []*models.Change) []string {
 		case models.UpdateMember:
 			msg = fmt.Sprintf("Ausrüstung (%v) vergeben an %v durch %v (%v)\n", e, m, u, t)
 		case models.OrderEquipment:
-			msg = fmt.Sprintf("Bestellung %v erstellt von %v (%v)\n", o, u, t)
+			msg = fmt.Sprintf("Bestellung %v erstellt für %v von %v (%v)\n", o, m, u, t)
 		case models.DeleteOrder:
 			msg = fmt.Sprintf("Bestellung %v gelöscht von %v (%v)\n", o, u, t)
 		case models.OrderToEquipment:
@@ -145,7 +145,8 @@ func (cs ChangeService) enrich(chs []*models.Change) []string {
 		default:
 			msg = c.Action
 		}
-		changes = append(changes, msg)
+
+		changes[i] = msg
 	}
 
 	return changes
@@ -181,10 +182,10 @@ func getMemberMessage(mes []*models.Member, mId uint64) string {
 func getOrderMessage(ors []models.Order, oId uint64) string {
 	for _, or := range ors {
 		if or.ID == oId {
-			return fmt.Sprintf("Bestellung %v (%v)", or.Type, or.Size)
+			return fmt.Sprintf("%v (%v)", or.Type, or.Size)
 		}
 	}
-	return fmt.Sprintf("Bestellung id %v", oId)
+	return fmt.Sprintf("id %v", oId)
 }
 
 func getTimeMessage(t time.Time) string {

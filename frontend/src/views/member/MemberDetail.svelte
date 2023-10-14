@@ -18,12 +18,17 @@
   import { writable } from "svelte/store";
   import OrderCard from "../order/OrderCard.svelte";
   import { getOrdersForMember } from "../order/order.service"
+  import { getChangesForMember} from "../changes/changes.service"
+  import Changes from "../changes/Changes.svelte"
+
 
   export let params = { id: undefined };
   const member = writable<Member | undefined>();
 
   const memberPromise = getMember(params.id)
     .then((m) => member.set(m))
+  
+  const changes = getChangesForMember(params.id)
 
   const ordersPromise = getOrdersForMember(params.id);
   let deleteModalOpen = false;
@@ -93,6 +98,8 @@
       </div>
     {/await}
   </div>
+
+  <Changes changesPromise={changes} />
 
   <Button color="red" on:click={() => (deleteModalOpen = true)}>
     Mitglied löschen

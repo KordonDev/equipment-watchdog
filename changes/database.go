@@ -1,7 +1,7 @@
 package changes
 
 import (
-	"log"
+	"github.com/cloudflare/cfssl/log"
 
 	"github.com/kordondev/equipment-watchdog/models"
 
@@ -59,7 +59,7 @@ func (mdb *changeDB) getForOrder(id uint64) ([]*models.Change, error) {
 func (mdb *changeDB) getForMember(id uint64) ([]*models.Change, error) {
 	var dbChanges []models.DbChange
 
-	err := mdb.Where("by_member == ?", id).Find(&dbChanges).Error
+	err := mdb.Where("to_member == ?", id).Find(&dbChanges).Error
 	if err != nil {
 		return nil, err
 	}

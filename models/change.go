@@ -2,12 +2,12 @@ package models
 
 import "time"
 
-type DbChange struct {
+type DbChange struct { // fixme give table good name
 	ID        uint64 `gorm:"primarykey"`
 	CreatedAt time.Time
 	ToMember  uint64
 	Equipment uint64
-	Order     uint64
+	Order     uint64 // Fixme rename Order is keyword
 	Action    string
 	ByUser    uint64
 }

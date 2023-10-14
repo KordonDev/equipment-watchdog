@@ -5,13 +5,11 @@ import (
 
 	"github.com/cloudflare/cfssl/log"
 	"github.com/gin-gonic/gin"
-	"github.com/kordondev/equipment-watchdog/models"
 	"github.com/kordondev/equipment-watchdog/url"
-
 )
 
 type Service interface {
-	getAll() ([]*models.Change, error)
+	getAll() ([]string, error)
 	getForEquipment(uint64) ([]string, error)
 	getForOrder(uint64) ([]string, error)
 	getForMember(uint64) ([]string, error)
@@ -30,9 +28,9 @@ func NewController(baseRoute *gin.RouterGroup, service Service) {
 	changesRoute := baseRoute.Group("/changes")
 	{
 		changesRoute.GET("/", ctrl.getAllChanges)
-    changesRoute.GET("/members/:id", ctrl.getForMember)
-    changesRoute.GET("/orders/:id", ctrl.getForMember)
-    changesRoute.GET("/equipments/:id", ctrl.getForEquipment)
+		changesRoute.GET("/members/:id", ctrl.getForMember)
+		changesRoute.GET("/orders/:id", ctrl.getForMember)
+		changesRoute.GET("/equipments/:id", ctrl.getForEquipment)
 	}
 
 }
