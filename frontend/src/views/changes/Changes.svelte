@@ -15,6 +15,9 @@
         <li>{change}</li>
       {/each}
     </ul>
+    {#if changes.length === 0}
+      <p>Keine Änderungen.</p>
+    {/if}
   </div>
 {:catch}
   <Alert class="mb-4 top-alert" color="red" dismissable style="display: block;">

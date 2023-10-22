@@ -1,6 +1,8 @@
 package changes
 
 import (
+	"errors"
+
 	"github.com/cloudflare/cfssl/log"
 
 	"github.com/kordondev/equipment-watchdog/models"
@@ -37,7 +39,10 @@ func (mdb *changeDB) getAllChanges() ([]*models.Change, error) {
 func (mdb *changeDB) getForEquipment(id uint64) ([]*models.Change, error) {
 	var dbChanges []models.DbChange
 
-	err := mdb.Where("equipment == ?", id).Find(&dbChanges).Error
+	err := mdb.Where("equipment_id == ?", id).Find(&dbChanges).Error
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return make([]*models.Change, 0), nil
+	}
 	if err != nil {
 		return nil, err
 	}
@@ -48,7 +53,10 @@ func (mdb *changeDB) getForEquipment(id uint64) ([]*models.Change, error) {
 func (mdb *changeDB) getForOrder(id uint64) ([]*models.Change, error) {
 	var dbChanges []models.DbChange
 
-	err := mdb.Where("order == ?", id).Find(&dbChanges).Error
+	err := mdb.Where("order_id == ?", id).Find(&dbChanges).Error
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return make([]*models.Change, 0), nil
+	}
 	if err != nil {
 		return nil, err
 	}
@@ -59,7 +67,10 @@ func (mdb *changeDB) getForOrder(id uint64) ([]*models.Change, error) {
 func (mdb *changeDB) getForMember(id uint64) ([]*models.Change, error) {
 	var dbChanges []models.DbChange
 
-	err := mdb.Where("to_member == ?", id).Find(&dbChanges).Error
+	err := mdb.Where("member_id == ?", id).Find(&dbChanges).Error
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return make([]*models.Change, 0), nil
+	}
 	if err != nil {
 		return nil, err
 	}
