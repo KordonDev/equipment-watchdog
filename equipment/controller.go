@@ -57,9 +57,9 @@ func (ctrl Controller) createEquipment(c *gin.Context) {
 	}
 
 	ctrl.changeWriter.Save(models.Change{
-		Action:    models.CreateEquipment,
-		Equipment: ce.Id,
-		ToMember:  ce.MemberID,
+		Action:      models.CreateEquipment,
+		EquipmentId: ce.Id,
+		MemberId:    ce.MemberID,
 	}, c)
 
 	c.JSON(http.StatusCreated, ce)
@@ -99,8 +99,8 @@ func (ctrl Controller) deleteEquipment(c *gin.Context) {
 	}
 
 	ctrl.changeWriter.Save(models.Change{
-		Action:    models.DeleteEquipment,
-		Equipment: id,
+		Action:      models.DeleteEquipment,
+		EquipmentId: id,
 	}, c)
 
 	c.Status(http.StatusOK)

@@ -30,7 +30,7 @@ func NewChangeWriterService(db *gorm.DB, userService UserService) ChangeWriterSe
 func (cs ChangeWriterService) Save(change models.Change, c *gin.Context) (*models.Change, error) {
 	username := c.GetString("username")
 	if user, err := cs.userService.GetUser(username); err == nil {
-		change.ByUser = user.ID
+		change.UserId = user.ID
 	}
 
 	ch, err := cs.db.save(change)

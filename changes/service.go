@@ -87,29 +87,29 @@ func (cs ChangeService) enrich(chs []*models.Change) []string {
 
 	eids := make([]uint64, 0)
 	for _, c := range chs {
-		if c.Equipment != 0 {
-			eids = append(eids, c.Equipment)
+		if c.EquipmentId != 0 {
+			eids = append(eids, c.EquipmentId)
 		}
 	}
 
 	uids := make([]uint64, 0)
 	for _, c := range chs {
-		if c.ByUser != 0 {
-			uids = append(uids, c.ByUser)
+		if c.UserId != 0 {
+			uids = append(uids, c.UserId)
 		}
 	}
 
 	oids := make([]uint64, 0)
 	for _, c := range chs {
-		if c.Order != 0 {
-			oids = append(oids, c.Order)
+		if c.OrderId != 0 {
+			oids = append(oids, c.OrderId)
 		}
 	}
 
 	mids := make([]uint64, 0)
 	for _, c := range chs {
-		if c.ToMember != 0 {
-			mids = append(mids, c.ToMember)
+		if c.MemberId != 0 {
+			mids = append(mids, c.MemberId)
 		}
 	}
 
@@ -121,10 +121,10 @@ func (cs ChangeService) enrich(chs []*models.Change) []string {
 
 	for i, c := range chs {
 
-		e := getEquipmentMessage(eqs, c.Equipment)
-		m := getMemberMessage(mes, c.ToMember)
-		u := getUserMessage(uss, c.ByUser)
-		o := getOrderMessage(ors, c.Order)
+		e := getEquipmentMessage(eqs, c.EquipmentId)
+		m := getMemberMessage(mes, c.MemberId)
+		u := getUserMessage(uss, c.UserId)
+		o := getOrderMessage(ors, c.OrderId)
 		t := getTimeMessage(c.CreatedAt)
 
 		switch c.Action {

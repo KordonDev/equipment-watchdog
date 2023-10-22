@@ -109,8 +109,8 @@ func (ctrl Controller) create(c *gin.Context) {
 		return
 	}
 	ctrl.changeWriter.Save(models.Change{
-		Order:    co.ID,
-		ToMember: co.MemberID,
+		OrderId:  co.ID,
+		MemberId: co.MemberID,
 		Action:   models.OrderEquipment,
 	}, c)
 
@@ -140,8 +140,8 @@ func (ctrl Controller) update(c *gin.Context) {
 	}
 
 	ctrl.changeWriter.Save(models.Change{
-		Order:    order.ID,
-		ToMember: order.MemberID,
+		OrderId:  order.ID,
+		MemberId: order.MemberID,
 		Action:   models.UpdateOrder,
 	}, c)
 
@@ -164,8 +164,8 @@ func (ctrl Controller) delete(c *gin.Context) {
 	}
 
 	ctrl.changeWriter.Save(models.Change{
-		Order:  id,
-		Action: models.DeleteOrder,
+		OrderId: id,
+		Action:  models.DeleteOrder,
 	}, c)
 
 	c.Status(http.StatusOK)
@@ -193,10 +193,10 @@ func (ctrl Controller) createEquipmentFromOrder(c *gin.Context) {
 	}
 
 	ctrl.changeWriter.Save(models.Change{
-		Action:    models.OrderToEquipment,
-		Order:     order.ID,
-		Equipment: equipment.Id,
-		ToMember:  equipment.MemberID,
+		Action:      models.OrderToEquipment,
+		OrderId:     order.ID,
+		EquipmentId: equipment.Id,
+		MemberId:    equipment.MemberID,
 	}, c)
 
 	c.JSON(http.StatusOK, equipment)

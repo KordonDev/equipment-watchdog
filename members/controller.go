@@ -70,7 +70,7 @@ func (ctrl Controller) createMember(c *gin.Context) {
 
 	ctrl.changeWriter.Save(models.Change{
 		Action:   models.CreateMember,
-		ToMember: cm.Id,
+		MemberId: cm.Id,
 	}, c)
 
 	c.JSON(http.StatusCreated, cm)
@@ -122,9 +122,9 @@ func (ctrl Controller) updateMember(c *gin.Context) {
 
 	for _, id := range changedEquipments {
 		ctrl.changeWriter.Save(models.Change{
-			Action:    models.UpdateMember,
-			ToMember:  um.Id,
-			Equipment: id,
+			Action:      models.UpdateMember,
+			MemberId:    um.Id,
+			EquipmentId: id,
 		}, c)
 	}
 
@@ -147,7 +147,7 @@ func (ctrl Controller) deleteMemberById(c *gin.Context) {
 
 	ctrl.changeWriter.Save(models.Change{
 		Action:   models.DeleteMember,
-		ToMember: id,
+		MemberId: id,
 	}, c)
 
 	c.Status(http.StatusOK)
