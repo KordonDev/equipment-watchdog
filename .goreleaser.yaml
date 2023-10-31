@@ -15,7 +15,8 @@ before:
 
 builds:
   - env:
-      - CGO_ENABLED=
+      - CGO_ENABLED=1
+    binary: golang-cross
     goos:
       - linux
       - windows
