@@ -67,3 +67,22 @@ func (u *userDB) hasApprovedAndAdminUser() bool {
 	}
 	return true
 }
+
+func (u *userDB) getForIds(ids []uint64) ([]*models.User, error) {
+	dbUser := make([]*models.DbUser, 0)
+
+	err := u.Where("ID IN ?", ids).Find(&dbUser).Error
+	if err != nil {
+		return make([]*models.User, 0), err
+	}
+
+	return listFromDb(dbUser), err
+}
+
+func listFromDb(dbu []*models.DbUser) []*models.User {
+	users := make([]*models.User, 0)
+	for _, user := range dbu {
+		users = append(users, user.ToUser())
+	}
+	return users
+}

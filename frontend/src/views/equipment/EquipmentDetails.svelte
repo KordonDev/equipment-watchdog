@@ -10,12 +10,16 @@
   import { createNotification } from "../../components/Notification/notificationStore";
   import { push } from "svelte-spa-router";
   import { routes } from "../../routes";
+  import { getChangesForEquipment } from "../changes/changes.service";
+  import Changes from "../changes/Changes.svelte"
 
   export let params = { id: undefined };
 
   let deleteModalOpen = false;
   let loading = false;
   let equipmentPromise = getEquipment(params.id);
+
+  const changes = getChangesForEquipment(params.id)
 
   function deleteEquipmentInternal(id: number, type: EquipmentType) {
     deleteEquipment(id)
@@ -56,6 +60,9 @@
     <p>Registrierungsnummer {equipment.registrationCode}</p>
     <p>Größe {equipment.size || "-"}</p>
   </div>
+
+  <Changes changesPromise={changes} />
+
   <Button color="red" on:click={() => (deleteModalOpen = true)}>
     {translateEquipmentType(equipment.type)} löschen
   </Button>

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strconv"
 
+	"github.com/cloudflare/cfssl/log"
 	"github.com/gin-gonic/gin"
 )
 
@@ -20,7 +21,9 @@ func ParseToInt(c *gin.Context, paramName string) (uint64, error) {
 	paramValueNumber, err := strconv.ParseUint(paramValueString, 10, 64)
 
 	if err != nil {
-		return 0, fmt.Errorf("%s as number could not be found", paramName)
+		errMsg := fmt.Errorf("%s as number could not be found", paramName)
+		log.Error(errMsg)
+		return 0, errMsg
 	}
 	return paramValueNumber, nil
 }

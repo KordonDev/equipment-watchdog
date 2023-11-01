@@ -14,6 +14,7 @@ type OrderDatabase interface {
 	save(*models.Order) error
 	delete(uint64) error
 	getAll(bool) ([]models.Order, error)
+	getForIds([]uint64) ([]models.Order, error)
 }
 
 type EquipmentService interface {
@@ -67,6 +68,10 @@ func (s OrderService) delete(id uint64) error {
 
 func (s OrderService) getAll(fulfilled bool) ([]models.Order, error) {
 	return s.db.getAll(fulfilled)
+}
+
+func (s OrderService) GetForIds(ids []uint64) ([]models.Order, error) {
+	return s.db.getForIds(ids)
 }
 
 func (s OrderService) fulfill(order models.Order, registrationCode string) (*models.Equipment, error) {

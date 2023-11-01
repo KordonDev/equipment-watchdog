@@ -57,6 +57,21 @@ export function deleteOrder(id: number): Promise<void> {
   });
 }
 
+interface Change {
+  id: number;
+  createdAt: string;
+  toMember: number;
+  equipment: number;
+  order: number;
+  action: number;
+  byUser: number;
+}
+
+export function getAllChanges(): Promise<Change[]> {
+  return fetchApi(`/changes/`);
+}
+
+
 export function fulfillOrder(order: Order, registrationCode: string): Promise<Equipment> {
   return fetchApi(`/orders/${registrationCode}/toEquipment`, {
     method: "POST",

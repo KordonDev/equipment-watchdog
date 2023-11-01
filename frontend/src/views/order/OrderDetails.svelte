@@ -10,12 +10,16 @@
   import { getMember } from "../member/member.service";
   import { formatToDate } from "../../components/timeHelper";
     import OrderCard from "./OrderCard.svelte";
+  import { getChangesForOrder } from "../changes/changes.service";
+  import Changes from "../changes/Changes.svelte"
 
   export let params = { id: undefined };
 
   let deleteModalOpen = false;
   let loading = false;
   let orderPromise = getOrder(params.id);
+
+  const changes = getChangesForOrder(params.id)
 
   function deleteOrderInternal(id: number) {
     deleteOrder(id)
@@ -52,6 +56,9 @@
   <div class="flex flex-col items-center">
     <OrderCard order={order} withMember={true} withDuration={true} />
   </div>
+
+  <Changes changesPromise={changes} />
+
   <FulfillOrderModal {order} />
   <Button color="red" on:click={() => (deleteModalOpen = true)}>
     Bestellung löschen

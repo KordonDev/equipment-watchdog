@@ -40,12 +40,7 @@ func (odb orderDB) getForMember(id uint64) ([]models.Order, error) {
 		return nil, err
 	}
 
-	result := make([]models.Order, 0)
-	for _, o := range orders {
-		result = append(result, o.FromDB())
-	}
-
-	return result, nil
+	return listFormDB(orders), nil
 }
 
 func (odb orderDB) create(order models.Order) (models.Order, error) {
@@ -80,12 +75,7 @@ func (odb orderDB) getAll(fulfilled bool) ([]models.Order, error) {
 		return nil, err
 	}
 
-	orders := make([]models.Order, 0)
-	for _, order := range result {
-		orders = append(orders, order.FromDB())
-	}
-
-	return orders, nil
+	return listFormDB(result), nil
 }
 
 func (odb orderDB) getAllOpen() ([]models.DBOrder, error) {
@@ -98,4 +88,24 @@ func (odb orderDB) getAllFulfilled() ([]models.DBOrder, error) {
 	var result []models.DBOrder
 	err := odb.Model(&models.DBOrder{}).Find(&result, "fulfilled_at !=  \"0001-01-01 00:00:00+00:00\"").Error
 	return result, err
+}
+
+func (odb orderDB) getForIds(ids []uint64) ([]models.Order, error) {
+	dbOrders := make([]models.DBOrder, 0)
+
+	err := odb.Where("id IN ?", ids).Find(&dbOrders).Error
+	if err != nil {
+		return make([]models.Order, 0), err
+	}
+
+	return listFormDB(dbOrders), nil
+}
+
+func listFormDB(odb []models.DBOrder) []models.Order {
+	orders := make([]models.Order, 0)
+	for _, order := range odb {
+		orders = append(orders, order.FromDB())
+	}
+
+	return orders
 }

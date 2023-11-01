@@ -11,20 +11,26 @@ import (
 type Service interface {
 	createMember(*models.Member) (*models.Member, error)
 	getMemberById(uint64) (*models.Member, error)
-	updateMember(uint64, *models.Member) error
+	updateMember(uint64, *models.Member) ([]uint64, error)
 	deleteMemberById(uint64) error
 	getAllGroups() map[models.Group][]models.EquipmentType
 	getAllMembers() ([]*models.Member, error)
 }
 
 type Controller struct {
-	service Service
+	service      Service
+	changeWriter ChangeWriter
 }
 
-func NewController(baseRoute *gin.RouterGroup, service Service) {
+type ChangeWriter interface {
+	Save(models.Change, *gin.Context) (*models.Change, error)
+}
+
+func NewController(baseRoute *gin.RouterGroup, service Service, changeWriter ChangeWriter) {
 
 	ctrl := Controller{
-		service: service,
+		service:      service,
+		changeWriter: changeWriter,
 	}
 
 	membersRoute := baseRoute.Group("/members")
@@ -62,13 +68,17 @@ func (ctrl Controller) createMember(c *gin.Context) {
 		return
 	}
 
+	ctrl.changeWriter.Save(models.Change{
+		Action:   models.CreateMember,
+		MemberId: cm.Id,
+	}, c)
+
 	c.JSON(http.StatusCreated, cm)
 }
 
 func (ctrl Controller) getMemberById(c *gin.Context) {
 	id, err := url.ParseToInt(c, "id")
 	if err != nil {
-		log.Error(err)
 		c.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
@@ -86,7 +96,6 @@ func (ctrl Controller) getMemberById(c *gin.Context) {
 func (ctrl Controller) updateMember(c *gin.Context) {
 	id, err := url.ParseToInt(c, "id")
 	if err != nil {
-		log.Error(err)
 		c.AbortWithError(http.StatusNotFound, err)
 		return
 	}
@@ -103,18 +112,26 @@ func (ctrl Controller) updateMember(c *gin.Context) {
 		return
 	}
 
-	err = ctrl.service.updateMember(id, &um)
+	changedEquipments, err := ctrl.service.updateMember(id, &um)
 	if err != nil {
 		c.AbortWithError(http.StatusInternalServerError, err)
 		return
 	}
+
+	for _, id := range changedEquipments {
+		ctrl.changeWriter.Save(models.Change{
+			Action:      models.UpdateMember,
+			MemberId:    um.Id,
+			EquipmentId: id,
+		}, c)
+	}
+
 	c.JSON(http.StatusOK, um)
 }
 
 func (ctrl Controller) deleteMemberById(c *gin.Context) {
 	id, err := url.ParseToInt(c, "id")
 	if err != nil {
-		log.Error(err)
 		c.AbortWithError(http.StatusNotFound, err)
 		return
 	}
@@ -124,6 +141,11 @@ func (ctrl Controller) deleteMemberById(c *gin.Context) {
 		c.AbortWithError(http.StatusNotFound, err)
 		return
 	}
+
+	ctrl.changeWriter.Save(models.Change{
+		Action:   models.DeleteMember,
+		MemberId: id,
+	}, c)
 
 	c.Status(http.StatusOK)
 }

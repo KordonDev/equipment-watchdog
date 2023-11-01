@@ -19,13 +19,19 @@ type Service interface {
 }
 
 type Controller struct {
-	service Service
+	service      Service
+	changeWriter ChangeWriter
 }
 
-func NewController(baseRoute *gin.RouterGroup, service Service) {
+type ChangeWriter interface {
+	Save(models.Change, *gin.Context) (*models.Change, error)
+}
+
+func NewController(baseRoute *gin.RouterGroup, service Service, changeService ChangeWriter) {
 
 	ctrl := Controller{
-		service: service,
+		service:      service,
+		changeWriter: changeService,
 	}
 
 	ordersRoute := baseRoute.Group("/orders")
@@ -102,6 +108,11 @@ func (ctrl Controller) create(c *gin.Context) {
 		c.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
+	ctrl.changeWriter.Save(models.Change{
+		OrderId:  co.ID,
+		MemberId: co.MemberID,
+		Action:   models.CreateOrder,
+	}, c)
 
 	c.JSON(http.StatusCreated, co)
 }
@@ -109,7 +120,6 @@ func (ctrl Controller) create(c *gin.Context) {
 func (ctrl Controller) update(c *gin.Context) {
 	id, err := url.ParseToInt(c, "id")
 	if err != nil {
-		log.Error(err)
 		c.AbortWithError(http.StatusNotFound, err)
 		return
 	}
@@ -128,13 +138,18 @@ func (ctrl Controller) update(c *gin.Context) {
 		return
 	}
 
+	ctrl.changeWriter.Save(models.Change{
+		OrderId:  order.ID,
+		MemberId: order.MemberID,
+		Action:   models.UpdateOrder,
+	}, c)
+
 	c.JSON(http.StatusOK, order)
 }
 
 func (ctrl Controller) delete(c *gin.Context) {
 	id, err := url.ParseToInt(c, "id")
 	if err != nil {
-		log.Error(err)
 		c.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
@@ -145,13 +160,18 @@ func (ctrl Controller) delete(c *gin.Context) {
 		c.AbortWithError(http.StatusInternalServerError, err)
 		return
 	}
+
+	ctrl.changeWriter.Save(models.Change{
+		OrderId: id,
+		Action:  models.DeleteOrder,
+	}, c)
+
 	c.Status(http.StatusOK)
 }
 
 func (ctrl Controller) createEquipmentFromOrder(c *gin.Context) {
 	registrationCode, err := url.ParseToString(c, "registrationCode")
 	if err != nil {
-		log.Error(err)
 		c.AbortWithError(http.StatusNotFound, err)
 		return
 	}
@@ -168,6 +188,13 @@ func (ctrl Controller) createEquipmentFromOrder(c *gin.Context) {
 		c.AbortWithError(http.StatusInternalServerError, err)
 		return
 	}
+
+	ctrl.changeWriter.Save(models.Change{
+		Action:      models.OrderToEquipment,
+		OrderId:     order.ID,
+		EquipmentId: equipment.Id,
+		MemberId:    equipment.MemberID,
+	}, c)
 
 	c.JSON(http.StatusOK, equipment)
 }
