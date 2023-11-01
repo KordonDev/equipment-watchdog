@@ -1,6 +1,6 @@
 module github.com/kordondev/equipment-watchdog
 
-go 1.18
+go 1.21
 
 require (
 	github.com/cloudflare/cfssl v1.6.1

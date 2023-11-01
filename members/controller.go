@@ -79,7 +79,6 @@ func (ctrl Controller) createMember(c *gin.Context) {
 func (ctrl Controller) getMemberById(c *gin.Context) {
 	id, err := url.ParseToInt(c, "id")
 	if err != nil {
-		log.Error(err)
 		c.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
@@ -97,7 +96,6 @@ func (ctrl Controller) getMemberById(c *gin.Context) {
 func (ctrl Controller) updateMember(c *gin.Context) {
 	id, err := url.ParseToInt(c, "id")
 	if err != nil {
-		log.Error(err)
 		c.AbortWithError(http.StatusNotFound, err)
 		return
 	}
@@ -134,7 +132,6 @@ func (ctrl Controller) updateMember(c *gin.Context) {
 func (ctrl Controller) deleteMemberById(c *gin.Context) {
 	id, err := url.ParseToInt(c, "id")
 	if err != nil {
-		log.Error(err)
 		c.AbortWithError(http.StatusNotFound, err)
 		return
 	}

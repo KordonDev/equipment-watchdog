@@ -13,7 +13,6 @@ export interface Order<T = Date> {
 }
 
 export function getOrders(): Promise<Order[]> {
-  getAllChanges()
   return fetchApi(`/orders/`)
     .then(orders => orders.map(parseOrderDates));
 }

@@ -68,7 +68,6 @@ func (ctrl Controller) createEquipment(c *gin.Context) {
 func (ctrl Controller) getEquipmentById(c *gin.Context) {
 	id, err := url.ParseToInt(c, "id")
 	if err != nil {
-		log.Error(err)
 		c.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
@@ -86,7 +85,6 @@ func (ctrl Controller) getEquipmentById(c *gin.Context) {
 func (ctrl Controller) deleteEquipment(c *gin.Context) {
 	id, err := url.ParseToInt(c, "id")
 	if err != nil {
-		log.Error(err)
 		c.AbortWithError(http.StatusBadRequest, err)
 		return
 	}

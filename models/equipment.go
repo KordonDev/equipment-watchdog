@@ -1,7 +1,6 @@
 package models
 
 import (
-	"fmt"
 	"time"
 )
 
@@ -56,8 +55,4 @@ func (dbe *DbEquipment) FromDB() *Equipment {
 		MemberID:         dbe.MemberID,
 		Size:             dbe.Size,
 	}
-}
-
-func (e Equipment) String() string {
-	return fmt.Sprintf("Id: %v", e.Id)
 }

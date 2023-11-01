@@ -111,7 +111,7 @@ func (ctrl Controller) create(c *gin.Context) {
 	ctrl.changeWriter.Save(models.Change{
 		OrderId:  co.ID,
 		MemberId: co.MemberID,
-		Action:   models.OrderEquipment,
+		Action:   models.CreateOrder,
 	}, c)
 
 	c.JSON(http.StatusCreated, co)
@@ -120,7 +120,6 @@ func (ctrl Controller) create(c *gin.Context) {
 func (ctrl Controller) update(c *gin.Context) {
 	id, err := url.ParseToInt(c, "id")
 	if err != nil {
-		log.Error(err)
 		c.AbortWithError(http.StatusNotFound, err)
 		return
 	}
@@ -151,7 +150,6 @@ func (ctrl Controller) update(c *gin.Context) {
 func (ctrl Controller) delete(c *gin.Context) {
 	id, err := url.ParseToInt(c, "id")
 	if err != nil {
-		log.Error(err)
 		c.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
@@ -174,7 +172,6 @@ func (ctrl Controller) delete(c *gin.Context) {
 func (ctrl Controller) createEquipmentFromOrder(c *gin.Context) {
 	registrationCode, err := url.ParseToString(c, "registrationCode")
 	if err != nil {
-		log.Error(err)
 		c.AbortWithError(http.StatusNotFound, err)
 		return
 	}

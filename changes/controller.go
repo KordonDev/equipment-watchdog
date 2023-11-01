@@ -48,7 +48,6 @@ func (ctrl Controller) getAllChanges(c *gin.Context) {
 func (ctrl Controller) getForEquipment(c *gin.Context) {
 	id, err := url.ParseToInt(c, "id")
 	if err != nil {
-		log.Error(err)
 		c.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
@@ -66,7 +65,6 @@ func (ctrl Controller) getForEquipment(c *gin.Context) {
 func (ctrl Controller) getForOrder(c *gin.Context) {
 	id, err := url.ParseToInt(c, "id")
 	if err != nil {
-		log.Error(err)
 		c.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
@@ -84,7 +82,6 @@ func (ctrl Controller) getForOrder(c *gin.Context) {
 func (ctrl Controller) getForMember(c *gin.Context) {
 	id, err := url.ParseToInt(c, "id")
 	if err != nil {
-		log.Error(err)
 		c.AbortWithError(http.StatusBadRequest, err)
 		return
 	}

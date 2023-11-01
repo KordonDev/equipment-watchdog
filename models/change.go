@@ -27,7 +27,7 @@ type Change struct {
 }
 
 const (
-	OrderEquipment   string = "order-equipment"
+	CreateOrder      string = "create-order"
 	DeleteOrder             = "delete-order"
 	UpdateOrder             = "update-order"
 	OrderToEquipment        = "order-to-equipment"

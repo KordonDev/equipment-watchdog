@@ -2,6 +2,7 @@ package changes
 
 import (
 	"fmt"
+	"slices"
 	"time"
 
 	"github.com/kordondev/equipment-watchdog/models"
@@ -87,28 +88,28 @@ func (cs ChangeService) enrich(chs []*models.Change) []string {
 
 	eids := make([]uint64, 0)
 	for _, c := range chs {
-		if c.EquipmentId != 0 {
+		if c.EquipmentId != 0 && !slices.Contains(eids, c.EquipmentId) {
 			eids = append(eids, c.EquipmentId)
 		}
 	}
 
 	uids := make([]uint64, 0)
 	for _, c := range chs {
-		if c.UserId != 0 {
+		if c.UserId != 0 && !slices.Contains(uids, c.UserId) {
 			uids = append(uids, c.UserId)
 		}
 	}
 
 	oids := make([]uint64, 0)
 	for _, c := range chs {
-		if c.OrderId != 0 {
+		if c.OrderId != 0 && !slices.Contains(oids, c.OrderId) {
 			oids = append(oids, c.OrderId)
 		}
 	}
 
 	mids := make([]uint64, 0)
 	for _, c := range chs {
-		if c.MemberId != 0 {
+		if c.MemberId != 0 && !slices.Contains(mids, c.MemberId) {
 			mids = append(mids, c.MemberId)
 		}
 	}
@@ -130,7 +131,7 @@ func (cs ChangeService) enrich(chs []*models.Change) []string {
 		switch c.Action {
 		case models.UpdateMember:
 			msg = fmt.Sprintf("Ausrüstung (%v) vergeben an %v durch %v (%v)\n", e, m, u, t)
-		case models.OrderEquipment:
+		case models.CreateOrder:
 			msg = fmt.Sprintf("Bestellung %v erstellt für %v von %v (%v)\n", o, m, u, t)
 		case models.DeleteOrder:
 			msg = fmt.Sprintf("Bestellung %v gelöscht von %v (%v)\n", o, u, t)
