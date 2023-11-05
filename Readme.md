@@ -12,7 +12,7 @@ It should track the equipment of members. This includes moving equipment from on
 `cd frontend && npm run dev`
 
 ### Docker
-docker run -v ${PWD}/configuration:/configuration kordondev/equipment-watchdog
+`docker run -v ${PWD}/configuration:/configuration -p8080:8080 kordondev/equipment-watchdog`
 
 #### Icons the noun project
 

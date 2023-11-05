@@ -1,5 +1,5 @@
 PACKAGE_NAME          := github.com/kordondev/equipment-watchdog
-GOLANG_CROSS_VERSION  ?= v1.18
+GOLANG_CROSS_VERSION  ?= v1.21
 
 
 .PHONY: release-dry-run

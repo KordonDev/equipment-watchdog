@@ -4,11 +4,13 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"net/http"
 	"os"
 	"time"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	"github.com/glebarez/sqlite"
 	"github.com/kordondev/equipment-watchdog/changes"
 	"github.com/kordondev/equipment-watchdog/config"
 	"github.com/kordondev/equipment-watchdog/equipment"
@@ -17,7 +19,6 @@ import (
 	"github.com/kordondev/equipment-watchdog/registrationcodes"
 	"github.com/kordondev/equipment-watchdog/security"
 	"github.com/kordondev/equipment-watchdog/users"
-	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 )
@@ -45,6 +46,10 @@ func main() {
 	router.Use(cors.New(corsConfig))
 
 	api := router.Group("/api")
+
+	api.GET("/ping", func(c *gin.Context) {
+		c.Status(http.StatusOK)
+	})
 
 	userService := users.NewUserService(userDB, jwtService)
 	webAuthNService, err := security.NewWebAuthNService(userService, configuration.Origin, configuration.Domain, jwtService)
