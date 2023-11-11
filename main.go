@@ -39,6 +39,7 @@ func main() {
 	jwtService := security.NewJwtService(configuration.Origin, configuration.JwtSecret)
 
 	router := gin.Default()
+	router.SetTrustedProxies(nil)
 
 	corsConfig := cors.DefaultConfig()
 	corsConfig.AllowOrigins = []string{configuration.Origin}
@@ -79,7 +80,7 @@ func main() {
 	changeService := changes.NewChangeService(db, equipmentService, memberService, userService, orderService)
 	changes.NewController(api, changeService)
 
-	router.Run(fmt.Sprintf("%s:8080", configuration.Domain))
+	router.Run(":8080")
 }
 
 func createDB(debug bool, dsn string) (*gorm.DB, error) {
