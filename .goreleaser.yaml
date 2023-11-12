@@ -17,7 +17,7 @@ builds:
   -
     goos:
       - linux
-        # - windows
+      - windows
       - darwin
     goarch:
       - arm64
@@ -48,4 +48,4 @@ changelog:
 
 dockers:
   - image_templates:
-      - "kordondev/equipment-watchdog"
+      - "kordondev/equipment-watchdog-backend"
