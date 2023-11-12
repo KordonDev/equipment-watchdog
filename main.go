@@ -49,7 +49,7 @@ func main() {
 	api := router.Group("/api")
 
 	api.GET("/ping", func(c *gin.Context) {
-		c.Status(http.StatusOK)
+		c.String(http.StatusOK, "pong")
 	})
 
 	userService := users.NewUserService(userDB, jwtService)
