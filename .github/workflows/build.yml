@@ -1,9 +1,7 @@
 name: Build application
 run-name: Build application
 on:
-  push:
-    branches:
-      - "*"
+  push
 jobs:
   build-backend:
     runs-on: ubuntu-latest
