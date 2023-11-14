@@ -48,4 +48,4 @@ changelog:
 
 dockers:
   - image_templates:
-      - "kordondev/equipment-watchdog"
+      - "kordondev/equipment-watchdog-backend"
