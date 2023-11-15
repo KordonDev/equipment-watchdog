@@ -48,4 +48,5 @@ changelog:
 
 dockers:
   - image_templates:
-      - "kordondev/equipment-watchdog-backend"
+      - "ghcr.io/kordondev/equipment-watchdog-backend:{{ .Tag }}"
+      - "ghcr.io/kordondev/equipment-watchdog-backend:latest"
