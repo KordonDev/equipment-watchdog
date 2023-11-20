@@ -37,7 +37,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   release-frontend:
-    name: build frontend
+    name: release frontend
     runs-on: ubuntu-latest
 
     steps:
