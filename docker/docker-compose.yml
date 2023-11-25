@@ -1,0 +1,24 @@
+# 
+#
+# docker run -eURL=http://localhost:1337 -p 1337:80 ew-frontend
+# docker run -v ${PWD}/configuration:/configuration -p8080:8080 kordondev/equipment-watchdog
+version: '3.6'
+
+services:
+  backend:
+    image: ghcr.io/kordondev/equipment-watchdog-backend
+    container_name: equipment-watchdog-backend
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./configuration:/configuration:ro
+    restart: always
+
+  frontend:
+    image: ghcr.io/kordondev/equipment-watchdog-frontend
+    container_name: equipment-watchdog-frontend
+    restart: always
+    ports:
+      - "1080:80"
+    environment:
+      - URL=http://localhost:8080
