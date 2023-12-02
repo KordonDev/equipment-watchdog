@@ -1,16 +1,9 @@
-# .github/workflows/release.yml
 name: goreleaser
 
 on:
   push:
-    # run only against tags
     tags:
       - "*"
-
-permissions:
-  contents: write
-  packages: write
-  # issues: write
 
 jobs:
   release-backend:
@@ -28,6 +21,7 @@ jobs:
           registry: ghcr.io
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
+      - uses: docker/setup-qemu-action@v3
       - uses: goreleaser/goreleaser-action@v5
         with:
           distribution: goreleaser

@@ -48,5 +48,27 @@ changelog:
 
 dockers:
   - image_templates:
-      - "ghcr.io/kordondev/equipment-watchdog-backend:{{ .Tag }}"
-      - "ghcr.io/kordondev/equipment-watchdog-backend:latest"
+    - "ghcr.io/kordondev/equipment-watchdog-backend:{{ .Tag }}-amd64"
+    - "ghcr.io/kordondev/equipment-watchdog-backend:latest-amd64"
+    use: buildx
+    build_flag_templates:
+      - "--pull"
+      - "--platform=linux/amd64"
+    goarch: amd64
+  - image_templates:
+    - "ghcr.io/kordondev/equipment-watchdog-backend:{{ .Tag }}-arm64"
+    - "ghcr.io/kordondev/equipment-watchdog-backend:latest-arm64"
+    use: buildx
+    build_flag_templates:
+      - "--pull"
+      - "--platform=linux/arm64"
+    goarch: arm64
+docker_manifests:
+  - name_template: "ghcr.io/kordondev/equipment-watchdog-backend:{{ .Tag }}"
+    image_templates:
+      - "ghcr.io/kordondev/equipment-watchdog-backend:{{ .Tag }}-amd64"
+      - "ghcr.io/kordondev/equipment-watchdog-backend:{{ .Tag }}-arm64"
+  - name_template: "ghcr.io/kordondev/equipment-watchdog-backend:latest"
+    image_templates:
+      - "ghcr.io/kordondev/equipment-watchdog-backend:latest-amd64"
+      - "ghcr.io/kordondev/equipment-watchdog-backend:latest-arm64"

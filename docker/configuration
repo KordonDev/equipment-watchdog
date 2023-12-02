@@ -1,5 +1,5 @@
 debug: false
 domain: localhost
 origin: http://localhost:1080
-databaseConnection: ./test.db
+databaseConnection: ./equipment-watchdog.db
 jwtSecret: changeMe

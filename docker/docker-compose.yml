@@ -1,7 +1,3 @@
-# 
-#
-# docker run -eURL=http://localhost:1337 -p 1337:80 ew-frontend
-# docker run -v ${PWD}/configuration:/configuration -p8080:8080 kordondev/equipment-watchdog
 version: '3.6'
 
 services:
@@ -12,6 +8,7 @@ services:
       - "8080:8080"
     volumes:
       - ./configuration:/configuration:ro
+      - ./equipment-watchdog.db:/equipment-watchdog.db
     restart: always
 
   frontend:
