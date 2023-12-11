@@ -24,3 +24,6 @@ test.db
 frontend/.vite
 vendor
 .vscode
+
+dist/
+docker/data

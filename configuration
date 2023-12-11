@@ -1,5 +1,8 @@
 debug: false
+#domain: 192.168.178.94
+#origin: http://192.168.178.94:5173
 domain: localhost
 origin: http://localhost:5173
-jwtSecret: changeMe
 databaseConnection: ./test.db
+# and config.secrets.yml
+jwtSecret: changeMe

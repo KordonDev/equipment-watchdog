@@ -4,11 +4,13 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"net/http"
 	"os"
 	"time"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	"github.com/glebarez/sqlite"
 	"github.com/kordondev/equipment-watchdog/changes"
 	"github.com/kordondev/equipment-watchdog/config"
 	"github.com/kordondev/equipment-watchdog/equipment"
@@ -17,7 +19,6 @@ import (
 	"github.com/kordondev/equipment-watchdog/registrationcodes"
 	"github.com/kordondev/equipment-watchdog/security"
 	"github.com/kordondev/equipment-watchdog/users"
-	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 )
@@ -38,6 +39,7 @@ func main() {
 	jwtService := security.NewJwtService(configuration.Origin, configuration.JwtSecret)
 
 	router := gin.Default()
+	router.SetTrustedProxies(nil)
 
 	corsConfig := cors.DefaultConfig()
 	corsConfig.AllowOrigins = []string{configuration.Origin}
@@ -45,6 +47,10 @@ func main() {
 	router.Use(cors.New(corsConfig))
 
 	api := router.Group("/api")
+
+	api.GET("/ping", func(c *gin.Context) {
+		c.String(http.StatusOK, "pong")
+	})
 
 	userService := users.NewUserService(userDB, jwtService)
 	webAuthNService, err := security.NewWebAuthNService(userService, configuration.Origin, configuration.Domain, jwtService)
@@ -74,7 +80,7 @@ func main() {
 	changeService := changes.NewChangeService(db, equipmentService, memberService, userService, orderService)
 	changes.NewController(api, changeService)
 
-	router.Run(fmt.Sprintf("%s:8080", configuration.Domain))
+	router.Run(":8080")
 }
 
 func createDB(debug bool, dsn string) (*gorm.DB, error) {

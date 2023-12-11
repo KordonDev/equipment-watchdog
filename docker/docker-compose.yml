@@ -1,0 +1,21 @@
+version: '3.6'
+
+services:
+  backend:
+    image: ghcr.io/kordondev/equipment-watchdog-backend:0.0.10-arm64
+    container_name: equipment-watchdog-backend
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./configuration:/equipment-watchdog/configuration:ro
+      - ./data:/data
+    restart: always
+
+  frontend:
+    image: ghcr.io/kordondev/equipment-watchdog-frontend
+    container_name: equipment-watchdog-frontend
+    restart: always
+    ports:
+      - "1080:80"
+    environment:
+      - URL=http://localhost:8080/api

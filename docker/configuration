@@ -1,0 +1,5 @@
+debug: false
+domain: localhost
+origin: http://localhost:1080
+databaseConnection: /data/equipment-watchdog.db
+jwtSecret: changeMe
