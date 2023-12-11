@@ -22,7 +22,7 @@ ADD docker/nginx.conf /etc/nginx/nginx.conf
 WORKDIR /var/www
 
 COPY --from=build /var/frontend/dist /var/www
-COPY docker/entrypoint.sh /entrypoint.sh
+ADD docker/entrypoint.sh /entrypoint.sh
 RUN chmod -R 777 /entrypoint.sh 
 
 CMD ["/entrypoint.sh"]

@@ -26,3 +26,4 @@ vendor
 .vscode
 
 dist/
+docker/data
