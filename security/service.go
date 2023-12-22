@@ -5,7 +5,6 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/cloudflare/cfssl/log"
 	"github.com/go-webauthn/webauthn/protocol"
 	"github.com/go-webauthn/webauthn/webauthn"
 	"github.com/kordondev/equipment-watchdog/models"
@@ -101,7 +100,6 @@ func (w *WebAuthNService) finishRegistration(username string, request *http.Requ
 	if err != nil {
 		return nil, err
 	}
-	log.Infof("sessionData: ", sessionData)
 	if time.Now().After(sessionData.Expires) {
 		return nil, fmt.Errorf("Sessiondata not found or expired")
 	}
@@ -154,8 +152,6 @@ func (w WebAuthNService) finishLogin(username string, request *http.Request) (*m
 	if err != nil {
 		return nil, "", err
 	}
-
-	log.Infof("sessionData: ", sessionData)
 
 	if time.Now().After(sessionData.Expires) {
 		return nil, "", fmt.Errorf("Sessiondata not found or expired")

@@ -76,7 +76,6 @@ func (dbs DbSessionData) ToSession() webauthn.SessionData {
 		AllowedCredentialIDs: dbs.AllowedCredentialIDs,
 		Expires:              dbs.Expires,
 		UserVerification:     dbs.UserVerification,
-		Extensions:           protocol.AuthenticationExtensions{},
 	}
 }
 

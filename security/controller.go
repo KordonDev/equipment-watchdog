@@ -45,12 +45,6 @@ func (ctrl Controller) startRegister(c *gin.Context) {
 		return
 	}
 
-	/*err = ctrl.sessionStore.SaveWebauthnSession("registration", sessionData, c.Request, c.Writer)
-	if err != nil {
-		c.AbortWithError(http.StatusInternalServerError, err)
-		return
-	}*/
-
 	c.JSON(http.StatusOK, options)
 }
 
