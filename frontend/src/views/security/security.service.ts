@@ -1,15 +1,5 @@
 import { fetchApi } from "../apiService";
-
-function bufferDecode(value) {
-  return Uint8Array.from(atob(value), (c) => c.charCodeAt(0));
-}
-
-function bufferEncode(value) {
-  return btoa(String.fromCharCode.apply(null, new Uint8Array(value)))
-    .replace(/\+/g, "-")
-    .replace(/\//g, "_")
-    .replace(/=/g, "");
-}
+import { bufferDecode, bufferEncode } from "./transformer.service";
 
 export function login(username: string) {
   return fetchApi(`/login/${username}`)

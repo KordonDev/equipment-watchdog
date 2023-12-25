@@ -53,7 +53,7 @@ func main() {
 	})
 
 	userService := users.NewUserService(userDB, jwtService)
-	webAuthNService, err := security.NewWebAuthNService(userService, configuration.Origin, configuration.Domain, jwtService)
+	webAuthNService, err := security.NewWebAuthNService(userService, configuration.Origin, configuration.Domain, jwtService, db)
 	if err != nil {
 		panic(fmt.Sprintf("Error creating webAuthn: %v", err))
 	}

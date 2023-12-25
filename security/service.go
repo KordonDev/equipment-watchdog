@@ -3,10 +3,12 @@ package security
 import (
 	"fmt"
 	"net/http"
+	"time"
 
-	"github.com/duo-labs/webauthn/protocol"
-	"github.com/duo-labs/webauthn/webauthn"
+	"github.com/go-webauthn/webauthn/protocol"
+	"github.com/go-webauthn/webauthn/webauthn"
 	"github.com/kordondev/equipment-watchdog/models"
+	"gorm.io/gorm"
 )
 
 type userService interface {
@@ -16,33 +18,54 @@ type userService interface {
 	HasApprovedAndAdminUser() bool
 }
 
-type WebAuthNService struct {
-	webAuthn    *webauthn.WebAuthn
-	jwtService  *JwtService
-	userService userService
-	domain      string
+type SessionStore interface {
+	getSession(username string) (webauthn.SessionData, error)
+	storeSession(username string, sessionData webauthn.SessionData) error
 }
 
-func NewWebAuthNService(userService userService, origin string, domain string, jwtService *JwtService) (*WebAuthNService, error) {
+type WebAuthNService struct {
+	webAuthn     *webauthn.WebAuthn
+	jwtService   *JwtService
+	userService  userService
+	domain       string
+	sessionStore SessionStore
+}
+
+func NewWebAuthNService(userService userService, origin string, domain string, jwtService *JwtService, db *gorm.DB) (*WebAuthNService, error) {
 	webAuthn, err := webauthn.New(&webauthn.Config{
 		RPDisplayName: "equipment watchdog", // Display Name for your site
 		RPID:          domain,               // Generally the domain name for your site
 		RPOrigin:      origin,               // The origin URL for WebAuthn requests
+		Timeouts: webauthn.TimeoutsConfig{
+			Login: webauthn.TimeoutConfig{
+				Enforce:    true,
+				Timeout:    2 * time.Minute,
+				TimeoutUVD: 2 * time.Minute,
+			},
+			Registration: webauthn.TimeoutConfig{
+				Enforce:    true,
+				Timeout:    2 * time.Minute,
+				TimeoutUVD: 2 * time.Minute,
+			},
+		},
 	})
 
 	if err != nil {
 		return nil, fmt.Errorf("could not create webAuth: %w", err)
 	}
 
+	sessionStore := NewDatebase(db)
+
 	return &WebAuthNService{
-		webAuthn:    webAuthn,
-		jwtService:  jwtService,
-		userService: userService,
-		domain:      domain,
+		webAuthn:     webAuthn,
+		jwtService:   jwtService,
+		userService:  userService,
+		domain:       domain,
+		sessionStore: sessionStore,
 	}, nil
 }
 
-func (w WebAuthNService) startRegister(username string) (*protocol.CredentialCreation, *webauthn.SessionData, error) {
+func (w WebAuthNService) startRegister(username string) (*protocol.CredentialCreation, error) {
 	user, err := w.userService.GetUser(username)
 	if err != nil {
 		user = &models.User{
@@ -53,26 +76,33 @@ func (w WebAuthNService) startRegister(username string) (*protocol.CredentialCre
 		}
 		user, err = w.userService.AddUser(user)
 		if err != nil {
-			return nil, nil, err
+			return nil, err
 		}
 	}
-
 	registerOpts := func(credOptions *protocol.PublicKeyCredentialCreationOptions) {
 		credOptions.CredentialExcludeList = user.ExcludedCredentials()
 	}
 
-	options, sessionData, err := w.webAuthn.BeginRegistration(
-		user,
-		registerOpts,
-	)
+	options, sessionData, err := w.webAuthn.BeginRegistration(user, registerOpts)
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 
-	return options, sessionData, nil
+	if err = w.sessionStore.storeSession(username, *sessionData); err != nil {
+		return nil, err
+	}
+
+	return options, nil
 }
 
-func (w *WebAuthNService) finishRegistration(username string, sessionData webauthn.SessionData, request *http.Request) (*models.User, error) {
+func (w *WebAuthNService) finishRegistration(username string, request *http.Request) (*models.User, error) {
+	sessionData, err := w.sessionStore.getSession(username)
+	if err != nil {
+		return nil, err
+	}
+	if time.Now().After(sessionData.Expires) {
+		return nil, fmt.Errorf("Sessiondata not found or expired")
+	}
 
 	user, err := w.userService.GetUser(username)
 	if err != nil {
@@ -98,22 +128,35 @@ func (w *WebAuthNService) finishRegistration(username string, sessionData webaut
 	return user, nil
 }
 
-func (w WebAuthNService) startLogin(username string, request *http.Request) (*protocol.CredentialAssertion, *webauthn.SessionData, error) {
+func (w WebAuthNService) startLogin(username string, request *http.Request) (*protocol.CredentialAssertion, error) {
 	user, err := w.userService.GetUser(username)
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 
 	options, sessionData, err := w.webAuthn.BeginLogin(user)
 	if err != nil {
-		return nil, nil, err
+		return nil, err
+	}
+
+	if err = w.sessionStore.storeSession(username, *sessionData); err != nil {
+		return nil, err
 	}
 
 	w.userService.SaveUser(user)
-	return options, sessionData, nil
+	return options, nil
 }
 
-func (w WebAuthNService) finishLogin(username string, sessionData webauthn.SessionData, request *http.Request) (*models.User, string, error) {
+func (w WebAuthNService) finishLogin(username string, request *http.Request) (*models.User, string, error) {
+	sessionData, err := w.sessionStore.getSession(username)
+	if err != nil {
+		return nil, "", err
+	}
+
+	if time.Now().After(sessionData.Expires) {
+		return nil, "", fmt.Errorf("Sessiondata not found or expired")
+	}
+
 	user, err := w.userService.GetUser(username)
 	if err != nil {
 		return nil, "", err
