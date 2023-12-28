@@ -46,11 +46,16 @@ jobs:
           registry: ghcr.io
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Add metadata to docker
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/kordondev/equipment-watchdog-frontend
       - name: Build and push
         uses: docker/build-push-action@v5
         with:
           context: './frontend'
           platforms: linux/amd64,linux/arm64
           push: true
-          tags: ghcr.io/kordondev/equipment-watchdog-frontend:latest
+          tags: ${{ steps.meta.outputs.tags }}
 
