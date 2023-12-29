@@ -1,6 +1,5 @@
 <script lang="ts">
   import {
-    createNotification,
     errorNotification,
     successNotification,
   } from "../../components/Notification/notificationStore";
@@ -9,17 +8,22 @@
   import { login } from "./security.service";
   import { getGroups } from "../member/member.service";
   import { getGroupsWithEquipment } from "../../components/groupsStore";
+  import { Label, Input, Button } from "flowbite-svelte";
 
   let username = "";
+  let loading = false;
   const handleLogin = () => {
+    loading = true;
     login(username)
       .then(() => {
+        loading = false;
         successNotification("Login erfolgreich.");
         getGroups().then(getGroupsWithEquipment.set);
         replace(routes.MemberOverview.link);
       })
       .catch(() => {
         errorNotification("Fehler beim Login");
+        loading = false;
       });
   };
 </script>
@@ -28,9 +32,12 @@
 
 <div class="card">
   <form on:submit|preventDefault={handleLogin}>
-    <input bind:value={username} autofocus />
-    <button type="submit">Einloggen</button>
+    <Label for="usernname" class="block mb-2">Benutzer:</Label>
+    <Input required class="mb-4" id="username" bind:value={username} />
+    <Button color="purple" type="submit" disabled={loading}>
+      Einloggen
+    </Button>
   </form>
 </div>
 
-<a href={routes.Register.link} use:link>Registrieren</a>
+<a href={routes.Register.link} use:link>Zur Registrierung</a>
