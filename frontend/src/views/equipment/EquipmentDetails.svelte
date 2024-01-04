@@ -1,25 +1,31 @@
 <script lang="ts">
   import Navigation from "../../components/Navigation/Navigation.svelte";
+  import { link, push } from "svelte-spa-router";
   import {
     deleteEquipment,
     EquipmentType,
     getEquipment,
     translateEquipmentType,
   } from "./equipment.service";
+  import { getMember, type Member } from "../member/member.service";
   import { Alert, Button, Modal, Spinner } from "flowbite-svelte";
   import { createNotification } from "../../components/Notification/notificationStore";
-  import { push } from "svelte-spa-router";
   import { routes } from "../../routes";
   import { getChangesForEquipment } from "../changes/changes.service";
-  import Changes from "../changes/Changes.svelte"
+  import Changes from "../changes/Changes.svelte";
 
   export let params = { id: undefined };
 
   let deleteModalOpen = false;
   let loading = false;
   let equipmentPromise = getEquipment(params.id);
+  let memberPromise = equipmentPromise.then((equipment) =>
+    equipment.memberId
+      ? getMember(equipment.memberId.toString())
+      : Promise.resolve({} as Member),
+  );
 
-  const changes = getChangesForEquipment(params.id)
+  const changes = getChangesForEquipment(params.id);
 
   function deleteEquipmentInternal(id: number, type: EquipmentType) {
     deleteEquipment(id)
@@ -29,7 +35,7 @@
             color: "green",
             text: `${translateEquipmentType(type)} wurde erfolgreich gelöscht.`,
           },
-          5
+          5,
         );
         loading = false;
         deleteModalOpen = false;
@@ -40,10 +46,10 @@
           {
             color: "red",
             text: `${translateEquipmentType(
-              type
+              type,
             )} konnte nicht gelöscht werden.`,
           },
-          20
+          20,
         );
         loading = false;
       });
@@ -55,10 +61,19 @@
 {#await equipmentPromise}
   <Spinner />
 {:then equipment}
-  <div>
+  <div class="mb-8">
     <h3>{translateEquipmentType(equipment.type)}</h3>
     <p>Registrierungsnummer {equipment.registrationCode}</p>
     <p>Größe {equipment.size || "-"}</p>
+    {#await memberPromise then member}
+      {#if member.name}
+        <p>
+          Mitglied: <a href={routes.MemberDetail.link + member.id} use:link>{member.name}</a>
+        </p>
+      {:else}
+        <p>Mitglied: -</p>
+      {/if}
+    {/await}
   </div>
 
   <Changes changesPromise={changes} />

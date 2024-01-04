@@ -2,7 +2,7 @@
   import { Heading } from "flowbite-svelte";
   import { Alert, Spinner } from "flowbite-svelte";
 
-  export let changesPromise: Promise<string>;
+  export let changesPromise: Promise<string[]>;
 </script>
 
 <div class="mb-8">
