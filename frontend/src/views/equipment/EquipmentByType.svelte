@@ -8,12 +8,14 @@
     getEquipmentByType,
     translatedEquipmentTypes,
     translateEquipmentType,
+    type Equipment,
   } from "./equipment.service";
-  import { Alert, Card, Label, Select, Spinner } from "flowbite-svelte";
+  import { Alert, Card, Label, Select, Spinner, Input } from "flowbite-svelte";
   import EquipmentIcon from "../../components/Equipment/EquipmentIcon.svelte";
 
   export let params = { type: undefined };
   let currentType;
+  let search = "";
 
   onMount(() => {
     currentType = params.type;
@@ -33,6 +35,13 @@
     push(`${routes.EquipmentType.link}${params.type}`);
   }
 
+  function byCode(e: Equipment, search: string) {
+    if (search === "") {
+      return true;
+    }
+    return e.registrationCode.includes(search);
+  }
+
   let equipmentsPromise = getEquipmentByType(params.type);
 </script>
 
@@ -50,11 +59,15 @@
     on:change={updateUrl}
   />
 </Label>
+<Label class="block mb-2">
+  Suche nach Registrierungsnummer
+  <Input type="search" class="mb-4" bind:value={search} />
+</Label>
 {#await equipmentsPromise}
   <Spinner />
 {:then equipments}
   <div class="flex flex-wrap">
-    {#each equipments as equipment}
+    {#each equipments.filter(e => byCode(e, search)) as equipment}
       <div>
         <Card class="m-4">
           {#if equipment.memberId && equipment.memberId !== 0}
