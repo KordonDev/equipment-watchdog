@@ -28,14 +28,14 @@ type Change struct {
 
 const (
 	CreateOrder      string = "create-order"
-	DeleteOrder             = "delete-order"
-	UpdateOrder             = "update-order"
-	OrderToEquipment        = "order-to-equipment"
-	CreateMember            = "create-member"
-	UpdateMember            = "update-member"
-	DeleteMember            = "delete-member"
-	CreateEquipment         = "create-equipment"
-	DeleteEquipment         = "delete-equipment"
+	DeleteOrder      string = "delete-order"
+	UpdateOrder      string = "update-order"
+	OrderToEquipment string = "order-to-equipment"
+	CreateMember     string = "create-member"
+	UpdateMember     string = "update-member"
+	DeleteMember     string = "delete-member"
+	CreateEquipment  string = "create-equipment"
+	DeleteEquipment  string = "delete-equipment"
 )
 
 func (dbc DbChange) FromDB() *Change {
@@ -51,14 +51,5 @@ func (dbc DbChange) FromDB() *Change {
 }
 
 func (c Change) ToDB() DbChange {
-	return DbChange{
-		ID:          c.ID,
-		CreatedAt:   c.CreatedAt,
-		MemberId:    c.MemberId,
-		EquipmentId: c.EquipmentId,
-		OrderId:     c.OrderId,
-		Action:      c.Action,
-		UserId:      c.UserId,
-	}
-
+	return DbChange(c)
 }

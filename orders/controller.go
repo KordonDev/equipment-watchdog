@@ -108,7 +108,7 @@ func (ctrl Controller) create(c *gin.Context) {
 		c.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
-	ctrl.changeWriter.Save(models.Change{
+  ctrl.changeWriter.Save(models.Change{
 		OrderId:  co.ID,
 		MemberId: co.MemberID,
 		Action:   models.CreateOrder,

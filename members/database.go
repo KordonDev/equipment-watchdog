@@ -40,17 +40,6 @@ func (mdb *memberDB) getAllMember() ([]*models.Member, error) {
 	return members, nil
 }
 
-func (mdb *memberDB) getMemberByName(name string) (*models.Member, error) {
-	var m models.DbMember
-	err := mdb.Preload("Equipment").Model(&models.DbMember{}).First(&m, "name = ?", name).Error
-
-	if err != nil {
-		return &models.Member{}, fmt.Errorf("error getting user: %s", name)
-	}
-
-	return m.FromDB(), nil
-}
-
 func (mdb *memberDB) getMemberById(id uint64) (*models.Member, error) {
 	var m models.DbMember
 	err := mdb.Preload("Equipment").Model(&models.DbMember{}).First(&m, "ID = ?", id).Error

@@ -121,17 +121,6 @@ func (u *User) ToDBUser() *DbUser {
 	return &dbu
 }
 
-func (dbu *DbUser) toSmallUser() *User {
-	user := User{
-		ID:          dbu.ID,
-		Name:        dbu.Name,
-		IsApproved:  dbu.IsApproved,
-		IsAdmin:     dbu.IsAdmin,
-		Credentials: nil,
-	}
-	return &user
-}
-
 func (dbu *DbUser) ToUser() *User {
 	var c []webauthn.Credential
 	for _, cr := range dbu.Credentials {

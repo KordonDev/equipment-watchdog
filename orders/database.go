@@ -65,7 +65,7 @@ func (odb orderDB) delete(id uint64) error {
 func (odb orderDB) getAll(fulfilled bool) ([]models.Order, error) {
 	var err error
 	var result []models.DBOrder
-	if fulfilled == true {
+	if fulfilled {
 		result, err = odb.getAllFulfilled()
 	} else {
 		result, err = odb.getAllOpen()
