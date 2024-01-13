@@ -13,6 +13,8 @@
   import { getRegistrationCode } from "../registrationCode/registrationCode.service"
   import Navigation from "../../components/Navigation/Navigation.svelte";
 
+  export let params = { type: undefined };
+
   let equipment: Equipment = {
     registrationCode: "",
     type: EquipmentType.Jacket,
@@ -21,8 +23,10 @@
   };
   let loading = false;
 
-  
   onMount(() => {
+    if (params.type !== undefined) {
+      equipment.type = params.type;
+    }
     getRegistrationCode()
       .then(rc => {
         if (equipment.registrationCode === "") {
