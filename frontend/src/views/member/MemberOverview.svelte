@@ -49,7 +49,6 @@
   <div class="mb-2">Gruppe</div>
   <Select
     size="lg"
-    required
     items={allGroups}
     bind:value={groupFilterInternal}
     on:change={updateGroupFilter}
@@ -57,7 +56,7 @@
 </Label>
 <Label class="block mb-2">
   Suche
-  <Input required class="mb-4" bind:value={search} />
+  <Input type="search" class="mb-4" bind:value={search} />
 </Label>
 {#await membersPromise then members}
   <div class="flex flex-wrap">
