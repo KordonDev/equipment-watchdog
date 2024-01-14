@@ -24,8 +24,8 @@ export const routes = {
     link: "/users",
   },
   EquipmentAdd: {
-    path: "/equipment/add",
-    link: "/equipment/add",
+    path: "/equipment/add/:type",
+    link: "/equipment/add/",
   },
   EquipmentType: {
     path: "/equipment/type/:type",
