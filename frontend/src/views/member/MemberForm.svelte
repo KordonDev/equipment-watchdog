@@ -68,12 +68,12 @@
           equipmmentType={EquipmentType.Boots}
           {memberStore}
         />
-        <EquipmentSelect
-          freeEquipments={freeEquipment}
-          equipmmentType={EquipmentType.TShirt}
-          {memberStore}
-        />
       {/if}
+      <EquipmentSelect
+        freeEquipments={freeEquipment}
+        equipmmentType={EquipmentType.TShirt}
+        {memberStore}
+      />
     </div>
   {/if}
   <div class="flex flex-row justify-end">
