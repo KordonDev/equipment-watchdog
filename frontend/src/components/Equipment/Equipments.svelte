@@ -31,11 +31,11 @@
       registrationCode={member.equipments.boots?.registrationCode}
       equipmentType={EquipmentType.Boots}
     />
-    <EquipmentIcon
-      registrationCode={member.equipments.tshirt?.registrationCode}
-      equipmentType={EquipmentType.TShirt}
-    />
   {/if}
+  <EquipmentIcon
+    registrationCode={member.equipments.tshirt?.registrationCode}
+    equipmentType={EquipmentType.TShirt}
+  />
 </div>
 
 <style>
