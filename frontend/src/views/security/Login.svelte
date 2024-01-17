@@ -5,12 +5,20 @@
   } from "../../components/Notification/notificationStore";
   import { link, replace } from "svelte-spa-router";
   import { routes } from "../../routes";
-  import { login } from "./security.service";
+  import {
+    login,
+    getStoredUsername,
+    setStoredUsername,
+  } from "./security.service";
   import { getGroups } from "../member/member.service";
   import { getGroupsWithEquipment } from "../../components/groupsStore";
-  import { Label, Input, Button } from "flowbite-svelte";
+  import { Label, Input, Button, Checkbox } from "flowbite-svelte";
 
-  let username = "";
+  let username = getStoredUsername();
+  let storeUsername = false;
+  setTimeout(() => {
+    storeUsername = username && username !== "";
+  }, 0);
   let loading = false;
   const handleLogin = () => {
     loading = true;
@@ -19,6 +27,11 @@
         loading = false;
         successNotification("Login erfolgreich.");
         getGroups().then(getGroupsWithEquipment.set);
+        if (storeUsername) {
+          setStoredUsername(username);
+        } else {
+          setStoredUsername("");
+        }
         replace(routes.MemberOverview.link);
       })
       .catch(() => {
@@ -34,9 +47,10 @@
   <form on:submit|preventDefault={handleLogin}>
     <Label for="usernname" class="block mb-2">Benutzer:</Label>
     <Input required class="mb-4" id="username" bind:value={username} />
-    <Button color="purple" type="submit" disabled={loading}>
-      Einloggen
-    </Button>
+    <Checkbox bind:checked={storeUsername} class="mb-4">
+      Benutzername speichern
+    </Checkbox>
+    <Button color="purple" type="submit" disabled={loading}>Einloggen</Button>
   </form>
 </div>
 
