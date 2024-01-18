@@ -93,3 +93,12 @@ export function logout() {
     method: "POST",
   });
 }
+
+const LOCALSTOARGE_USERNAME = "username";
+export function getStoredUsername() {
+  return localStorage.getItem(LOCALSTOARGE_USERNAME)
+}
+
+export function setStoredUsername(username: string) {
+  localStorage.setItem(LOCALSTOARGE_USERNAME, username);
+}
