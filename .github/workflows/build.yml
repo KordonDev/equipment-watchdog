@@ -23,6 +23,7 @@ jobs:
           distribution: goreleaser
           version: latest
           args: release --snapshot --clean
+          workdir: ./backend
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 

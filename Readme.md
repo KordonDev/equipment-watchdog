@@ -4,7 +4,8 @@ It should track the equipment of members. This includes moving equipment from on
 
 ### Backend
 
-`go run .`
+
+`cd backend && go run .`
 
 
 ### Frontend
