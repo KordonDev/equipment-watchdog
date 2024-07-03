@@ -18,7 +18,7 @@ __debug_bin
 go.work
 
 # sqlite
-test.db
+backend/test.db
 
 .idea
 frontend/.vite
@@ -26,4 +26,4 @@ vendor
 .vscode
 
 dist/
-docker/data
+deployment/data
