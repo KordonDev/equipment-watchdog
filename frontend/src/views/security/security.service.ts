@@ -88,6 +88,21 @@ export function register(username: string) {
     });
 }
 
+export function changePassword(password: string) {
+    return fetchApi(`/change-password`, {
+        method: "PATCH",
+        body: JSON.stringify({ password }),
+    });
+}
+
+
+export function passwordLogin(username: string, password: string) {
+  return fetchApi(`/password-login`, {
+    method: "POST",
+    body: JSON.stringify({ password, username }),
+  });
+}
+
 export function logout() {
   return fetchApi(`/logout`, {
     method: "POST",

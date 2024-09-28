@@ -8,7 +8,7 @@
   import {
     login,
     getStoredUsername,
-    setStoredUsername,
+    setStoredUsername, passwordLogin,
   } from "./security.service";
   import { getGroups } from "../member/member.service";
   import { getGroupsWithEquipment } from "../../components/groupsStore";
@@ -19,10 +19,11 @@
   setTimeout(() => {
     storeUsername = username && username !== "";
   }, 0);
+  let password = "";
   let loading = false;
   const handleLogin = () => {
     loading = true;
-    login(username)
+    passwordLogin(username, password)
       .then(() => {
         loading = false;
         successNotification("Login erfolgreich.");
@@ -41,12 +42,14 @@
   };
 </script>
 
-<h1>Einloggen</h1>
+<h1>Passwordlogin</h1>
 
 <div class="card">
   <form on:submit|preventDefault={handleLogin}>
-    <Label for="usernname" class="block mb-2">Benutzer:</Label>
+    <Label for="username" class="block mb-2">Benutzer:</Label>
     <Input required class="mb-4" id="username" bind:value={username} />
+    <Label for="password" class="block mb-2">Password:</Label>
+    <Input required class="mb-4" id="password" type="password" bind:value={password} />
     <Checkbox bind:checked={storeUsername} class="mb-4">
       Benutzername speichern
     </Checkbox>
@@ -55,8 +58,9 @@
 </div>
 
 <div>
-  <a href={routes.PasswordLogin.link} use:link>Zum Passwordlogin</a>
+  <a href={routes.Login.link} use:link>Zum Biometrischen Login</a>
 </div>
+
 <div>
   <a href={routes.Register.link} use:link>Zur Registrierung</a>
 </div>

@@ -1,10 +1,15 @@
 <script lang="ts">
-  import { Heading } from "flowbite-svelte";
+  import {Button, Checkbox, Heading, Input, Label} from "flowbite-svelte";
   import { currentUser } from "../../components/userStore";
   import Navigation from "../../components/Navigation/Navigation.svelte";
   import UserTable from "./UserTable.svelte";
   import {getAllUser, toggleAdminUser, toggleApproveUser} from "./user.service";
-  import { createNotification } from "../../components/Notification/notificationStore";
+  import {
+    createNotification,
+    errorNotification,
+    successNotification
+  } from "../../components/Notification/notificationStore";
+  import {changePassword} from "../security/security.service";
 
   function toggleApproved(username: string) {
     toggleApproveUser(username)
@@ -61,6 +66,22 @@
   });
 
   let usersPromise = getAllUser();
+
+  let password = "";
+  let loading = false;
+
+  const handleChangePassword = () => {
+    loading = true;
+    changePassword(password)
+      .then(() => {
+        loading = false;
+        successNotification("Passwort gespeichert.");
+      })
+      .catch(() => {
+        loading = false;
+        errorNotification(`Fehler beim Speichern.`);
+      });
+  }
 </script>
 
 <Navigation />
@@ -74,8 +95,15 @@
   {disable}
 />
 
+<Heading class="mb-2 mt-6">Password</Heading>
+<form on:submit|preventDefault={handleChangePassword}>
+  <Label for="password" class="block mb-2">Password:</Label>
+  <Input required class="mb-4" id="password" type="password" bind:value={password} />
+  <Button color="purple" type="submit" disabled={loading}>Passwort speichern</Button>
+</form>
+
 {#await usersPromise then users}
-  <Heading class="mb-2">Alle</Heading>
+  <Heading class="mb-2 mt-6">Alle</Heading>
   <UserTable
     {users}
     onApprove={toggleApproved}

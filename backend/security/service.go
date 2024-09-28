@@ -1,6 +1,7 @@
 package security
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"time"
@@ -16,6 +17,8 @@ type userService interface {
 	AddUser(*models.User) (*models.User, error)
 	SaveUser(*models.User) (*models.User, error)
 	HasApprovedAndAdminUser() bool
+	CheckLogin(username, password string) error
+	ChangePassword(ctx context.Context, username, password string) error
 }
 
 type SessionStore interface {
@@ -168,6 +171,23 @@ func (w WebAuthNService) finishLogin(username string, request *http.Request) (*m
 	}
 
 	user, err = w.userService.SaveUser(user)
+	if err != nil {
+		return nil, "", err
+	}
+
+	token := w.jwtService.GenerateToken(*user)
+	return user, token, nil
+}
+
+func (w WebAuthNService) changePassword(ctx context.Context, username, password string) error {
+	return w.userService.ChangePassword(ctx, username, password)
+}
+
+func (w WebAuthNService) passwordLogin(ctx context.Context, username, password string) (*models.User, string, error) {
+	if err := w.userService.CheckLogin(username, password); err != nil {
+		return nil, "", err
+	}
+	user, err := w.userService.GetUser(username)
 	if err != nil {
 		return nil, "", err
 	}
