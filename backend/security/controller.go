@@ -12,7 +12,8 @@ import (
 )
 
 type Service interface {
-	startRegister(string) (*protocol.CredentialCreation, error)
+	startRegisterExistingUser(string) (*protocol.CredentialCreation, error)
+	startRegisterNewUser(string) (*protocol.CredentialCreation, error)
 	finishRegistration(string, *http.Request) (*models.User, error)
 	startLogin(string, *http.Request) (*protocol.CredentialAssertion, error)
 	finishLogin(string, *http.Request) (*models.User, string, error)
@@ -31,7 +32,7 @@ func NewController(baseUrl *gin.RouterGroup, service Service, domain string, aut
 		service: service,
 		domain:  domain,
 	}
-	baseUrl.GET("/register/:username", ctrl.startRegister)
+	baseUrl.GET("/register/:username", ctrl.startRegisterNewUser)
 	baseUrl.POST("/register/:username", ctrl.finishRegistration)
 	baseUrl.GET("/login/:username", ctrl.startLogin)
 	baseUrl.POST("/login/:username", ctrl.finishLogin)
@@ -39,20 +40,46 @@ func NewController(baseUrl *gin.RouterGroup, service Service, domain string, aut
 	baseUrl.POST("/password-login", ctrl.passwordLogin)
 
 	baseUrl.PATCH("/change-password", authorizeMiddleware, ctrl.changePassword)
+	baseUrl.GET("/add-authentication", authorizeMiddleware, ctrl.startRegisterExistingUser)
+	baseUrl.POST("/add-authentication", authorizeMiddleware, ctrl.finishRegisterExistingUser)
 
 	return nil
 }
 
-func (ctrl Controller) startRegister(c *gin.Context) {
+func (ctrl Controller) startRegisterNewUser(c *gin.Context) {
 	username := c.Param("username")
 
-	options, err := ctrl.service.startRegister(username)
+	options, err := ctrl.service.startRegisterNewUser(username)
 	if err != nil {
 		c.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
 
 	c.JSON(http.StatusOK, options)
+}
+
+func (ctrl Controller) startRegisterExistingUser(c *gin.Context) {
+	username := c.GetString("username")
+
+	options, err := ctrl.service.startRegisterExistingUser(username)
+	if err != nil {
+		c.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+
+	c.JSON(http.StatusOK, options)
+}
+
+func (ctrl Controller) finishRegisterExistingUser(c *gin.Context) {
+	username := c.GetString("username")
+
+	user, err := ctrl.service.finishRegistration(username, c.Request)
+	if err != nil {
+		c.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+
+	c.JSON(http.StatusOK, user)
 }
 
 func (ctrl Controller) finishRegistration(c *gin.Context) {
@@ -104,7 +131,7 @@ func (ctrl Controller) changePassword(c *gin.Context) {
 		return
 	}
 
-	var username = c.GetString("username")
+	username := c.GetString("username")
 	if username == "" {
 		c.AbortWithStatus(http.StatusBadRequest)
 		return

@@ -9,7 +9,9 @@
     errorNotification,
     successNotification
   } from "../../components/Notification/notificationStore";
-  import {changePassword} from "../security/security.service";
+  import {addLogin, changePassword, register} from "../security/security.service";
+  import {replace} from "svelte-spa-router";
+  import {routes} from "../../routes";
 
   function toggleApproved(username: string) {
     toggleApproveUser(username)
@@ -82,6 +84,16 @@
         errorNotification(`Fehler beim Speichern.`);
       });
   }
+
+  const addLoginMethod = () => {
+    addLogin()
+      .then(() => {
+        successNotification(`Loginmöglichkeit hinzugefügt.`)
+      })
+      .catch((err) => {
+        errorNotification(`Fehler beim Hinzufügen. ${err}`)
+      });
+  }
 </script>
 
 <Navigation />
@@ -101,6 +113,11 @@
   <Input required class="mb-4" id="password" type="password" bind:value={password} />
   <Button color="purple" type="submit" disabled={loading}>Passwort speichern</Button>
 </form>
+<Heading class="mb-2 mt-6">Loginmöglichkeit hinzufügen</Heading>
+<Button color="purple" on:click={addLoginMethod}>
+  Hinzufügen
+</Button>
+
 
 {#await usersPromise then users}
   <Heading class="mb-2 mt-6">Alle</Heading>

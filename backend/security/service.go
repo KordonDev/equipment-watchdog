@@ -2,6 +2,7 @@ package security
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
 	"time"
@@ -68,20 +69,38 @@ func NewWebAuthNService(userService userService, origin string, domain string, j
 	}, nil
 }
 
-func (w WebAuthNService) startRegister(username string) (*protocol.CredentialCreation, error) {
+func (w WebAuthNService) startRegisterNewUser(username string) (*protocol.CredentialCreation, error) {
+	if w.userExists(username) {
+		return nil, errors.New("user already exists")
+	}
+
+	user := &models.User{
+		Name:        username,
+		IsApproved:  false,
+		IsAdmin:     false,
+		Credentials: []webauthn.Credential{},
+	}
+	user, err := w.userService.AddUser(user)
+	if err != nil {
+		return nil, err
+	}
+	return w.beginRegistration(user, username)
+}
+
+func (w WebAuthNService) startRegisterExistingUser(username string) (*protocol.CredentialCreation, error) {
 	user, err := w.userService.GetUser(username)
 	if err != nil {
-		user = &models.User{
-			Name:        username,
-			IsApproved:  false,
-			IsAdmin:     false,
-			Credentials: []webauthn.Credential{},
-		}
-		user, err = w.userService.AddUser(user)
-		if err != nil {
-			return nil, err
-		}
+		return nil, err
 	}
+	return w.beginRegistration(user, username)
+}
+
+func (w WebAuthNService) userExists(username string) bool {
+	_, err := w.userService.GetUser(username)
+	return err == nil
+}
+
+func (w WebAuthNService) beginRegistration(user *models.User, username string) (*protocol.CredentialCreation, error) {
 	registerOpts := func(credOptions *protocol.PublicKeyCredentialCreationOptions) {
 		credOptions.CredentialExcludeList = user.ExcludedCredentials()
 	}
