@@ -2,7 +2,6 @@ package security
 
 import (
 	"context"
-	"golang.org/x/crypto/bcrypt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -60,6 +59,10 @@ func (ctrl Controller) startRegisterNewUser(c *gin.Context) {
 
 func (ctrl Controller) startRegisterExistingUser(c *gin.Context) {
 	username := c.GetString("username")
+	if username == "" {
+		c.AbortWithStatus(http.StatusBadRequest)
+		return
+	}
 
 	options, err := ctrl.service.startRegisterExistingUser(username)
 	if err != nil {
@@ -72,6 +75,10 @@ func (ctrl Controller) startRegisterExistingUser(c *gin.Context) {
 
 func (ctrl Controller) finishRegisterExistingUser(c *gin.Context) {
 	username := c.GetString("username")
+	if username == "" {
+		c.AbortWithStatus(http.StatusBadRequest)
+		return
+	}
 
 	user, err := ctrl.service.finishRegistration(username, c.Request)
 	if err != nil {
@@ -137,13 +144,7 @@ func (ctrl Controller) changePassword(c *gin.Context) {
 		return
 	}
 
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(p.Password), bcrypt.DefaultCost)
-	if err != nil {
-		c.AbortWithError(http.StatusInternalServerError, err)
-		return
-	}
-
-	err = ctrl.service.changePassword(c, username, string(hashedPassword))
+	err := ctrl.service.changePassword(c, username, p.Password)
 	if err != nil {
 		c.AbortWithStatus(http.StatusInternalServerError)
 		return

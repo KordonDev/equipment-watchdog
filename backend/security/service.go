@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"golang.org/x/crypto/bcrypt"
 	"net/http"
 	"time"
 
@@ -199,7 +200,11 @@ func (w WebAuthNService) finishLogin(username string, request *http.Request) (*m
 }
 
 func (w WebAuthNService) changePassword(ctx context.Context, username, password string) error {
-	return w.userService.ChangePassword(ctx, username, password)
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	if err != nil {
+		return err
+	}
+	return w.userService.ChangePassword(ctx, username, string(hashedPassword))
 }
 
 func (w WebAuthNService) passwordLogin(ctx context.Context, username, password string) (*models.User, string, error) {

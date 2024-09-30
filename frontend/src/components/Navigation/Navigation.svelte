@@ -18,10 +18,8 @@
   </a>
   |
   <a href={routes.Orders.link} use:link>Bestellungen</a>
-  {#if me && me.isAdmin}
-    |
-    <a href={routes.Users.link} use:link>User</a>
-  {/if}
+  |
+  <a href={routes.Users.link} use:link>User</a>
   <Button size="xs" color="purple" class="ml-5" on:click={logout}>Ausloggen</Button>
 </nav>
 

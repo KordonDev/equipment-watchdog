@@ -5,54 +5,27 @@
   import UserTable from "./UserTable.svelte";
   import {getAllUser, toggleAdminUser, toggleApproveUser} from "./user.service";
   import {
-    createNotification,
     errorNotification,
     successNotification
   } from "../../components/Notification/notificationStore";
   import {addLogin, changePassword, register} from "../security/security.service";
-  import {replace} from "svelte-spa-router";
-  import {routes} from "../../routes";
 
   function toggleApproved(username: string) {
     toggleApproveUser(username)
       .then((user) => {
-        createNotification(
-          {
-            color: "green",
-            text: `${user.name} ${user.isApproved? 'bestätigt': 'Bestätigung zurückgenommen'}.`,
-          },
-          5
-        );
+        successNotification(`${user.name} ${user.isApproved? 'bestätigt': 'Bestätigung zurückgenommen'}.`)
       })
       .catch(() => {
-        createNotification(
-          {
-            color: "red",
-            text: `Fehler beim Speichern.`,
-          },
-          5
-        );
+        errorNotification(`Fehler beim Speichern.`)
       });
   }
   function toggleAdmin(username: string) {
     toggleAdminUser(username)
       .then((user) => {
-        createNotification(
-          {
-            color: "green",
-            text: `${user.name} hat Adminrechte ${user.isAdmin ? 'bekommen' : 'verloren'}.`,
-          },
-          5
-        );
+        successNotification(`${user.name} hat Adminrechte ${user.isAdmin ? 'bekommen' : 'verloren'}.`)
       })
       .catch(() => {
-        createNotification(
-          {
-            color: "red",
-            text: `Fehler beim Speichern.`,
-          },
-          5
-        );
+        errorNotification(`Fehler beim Speichern.`)
       });
   }
 
@@ -99,13 +72,15 @@
 <Navigation />
 <Heading class="mb-4">User</Heading>
 
-<Heading class="mb-2">Du</Heading>
-<UserTable
-  users={me}
-  onApprove={toggleApproved}
-  onAdmin={toggleAdmin}
-  {disable}
-/>
+{#if me && me.length > 0 && me[0].isAdmin}
+  <Heading class="mb-2">Du</Heading>
+  <UserTable
+    users={me}
+    onApprove={toggleApproved}
+    onAdmin={toggleAdmin}
+    {disable}
+  />
+{/if}
 
 <Heading class="mb-2 mt-6">Password</Heading>
 <form on:submit|preventDefault={handleChangePassword}>
@@ -113,18 +88,20 @@
   <Input required class="mb-4" id="password" type="password" bind:value={password} />
   <Button color="purple" type="submit" disabled={loading}>Passwort speichern</Button>
 </form>
+
 <Heading class="mb-2 mt-6">Loginmöglichkeit hinzufügen</Heading>
 <Button color="purple" on:click={addLoginMethod}>
   Hinzufügen
 </Button>
 
-
-{#await usersPromise then users}
-  <Heading class="mb-2 mt-6">Alle</Heading>
-  <UserTable
-    {users}
-    onApprove={toggleApproved}
-    onAdmin={toggleAdmin}
-    {disable}
-  />
-{/await}
+{#if me && me.length > 0 && me[0].isAdmin}
+  {#await usersPromise then users}
+    <Heading class="mb-2 mt-6">Alle</Heading>
+    <UserTable
+      {users}
+      onApprove={toggleApproved}
+      onAdmin={toggleAdmin}
+      {disable}
+    />
+  {/await}
+{/if}

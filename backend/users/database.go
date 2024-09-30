@@ -91,16 +91,16 @@ func (u *userDB) changePassword(username, password string) error {
 	return u.DB.Exec("UPDATE users SET password = ? WHERE name = ?", password, username).Error
 }
 
-type Password struct {
-	Password string "gorm:password"
+type password struct {
+	Password string `gorm:"password"`
 }
 
-func (Password) TableName() string {
+func (password) TableName() string {
 	return "users"
 }
 
 func (u *userDB) getPasswordHashForUser(username string) (string, error) {
-	var p Password
+	var p password
 	err := u.Where("name = ?", username).First(&p).Error
 	if err != nil {
 		return "", err
