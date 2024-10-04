@@ -52,14 +52,15 @@ func main() {
 		c.String(http.StatusOK, "pong")
 	})
 
+	authorizeJWTMiddleware := security.AuthorizeJWTMiddleware(configuration.Origin, jwtService, configuration.Domain)
 	userService := users.NewUserService(userDB, jwtService)
 	webAuthNService, err := security.NewWebAuthNService(userService, configuration.Origin, configuration.Domain, jwtService, db)
 	if err != nil {
 		panic(fmt.Sprintf("Error creating webAuthn: %v", err))
 	}
-	security.NewController(api, webAuthNService, configuration.Domain)
+	security.NewController(api, webAuthNService, configuration.Domain, authorizeJWTMiddleware)
 	// TODO: security.Controller
-	api.Use(security.AuthorizeJWTMiddleware(configuration.Origin, jwtService, configuration.Domain))
+	api.Use(authorizeJWTMiddleware)
 
 	changeWriter := changes.NewChangeWriterService(db, userService)
 

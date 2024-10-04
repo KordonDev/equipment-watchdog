@@ -16,6 +16,7 @@
   import OrderDetails from "./views/order/OrderDetails.svelte";
   import AddOrder from "./views/order/NewOrder.svelte";
   import FulfilledOrders from "./views/order/FulfilledOrders.svelte";
+  import PasswordLogin from "./views/security/PasswordLogin.svelte";
 
   if (window.location.pathname === "/" && window.location.hash === "") {
     replace(routes.MemberOverview.link);
@@ -39,6 +40,7 @@
       [routes.OrderDetails.path]: OrderDetails,
       [routes.AddOrder.path]: AddOrder,
       [routes.NotApproved.path]: NotApproved,
+      [routes.PasswordLogin.path]: PasswordLogin,
     }}
   />
 </main>

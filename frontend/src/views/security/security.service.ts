@@ -41,8 +41,18 @@ export function login(username: string) {
     });
 }
 
+export function addLogin() {
+    const startAddLogin = fetchApi(`/add-authentication`)
+    return handleRegister(startAddLogin, `/add-authentication`);
+}
+
 export function register(username: string) {
-  return fetchApi(`/register/${username}`)
+    const startRegister = fetchApi(`/register/${username}`)
+    return handleRegister(startRegister, `/register/${username}`);
+}
+
+function handleRegister(registerPromise: Promise<any>, finishUrl: string) {
+    return registerPromise
     .then((credentialCreationOptions) => {
       credentialCreationOptions.publicKey.challenge = bufferDecode(
         credentialCreationOptions.publicKey.challenge
@@ -81,11 +91,26 @@ export function register(username: string) {
         },
       };
 
-      return fetchApi(`/register/${username}`, {
+      return fetchApi(finishUrl, {
         method: "POST",
         body: JSON.stringify(body),
       });
     });
+}
+
+export function changePassword(password: string) {
+    return fetchApi(`/change-password`, {
+        method: "PATCH",
+        body: JSON.stringify({ password }),
+    });
+}
+
+
+export function passwordLogin(username: string, password: string) {
+  return fetchApi(`/password-login`, {
+    method: "POST",
+    body: JSON.stringify({ password, username }),
+  });
 }
 
 export function logout() {

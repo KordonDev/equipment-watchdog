@@ -3,6 +3,10 @@ export const routes = {
     path: "/login",
     link: "/login",
   },
+  PasswordLogin: {
+    path: "/password-login",
+    link: "/password-login",
+  },
   Register: {
     path: "/register",
     link: "/register",

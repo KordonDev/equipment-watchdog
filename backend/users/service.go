@@ -1,7 +1,10 @@
 package users
 
 import (
+	"context"
 	"github.com/kordondev/equipment-watchdog/models"
+
+	"golang.org/x/crypto/bcrypt"
 )
 
 type UserDatabase interface {
@@ -11,6 +14,8 @@ type UserDatabase interface {
 	addUser(*models.User) (*models.User, error)
 	hasApprovedAndAdminUser() bool
 	getForIds([]uint64) ([]*models.User, error)
+	changePassword(string, string) error
+	getPasswordHashForUser(username string) (string, error)
 }
 
 type JwtService interface {
@@ -77,4 +82,19 @@ func (u *userService) HasApprovedAndAdminUser() bool {
 
 func (u *userService) GetForIds(ids []uint64) ([]*models.User, error) {
 	return u.db.getForIds(ids)
+}
+
+func (u *userService) ChangePassword(c context.Context, username, password string) error {
+	return u.db.changePassword(username, password)
+}
+
+func (u *userService) CheckLogin(username, password string) error {
+	pwHash, err := u.db.getPasswordHashForUser(username)
+	if err != nil {
+		return err
+	}
+	if err := bcrypt.CompareHashAndPassword([]byte(pwHash), []byte(password)); err != nil {
+		return err
+	}
+	return nil
 }

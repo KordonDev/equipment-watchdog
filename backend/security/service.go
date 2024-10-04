@@ -1,7 +1,10 @@
 package security
 
 import (
+	"context"
+	"errors"
 	"fmt"
+	"golang.org/x/crypto/bcrypt"
 	"net/http"
 	"time"
 
@@ -16,6 +19,8 @@ type userService interface {
 	AddUser(*models.User) (*models.User, error)
 	SaveUser(*models.User) (*models.User, error)
 	HasApprovedAndAdminUser() bool
+	CheckLogin(username, password string) error
+	ChangePassword(ctx context.Context, username, password string) error
 }
 
 type SessionStore interface {
@@ -65,20 +70,38 @@ func NewWebAuthNService(userService userService, origin string, domain string, j
 	}, nil
 }
 
-func (w WebAuthNService) startRegister(username string) (*protocol.CredentialCreation, error) {
+func (w WebAuthNService) startRegisterNewUser(username string) (*protocol.CredentialCreation, error) {
+	if w.userExists(username) {
+		return nil, errors.New("user already exists")
+	}
+
+	user := &models.User{
+		Name:        username,
+		IsApproved:  false,
+		IsAdmin:     false,
+		Credentials: []webauthn.Credential{},
+	}
+	user, err := w.userService.AddUser(user)
+	if err != nil {
+		return nil, err
+	}
+	return w.beginRegistration(user, username)
+}
+
+func (w WebAuthNService) startRegisterExistingUser(username string) (*protocol.CredentialCreation, error) {
 	user, err := w.userService.GetUser(username)
 	if err != nil {
-		user = &models.User{
-			Name:        username,
-			IsApproved:  false,
-			IsAdmin:     false,
-			Credentials: []webauthn.Credential{},
-		}
-		user, err = w.userService.AddUser(user)
-		if err != nil {
-			return nil, err
-		}
+		return nil, err
 	}
+	return w.beginRegistration(user, username)
+}
+
+func (w WebAuthNService) userExists(username string) bool {
+	_, err := w.userService.GetUser(username)
+	return err == nil
+}
+
+func (w WebAuthNService) beginRegistration(user *models.User, username string) (*protocol.CredentialCreation, error) {
 	registerOpts := func(credOptions *protocol.PublicKeyCredentialCreationOptions) {
 		credOptions.CredentialExcludeList = user.ExcludedCredentials()
 	}
@@ -168,6 +191,27 @@ func (w WebAuthNService) finishLogin(username string, request *http.Request) (*m
 	}
 
 	user, err = w.userService.SaveUser(user)
+	if err != nil {
+		return nil, "", err
+	}
+
+	token := w.jwtService.GenerateToken(*user)
+	return user, token, nil
+}
+
+func (w WebAuthNService) changePassword(ctx context.Context, username, password string) error {
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	if err != nil {
+		return err
+	}
+	return w.userService.ChangePassword(ctx, username, string(hashedPassword))
+}
+
+func (w WebAuthNService) passwordLogin(ctx context.Context, username, password string) (*models.User, string, error) {
+	if err := w.userService.CheckLogin(username, password); err != nil {
+		return nil, "", err
+	}
+	user, err := w.userService.GetUser(username)
 	if err != nil {
 		return nil, "", err
 	}

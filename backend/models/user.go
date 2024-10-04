@@ -84,6 +84,7 @@ type DbUser struct {
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
 	Name        string `gorm:"unique"`
+	Password    string `gorm:"default:''"`
 	IsApproved  bool
 	IsAdmin     bool
 	Credentials []DbCredential `gorm:"foreignKey:UserID"`

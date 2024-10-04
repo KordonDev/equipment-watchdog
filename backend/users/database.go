@@ -86,3 +86,25 @@ func listFromDb(dbu []*models.DbUser) []*models.User {
 	}
 	return users
 }
+
+func (u *userDB) changePassword(username, password string) error {
+	return u.DB.Exec("UPDATE users SET password = ? WHERE name = ?", password, username).Error
+}
+
+type password struct {
+	Password string `gorm:"password"`
+}
+
+func (password) TableName() string {
+	return "users"
+}
+
+func (u *userDB) getPasswordHashForUser(username string) (string, error) {
+	var p password
+	err := u.Where("name = ?", username).First(&p).Error
+	if err != nil {
+		return "", err
+	}
+
+	return p.Password, nil
+}
