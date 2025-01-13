@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { Input, Label, Select } from "flowbite-svelte";
+  import {Button, ButtonGroup, Input, Label, Select} from "flowbite-svelte";
   import { routes } from "../../routes";
   import { link } from "svelte-spa-router";
   import {
@@ -19,8 +19,9 @@
 
   let groupFilterInternal;
   groupFilter.subscribe((v) => (groupFilterInternal = v));
-  function updateGroupFilter() {
-    groupFilter.set(groupFilterInternal);
+  function updateGroupFilter(group: string) {
+    groupFilterInternal = group;
+    groupFilter.set(group);
   }
 
   function byGroup(m: Member, filter?: string) {
@@ -43,16 +44,22 @@
 </script>
 
 <Navigation />
-<h1>Mitglieder</h1>
-<a href={routes.AddMember.link} use:link>Mitglied hinzufügen</a>
+<div class="my-2">
+  <a href={routes.AddMember.link} use:link>Mitglied hinzufügen</a>
+</div>
 <Label class="my-4" size="md">
   <div class="mb-2">Gruppe</div>
-  <Select
-    size="lg"
-    items={allGroups}
-    bind:value={groupFilterInternal}
-    on:change={updateGroupFilter}
-  />
+  <ButtonGroup class="d-flex flex-wrap">
+    {#each allGroups as group}
+      <Button
+        class="m-1"
+        on:click={() => updateGroupFilter(group.value)}
+        color={groupFilterInternal === group.value ? 'green' : 'purple'}
+      >
+        {group.name}
+      </Button>
+    {/each}
+  </ButtonGroup>
 </Label>
 <Label class="block mb-2">
   Suche

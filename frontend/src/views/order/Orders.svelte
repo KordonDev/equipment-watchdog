@@ -10,8 +10,9 @@
 </script>
 
 <Navigation />
-<h1>Bestellte Ausrüstung</h1>
-<p><a href={routes.OrdersFulfilled.link} use:link>Fertige Bestellungen</a></p>
+<div class="my-2">
+<a href={routes.OrdersFulfilled.link} use:link>Fertige Bestellungen</a>
+</div>
 
 {#await orderPromise}
   <Spinner />

@@ -29,7 +29,7 @@ func NewController(baseRoute *gin.RouterGroup, service Service) {
 	{
 		changesRoute.GET("/", ctrl.getAllChanges)
 		changesRoute.GET("/members/:id", ctrl.getForMember)
-		changesRoute.GET("/orders/:id", ctrl.getForMember)
+		changesRoute.GET("/orders/:id", ctrl.getForOrder)
 		changesRoute.GET("/equipments/:id", ctrl.getForEquipment)
 	}
 

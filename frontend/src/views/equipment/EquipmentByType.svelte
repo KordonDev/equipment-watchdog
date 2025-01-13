@@ -10,7 +10,7 @@
     translateEquipmentType,
     type Equipment,
   } from "./equipment.service";
-  import { Alert, Card, Label, Select, Spinner, Input } from "flowbite-svelte";
+  import {Alert, Card, Label, Select, Spinner, Input, ButtonGroup, Button} from "flowbite-svelte";
   import EquipmentIcon from "../../components/Equipment/EquipmentIcon.svelte";
 
   export let params = { type: undefined };
@@ -31,8 +31,9 @@
     }
   });
 
-  function updateUrl() {
-    push(`${routes.EquipmentType.link}${params.type}`);
+  function updateUrl(equipmentType: string) {
+    currentType = equipmentType;
+    push(`${routes.EquipmentType.link}${equipmentType}`);
   }
 
   function byCode(e: Equipment, search: string) {
@@ -46,18 +47,24 @@
 </script>
 
 <Navigation />
-<h1>Ausrüstung vom Typ {translateEquipmentType(params.type)}</h1>
 
-<a href={`${routes.EquipmentAdd.link}${currentType}`} use:link>Neue Ausrüstung anlegen</a>
+<div class="my-2">
+  <a href={`${routes.EquipmentAdd.link}${currentType}`} use:link>Neue Ausrüstung anlegen</a>
+</div>
 
 <Label class="mb-4">
   <div class="mb-2">Art</div>
-  <Select
-    required
-    items={translatedEquipmentTypes}
-    bind:value={params.type}
-    on:change={updateUrl}
-  />
+  <ButtonGroup class="d-flex flex-wrap">
+    {#each translatedEquipmentTypes as equipment}
+      <Button
+              class="m-1"
+              on:click={() => updateUrl(equipment.value)}
+              color={currentType === equipment.value ? 'green' : 'purple'}
+      >
+        {equipment.name}
+      </Button>
+    {/each}
+  </ButtonGroup>
 </Label>
 <Label class="block mb-2">
   Suche nach Registrierungsnummer
