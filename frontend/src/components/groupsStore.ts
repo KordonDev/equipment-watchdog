@@ -1,4 +1,4 @@
-import { readable, writable } from "svelte/store";
+import { writable } from "svelte/store";
 import type { Groups } from "../views/member/member.service";
 import {
   getGroups as getGroupsRequest,
@@ -23,24 +23,30 @@ const groupTranslations = [
   { value: Group.MINI, translation: "Minigruppe" },
 ];
 
-export const getTranslatedGroups = readable<TranslatedGroup[]>(
+export const getTranslatedGroups = writable<TranslatedGroup[]>(
   undefined,
   function start(set) {
-    getGroupsRequest().then((groups) => {
-      const translations = Object.keys(groups).map((key) => {
-        const translation = groupTranslations.find(
-          (t) => t.value === key
-        )?.translation;
-        return {
-          value: key as Group,
-          name: translation || key,
-        };
-      });
-
+    loadTranslatedGroups().then((translations) => {
       set(translations);
-    });
+    })
   }
 );
+
+export const loadTranslatedGroups = async () => {
+  const groups = await getGroupsRequest();
+  if (!groups) {
+    return;
+  }
+  return Object.keys(groups).map((key) => {
+    const translation = groupTranslations.find(
+        (t) => t.value === key
+    )?.translation;
+    return {
+      value: key as Group,
+      name: translation || key,
+    };
+  });
+}
 
 const LOCALSTOARGE_GROUP_KEY = "groups_overview";
 const storeGroup = localStorage.getItem(LOCALSTOARGE_GROUP_KEY);
