@@ -8,10 +8,11 @@
     getEquipmentByType,
     translatedEquipmentTypes,
     translateEquipmentType,
-    type Equipment,
+    type Equipment
   } from "./equipment.service";
-  import {Alert, Card, Label, Select, Spinner, Input, ButtonGroup, Button} from "flowbite-svelte";
+  import {Alert, Card, Label, Spinner, Input, ButtonGroup, Button} from "flowbite-svelte";
   import EquipmentIcon from "../../components/Equipment/EquipmentIcon.svelte";
+  import { getMembers, type Member} from "../member/member.service";
 
   export let params = { type: undefined };
   let currentType;
@@ -43,7 +44,12 @@
     return e.registrationCode.includes(search);
   }
 
+  const findMemberName = (memberId: number, members: Member[]) => {
+    return members.find(m => String(m.id) === String(memberId))?.name || "Ausgerüstet";
+  }
+
   let equipmentsPromise = getEquipmentByType(params.type);
+  let membersPromise = getMembers();
 </script>
 
 <Navigation />
@@ -76,10 +82,7 @@
   <div class="flex flex-wrap">
     {#each equipments.filter(e => byCode(e, search)) as equipment}
       <div>
-        <Card class="m-4">
-          {#if equipment.memberId && equipment.memberId !== 0}
-            Ausgerüstet
-          {/if}
+        <Card class="m-4" style="padding: 10px">
           <EquipmentIcon
             equipmentType={equipment.type}
             registrationCode={undefined}
@@ -90,11 +93,20 @@
             </a>
           </h3>
           <p>Größe: {equipment.size || "-"}</p>
+          {#if equipment.memberId && equipment.memberId !== 0}
+            {#await membersPromise}
+              <Spinner />
+            {:then members}
+              { findMemberName(equipment.memberId, members) }
+            {:catch e}
+              Ausgerüstet
+            {/await}
+          {/if}
         </Card>
       </div>
     {/each}
   </div>
-{:catch}
+{:catch e}
   <Alert class="mb-4 top-alert" color="red" dismissable style="display: block;">
     Leider konnte die Ausrüstung nicht geladen werden.
   </Alert>
