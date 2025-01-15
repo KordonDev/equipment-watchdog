@@ -11,7 +11,7 @@
     setStoredUsername,
   } from "./security.service";
   import { getGroups } from "../member/member.service";
-  import { getGroupsWithEquipment } from "../../components/groupsStore";
+  import {getGroupsWithEquipment, getTranslatedGroups, loadTranslatedGroups} from "../../components/groupsStore";
   import { Label, Input, Button, Checkbox } from "flowbite-svelte";
 
   let username = getStoredUsername();
@@ -27,6 +27,7 @@
         loading = false;
         successNotification("Login erfolgreich.");
         getGroups().then(getGroupsWithEquipment.set);
+        loadTranslatedGroups().then(getTranslatedGroups.set);
         if (storeUsername) {
           setStoredUsername(username);
         } else {

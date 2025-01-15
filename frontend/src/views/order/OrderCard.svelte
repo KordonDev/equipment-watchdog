@@ -23,7 +23,7 @@
   };
 </script>
 
-<Card class="m-4 flex items-center">
+<Card class="m-4 flex items-center" style="padding: 10px">
   <EquipmentIcon equipmentType={order.type} registrationCode={undefined} />
   <h3>
     <a href={`${routes.OrderDetails.link}${order.id}`} use:link>

@@ -1,5 +1,5 @@
 <script lang="ts">
-  import {Button, Checkbox, Heading, Input, Label} from "flowbite-svelte";
+  import {Button, Heading, Input, Label} from "flowbite-svelte";
   import { currentUser } from "../../components/userStore";
   import Navigation from "../../components/Navigation/Navigation.svelte";
   import UserTable from "./UserTable.svelte";
@@ -8,7 +8,7 @@
     errorNotification,
     successNotification
   } from "../../components/Notification/notificationStore";
-  import {addLogin, changePassword, register} from "../security/security.service";
+  import {addLogin, changePassword} from "../security/security.service";
 
   function toggleApproved(username: string) {
     toggleApproveUser(username)
@@ -70,7 +70,6 @@
 </script>
 
 <Navigation />
-<Heading class="mb-4">User</Heading>
 
 {#if me && me.length > 0 && me[0].isAdmin}
   <Heading class="mb-2">Du</Heading>

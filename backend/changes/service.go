@@ -174,10 +174,10 @@ func getUserMessage(uss []*models.User, uId uint64) string {
 func getMemberMessage(mes []*models.Member, mId uint64) string {
 	for _, me := range mes {
 		if me.Id == mId {
-			return fmt.Sprintf("Mitglied %v", me.Name)
+			return fmt.Sprintf("%v", me.Name)
 		}
 	}
-	return fmt.Sprintf("Mitglied id %v", mId)
+	return fmt.Sprintf("id %v", mId)
 }
 
 func getOrderMessage(ors []models.Order, oId uint64) string {

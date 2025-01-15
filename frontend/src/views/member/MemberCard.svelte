@@ -9,7 +9,7 @@
   export let columns: number;
 </script>
 
-<Card class="m-4" size="xl">
+<Card class="m-4" size="xl" style="padding: 10px">
   <a href={`${routes.MemberDetail.link}${member.id}`} use:link>
     {`${member.id} ${member.name}`}
   </a>

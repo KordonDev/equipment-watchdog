@@ -8,10 +8,11 @@
     getEquipmentByType,
     translatedEquipmentTypes,
     translateEquipmentType,
-    type Equipment,
+    type Equipment
   } from "./equipment.service";
-  import { Alert, Card, Label, Select, Spinner, Input } from "flowbite-svelte";
+  import {Alert, Card, Label, Spinner, Input, ButtonGroup, Button} from "flowbite-svelte";
   import EquipmentIcon from "../../components/Equipment/EquipmentIcon.svelte";
+  import { getMembers, type Member} from "../member/member.service";
 
   export let params = { type: undefined };
   let currentType;
@@ -31,8 +32,9 @@
     }
   });
 
-  function updateUrl() {
-    push(`${routes.EquipmentType.link}${params.type}`);
+  function updateUrl(equipmentType: string) {
+    currentType = equipmentType;
+    push(`${routes.EquipmentType.link}${equipmentType}`);
   }
 
   function byCode(e: Equipment, search: string) {
@@ -42,22 +44,33 @@
     return e.registrationCode.includes(search);
   }
 
+  const findMemberName = (memberId: number, members: Member[]) => {
+    return members.find(m => String(m.id) === String(memberId))?.name || "Ausgerüstet";
+  }
+
   let equipmentsPromise = getEquipmentByType(params.type);
+  let membersPromise = getMembers();
 </script>
 
 <Navigation />
-<h1>Ausrüstung vom Typ {translateEquipmentType(params.type)}</h1>
 
-<a href={`${routes.EquipmentAdd.link}${currentType}`} use:link>Neue Ausrüstung anlegen</a>
+<div class="my-2">
+  <a href={`${routes.EquipmentAdd.link}${currentType}`} use:link>Neue Ausrüstung anlegen</a>
+</div>
 
 <Label class="mb-4">
   <div class="mb-2">Art</div>
-  <Select
-    required
-    items={translatedEquipmentTypes}
-    bind:value={params.type}
-    on:change={updateUrl}
-  />
+  <ButtonGroup class="d-flex flex-wrap">
+    {#each translatedEquipmentTypes as equipment}
+      <Button
+              class="m-1"
+              on:click={() => updateUrl(equipment.value)}
+              color={currentType === equipment.value ? 'green' : 'purple'}
+      >
+        {equipment.name}
+      </Button>
+    {/each}
+  </ButtonGroup>
 </Label>
 <Label class="block mb-2">
   Suche nach Registrierungsnummer
@@ -69,10 +82,7 @@
   <div class="flex flex-wrap">
     {#each equipments.filter(e => byCode(e, search)) as equipment}
       <div>
-        <Card class="m-4">
-          {#if equipment.memberId && equipment.memberId !== 0}
-            Ausgerüstet
-          {/if}
+        <Card class="m-4" style="padding: 10px">
           <EquipmentIcon
             equipmentType={equipment.type}
             registrationCode={undefined}
@@ -83,11 +93,20 @@
             </a>
           </h3>
           <p>Größe: {equipment.size || "-"}</p>
+          {#if equipment.memberId && equipment.memberId !== 0}
+            {#await membersPromise}
+              <Spinner />
+            {:then members}
+              { findMemberName(equipment.memberId, members) }
+            {:catch e}
+              Ausgerüstet
+            {/await}
+          {/if}
         </Card>
       </div>
     {/each}
   </div>
-{:catch}
+{:catch e}
   <Alert class="mb-4 top-alert" color="red" dismissable style="display: block;">
     Leider konnte die Ausrüstung nicht geladen werden.
   </Alert>
