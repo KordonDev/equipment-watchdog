@@ -46,7 +46,7 @@
 
 <div class="card">
   <form on:submit|preventDefault={handleLogin}>
-    <Label for="usernname" class="block mb-2">Benutzer:</Label>
+    <Label for="username" class="block mb-2">Benutzer:</Label>
     <Input required class="mb-4" id="username" bind:value={username} />
     <Checkbox bind:checked={storeUsername} class="mb-4">
       Benutzername speichern

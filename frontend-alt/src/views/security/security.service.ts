@@ -1,14 +1,14 @@
 import { fetchApi } from "../apiService";
-import { bufferDecode, bufferEncode } from "./transformer.service";
+import { encodeBinary, encodeString } from "./transformer.service";
 
 export function login(username: string) {
   return fetchApi(`/login/${username}`)
     .then((credentialRequestOptions) => {
-      credentialRequestOptions.publicKey.challenge = bufferDecode(
+      credentialRequestOptions.publicKey.challenge = encodeBinary(
         credentialRequestOptions.publicKey.challenge
       );
       credentialRequestOptions.publicKey.allowCredentials.forEach(
-        (listItem) => (listItem.id = bufferDecode(listItem.id))
+        (listItem) => (listItem.id = encodeBinary(listItem.id))
       );
 
       return navigator.credentials.get({
@@ -24,13 +24,13 @@ export function login(username: string) {
 
       const body = {
         id: assertion.id,
-        rawId: bufferEncode(rawId),
+        rawId: encodeString(rawId),
         type: assertion.type,
         response: {
-          authenticatorData: bufferEncode(authData),
-          clientDataJSON: bufferEncode(clientDataJSON),
-          signature: bufferEncode(sig),
-          userHandle: bufferEncode(userHandle),
+          authenticatorData: encodeString(authData),
+          clientDataJSON: encodeString(clientDataJSON),
+          signature: encodeString(sig),
+          userHandle: encodeString(userHandle),
         },
       };
 
@@ -54,10 +54,10 @@ export function register(username: string) {
 function handleRegister(registerPromise: Promise<any>, finishUrl: string) {
     return registerPromise
     .then((credentialCreationOptions) => {
-      credentialCreationOptions.publicKey.challenge = bufferDecode(
+      credentialCreationOptions.publicKey.challenge = encodeBinary(
         credentialCreationOptions.publicKey.challenge
       );
-      credentialCreationOptions.publicKey.user.id = bufferDecode(
+      credentialCreationOptions.publicKey.user.id = encodeBinary(
         credentialCreationOptions.publicKey.user.id
       );
       if (credentialCreationOptions.publicKey.excludeCredentials) {
@@ -67,7 +67,7 @@ function handleRegister(registerPromise: Promise<any>, finishUrl: string) {
           i++
         ) {
           credentialCreationOptions.publicKey.excludeCredentials[i].id =
-            bufferDecode(
+            encodeBinary(
               credentialCreationOptions.publicKey.excludeCredentials[i].id
             );
         }
@@ -83,11 +83,11 @@ function handleRegister(registerPromise: Promise<any>, finishUrl: string) {
 
       const body = {
         id: credential.id,
-        rawId: bufferEncode(rawId),
+        rawId: encodeString(rawId),
         type: credential.type,
         response: {
-          attestationObject: bufferEncode(attestationObject),
-          clientDataJSON: bufferEncode(clientDataJSON),
+          attestationObject: encodeString(attestationObject),
+          clientDataJSON: encodeString(clientDataJSON),
         },
       };
 

@@ -6,7 +6,7 @@ for (let i = 0; i < chars.length; i++) {
     lookup[chars.charCodeAt(i)] = i;
 }
 
-export function bufferDecode(base64string: string) {
+export function encodeBinary(base64string: string) {
     const bufferLength = base64string.length * 0.75;
     const len = base64string.length
     let p = 0;
@@ -31,7 +31,7 @@ export function bufferDecode(base64string: string) {
     return bytes.buffer
 }
 
-export function bufferEncode(arraybuffer: any) {
+export function encodeString(arraybuffer: any) {
   const bytes = new Uint8Array(arraybuffer);
   const len = bytes.length;
   let base64url = '';
@@ -50,4 +50,16 @@ export function bufferEncode(arraybuffer: any) {
   }
 
   return base64url;
+}
+
+const textEncoder = new TextEncoder();
+const textDecoder = new TextDecoder();
+
+export function encodeBinary2(base64string: string) {
+    return textEncoder.encode(base64string);
+}
+
+
+export function encodeString2(arraybuffer: any): string {
+    return textDecoder.decode(arraybuffer);
 }
