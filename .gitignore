@@ -27,3 +27,5 @@ vendor
 
 dist/
 deployment/data
+
+.DS_Store
