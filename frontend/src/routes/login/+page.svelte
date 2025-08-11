@@ -1,26 +1,25 @@
 <script lang="ts">
-import type { PageData } from './$types';
+	import type { PageProps } from './$types';
 
-interface Props {
-  data: PageData;
-}
+	let { data }: PageProps = $props();
+	console.log(data)
 
-let { data }: Props = $props();
+	let notification: string | null = data.message;
+  let username = $state(data.username || '');
+  let storeUsername = $state(false);
+  let loading = false;
 
-let username = $state('');
-let storeUsername = $state(false);
-let loading = $state(false);
-
-const handleLogin = (event: SubmitEvent) => {
-  // Handle login logic
-};
-
-console.log(data.sections);
+  const handleLogin = (event: SubmitEvent) => {
+    // Handle login logic
+  };
 </script>
 
 <div class="min-h-screen flex items-center justify-center bg-gray-100">
   <div class="w-full max-w-md bg-white rounded-lg shadow-lg p-8">
     <h2 class="text-2xl font-bold text-center text-gray-800 mb-6">Login</h2>
+    {#if notification}
+      <div class="mb-4 text-sm text-green-700 bg-green-100 rounded px-3 py-2">{notification}</div>
+    {/if}
     <form onsubmit={handleLogin} class="space-y-4">
       <div>
         <label for="username" class="block mb-2 text-sm font-medium text-gray-700">Benutzer:</label>

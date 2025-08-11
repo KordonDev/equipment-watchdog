@@ -1,12 +1,25 @@
 <script lang="ts">
+  import { register } from "$lib/authentication/authentication";
+	import { goto } from '$app/navigation';
+	import { routes } from '$lib/routes';
+
   let username = '';
   let loading = false;
+  let error: string | null = null;
 
-  const handleRegister = (event: SubmitEvent) => {
+  const handleRegister = async (event: SubmitEvent) => {
     event.preventDefault();
     loading = true;
-    // Registration logic here
-    setTimeout(() => loading = false, 1000);
+    error = null;
+    try {
+      await register(username);
+			goto(`${routes.Login.link}?message=Registrierung erfolgreich! Bitte einloggen.&username=${encodeURIComponent(username)}`);
+      // Optionally redirect or show success message here
+    } catch (e) {
+      error = "Registrierung fehlgeschlagen. Bitte versuche es erneut.";
+    } finally {
+      loading = false;
+    }
   };
 </script>
 
@@ -32,6 +45,8 @@
         Registrieren
       </button>
     </form>
+    {#if error}
+      <div class="mt-4 text-sm text-red-600 bg-red-100 rounded px-3 py-2">{error}</div>
+    {/if}
   </div>
 </div>
-
