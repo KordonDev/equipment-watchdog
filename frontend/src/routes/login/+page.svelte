@@ -2,7 +2,6 @@
 	import type { PageProps } from './$types';
 
 	let { data }: PageProps = $props();
-	console.log(data)
 
 	let notification: string | null = data.message;
   let username = $state(data.username || '');
