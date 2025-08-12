@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { PageProps } from './$types';
-	import { login, setStoredUsername, getStoredUsername } from "$lib/authentication/authentication";
+	import { login, setStoredUsername, getStoredUsername } from "$lib/services/authentication";
 	import { goto } from '$app/navigation';
 
 	let { data }: PageProps = $props();

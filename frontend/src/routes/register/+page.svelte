@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { register } from "$lib/authentication/authentication";
+  import { register } from "$lib/services/authentication";
 	import { goto } from '$app/navigation';
 	import { routes } from '$lib/routes';
 
