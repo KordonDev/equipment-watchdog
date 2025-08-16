@@ -3,13 +3,12 @@
 	import { createEquipment, deleteEquipment, type Equipment, EquipmentType } from '$lib/services/equipment.service';
 
 	interface Props {
-		show: boolean;
 		member: Member | null;
 		onClose: () => void;
 		onMemberUpdated: (member: Member) => void;
 	}
 
-	let { show, member, onClose, onMemberUpdated }: Props = $props();
+	let { member, onClose, onMemberUpdated }: Props = $props();
 
 	let editingMember: Member | null = $state(JSON.parse(JSON.stringify(member)));// Deep copy
 	let saving = $state(false);
@@ -26,12 +25,6 @@
 		[EquipmentType.Boots]: 'Stiefel',
 		[EquipmentType.TShirt]: 'T-Shirt'
 	};
-
-	$effect(() => {
-		if (member && show) {
-		//	editingMember = JSON.parse(JSON.stringify(member)); // Deep copy
-		}
-	})
 
 	const handleClose = () => {
 		editingMember = null;
@@ -95,10 +88,10 @@
 	};
 </script>
 
-{#if show && editingMember}
+{#if editingMember}
 	<div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
 		<div class="bg-white rounded-lg p-6 w-full max-w-2xl max-h-[80vh] overflow-y-auto">
-			<div class="flex items-center justify-between mb-4">
+			<div class="flex items-start justify-between mb-4">
 				<h2 class="text-xl font-bold">{editingMember.name} bearbeiten</h2>
 				<button
 					type="button"

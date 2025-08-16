@@ -102,7 +102,7 @@
 	{:else}
 		<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
 			{#each filteredMembers as member}
-				<div
+				<button
 					class="bg-white rounded-lg shadow-md p-4 hover:shadow-lg transition-shadow cursor-pointer"
 					onclick={() => handleMemberClick(member)}
 				>
@@ -121,23 +121,24 @@
 							</span>
 						{/each}
 					</div>
-				</div>
+				</button>
 			{/each}
 		</div>
 	{/if}
 </div>
 
-<AddMemberDialog
-	show={showDialog}
-	{selectedGroup}
-	{groupLabels}
-	onClose={handleCloseDialog}
-	onMemberAdded={handleMemberAdded}
-/>
+
+{#if showDialog}
+	<AddMemberDialog
+		{selectedGroup}
+		{groupLabels}
+		onClose={handleCloseDialog}
+		onMemberAdded={handleMemberAdded}
+	/>
+{/if}
 
 {#if showDetailDialog}
 	<MemberDetailDialog
-		show={showDetailDialog}
 		member={selectedMember}
 		onClose={handleCloseDetailDialog}
 		onMemberUpdated={handleMemberUpdated}

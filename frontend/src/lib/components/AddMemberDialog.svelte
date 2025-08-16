@@ -2,14 +2,13 @@
 	import { createMember, Group, type Member } from '$lib/services/member.service';
 
 	interface Props {
-		show: boolean;
 		selectedGroup: Group;
 		groupLabels: Record<Group, string>;
 		onClose: () => void;
 		onMemberAdded: (member: Member) => void;
 	}
 
-	let { show, selectedGroup, groupLabels, onClose, onMemberAdded }: Props = $props();
+	let { selectedGroup, groupLabels, onClose, onMemberAdded }: Props = $props();
 
 	let newMemberName = $state('');
 	let addingMember = $state(false);
@@ -42,10 +41,18 @@
 	};
 </script>
 
-{#if show}
 	<div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
 		<div class="bg-white rounded-lg p-6 w-full max-w-md">
-			<h2 class="text-xl font-bold mb-4">Neues Mitglied hinzufügen</h2>
+			<div class="flex items-start justify-between mb-4">
+				<h2 class="text-xl font-bold mb-4">Neues Mitglied hinzufügen</h2>
+				<button
+					type="button"
+					onclick={handleCancel}
+					class="text-gray-400 hover:text-gray-600 text-2xl leading-none"
+				>
+					×
+				</button>
+			</div>
 			<p class="text-sm text-gray-600 mb-4">Gruppe: {groupLabels[selectedGroup]}</p>
 
 			<div class="mb-4">
@@ -80,5 +87,3 @@
 			</div>
 		</div>
 	</div>
-{/if}
-
