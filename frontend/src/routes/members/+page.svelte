@@ -1,14 +1,16 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { getMembers, Group, type Member, createMember } from '$lib/services/member.service';
+	import { getMembers, Group, type Member } from '$lib/services/member.service';
 	import { EquipmentType } from '$lib/services/equipment.service';
+	import AddMemberDialog from '$lib/components/AddMemberDialog.svelte';
+	import MemberDetailDialog from '$lib/components/MemberDetailDialog.svelte';
 
 	let members: Member[] = $state([]);
 	let selectedGroup: Group = $state(Group.FRIDAY);
 	let loading = $state(true);
 	let showDialog = $state(false);
-	let newMemberName = $state('');
-	let addingMember = $state(false);
+	let showDetailDialog = $state(false);
+	let selectedMember: Member | null = $state(null);
 
 	let filteredMembers = $derived(members.filter(member => member.group === selectedGroup));
 
@@ -39,34 +41,33 @@
 
 	const handleAddMember = () => {
 		showDialog = true;
-		newMemberName = '';
 	};
 
-	const handleSubmitMember = async () => {
-		if (!newMemberName.trim()) return;
+	const handleMemberAdded = (newMember: Member) => {
+		members = [...members, newMember];
+		showDialog = false;
+	};
 
-		addingMember = true;
-		try {
-			const newMember: Member = {
-				id: '', // Will be set by backend
-				name: newMemberName.trim(),
-				group: selectedGroup,
-				equipments: {}
-			};
+	const handleCloseDialog = () => {
+		showDialog = false;
+	};
 
-			const createdMember = await createMember(newMember);
-			members = [...members, createdMember];
-			showDialog = false;
-		} catch (error) {
-			console.error('Failed to create member:', error);
-		} finally {
-			addingMember = false;
+	const handleMemberClick = (member: Member) => {
+		selectedMember = member;
+		showDetailDialog = true;
+	};
+
+	const handleMemberUpdated = (updatedMember: Member) => {
+		const index = members.findIndex(m => m.id === updatedMember.id);
+		if (index !== -1) {
+			members[index] = updatedMember;
 		}
 	};
 
-	const handleCancelDialog = () => {
-		showDialog = false;
-		newMemberName = '';
+	const handleCloseDetailDialog = () => {
+		showDetailDialog = false;
+		selectedMember = null;
+		members = [...members]; // Trigger reactivity
 	};
 </script>
 
@@ -101,7 +102,10 @@
 	{:else}
 		<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
 			{#each filteredMembers as member}
-				<div class="bg-white rounded-lg shadow-md p-4 hover:shadow-lg transition-shadow">
+				<div
+					class="bg-white rounded-lg shadow-md p-4 hover:shadow-lg transition-shadow cursor-pointer"
+					onclick={() => handleMemberClick(member)}
+				>
 					<h3 class="text-lg font-semibold text-gray-800 mb-3">{member.name}</h3>
 
 					<!-- Equipment Indicators -->
@@ -123,43 +127,19 @@
 	{/if}
 </div>
 
-<!-- Add Member Dialog -->
-{#if showDialog}
-	<div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-		<div class="bg-white rounded-lg p-6 w-full max-w-md">
-			<h2 class="text-xl font-bold mb-4">Neues Mitglied hinzufügen</h2>
-			<p class="text-sm text-gray-600 mb-4">Gruppe: {groupLabels[selectedGroup]}</p>
+<AddMemberDialog
+	show={showDialog}
+	{selectedGroup}
+	{groupLabels}
+	onClose={handleCloseDialog}
+	onMemberAdded={handleMemberAdded}
+/>
 
-			<div class="mb-4">
-				<label for="memberName" class="block mb-2 text-sm font-medium text-gray-700">Name:</label>
-				<input
-					id="memberName"
-					type="text"
-					bind:value={newMemberName}
-					class="block w-full rounded border border-gray-300 px-3 py-2 focus:border-purple-500 focus:ring focus:ring-purple-200 focus:ring-opacity-50"
-					placeholder="Mitgliedname eingeben..."
-					onkeydown={(e) => e.key === 'Enter' && handleSubmitMember()}
-				/>
-			</div>
-
-			<div class="flex justify-end space-x-2">
-				<button
-					type="button"
-					onclick={handleCancelDialog}
-					class="px-4 py-2 text-gray-600 bg-gray-200 rounded hover:bg-gray-300 transition-colors"
-					disabled={addingMember}
-				>
-					Abbrechen
-				</button>
-				<button
-					type="button"
-					onclick={handleSubmitMember}
-					class="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 transition-colors disabled:opacity-50"
-					disabled={addingMember || !newMemberName.trim()}
-				>
-					{addingMember ? 'Hinzufügen...' : 'Hinzufügen'}
-				</button>
-			</div>
-		</div>
-	</div>
+{#if showDetailDialog}
+	<MemberDetailDialog
+		show={showDetailDialog}
+		member={selectedMember}
+		onClose={handleCloseDetailDialog}
+		onMemberUpdated={handleMemberUpdated}
+	/>
 {/if}
