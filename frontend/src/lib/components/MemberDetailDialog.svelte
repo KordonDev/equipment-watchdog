@@ -1,10 +1,10 @@
 <script lang="ts">
-	import { type Member, updateMember } from '$lib/services/member.service';
+	import { type Member, updateMember, deleteMember } from '$lib/services/member.service';
 	import { createEquipment, deleteEquipment, type Equipment, EquipmentType } from '$lib/services/equipment.service';
 
 	interface Props {
 		member: Member | null;
-		onClose: () => void;
+		onClose: (memberId?: string) => void;
 		onMemberUpdated: (member: Member) => void;
 	}
 
@@ -86,6 +86,18 @@
 			tempRegistrationCodes[equipmentType] = number;
 		}
 	};
+
+	const handleDeleteMember = async () => {
+		if (!editingMember) return;
+		if (!confirm('Soll dieses Mitglied wirklich gelöscht werden?')) return;
+		try {
+			await deleteMember(editingMember.id);
+			onClose(editingMember.id); // Pass deleted member ID
+			// Optionally, you can notify parent to refresh the member list here
+		} catch (error) {
+			console.error('Mitglied konnte nicht gelöscht werden:', error);
+		}
+	};
 </script>
 
 {#if editingMember}
@@ -134,6 +146,16 @@
 				{/each}
 			</div>
 
+			<div class="flex justify-end mt-2">
+				<button
+					type="button"
+					onclick={handleDeleteMember}
+					class="px-4 py-2 text-white bg-red-600 rounded hover:bg-red-700 transition-colors"
+					disabled={saving}
+				>
+					Mitglied löschen
+				</button>
+			</div>
 			<div class="flex justify-end space-x-2 mt-6">
 				<button
 					type="button"

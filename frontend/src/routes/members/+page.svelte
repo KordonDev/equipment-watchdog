@@ -64,8 +64,11 @@
 		}
 	};
 
-	const handleCloseDetailDialog = () => {
+	const handleCloseDetailDialog = (deletedMemberId?: string) => {
 		showDetailDialog = false;
+		if (deletedMemberId) {
+			members = members.filter(m => m.id !== deletedMemberId);
+		}
 		selectedMember = null;
 		members = [...members]; // Trigger reactivity
 	};
