@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { type Member, updateMember, deleteMember } from '$lib/services/member.service';
+	import { type Member, updateMember, deleteMember, Group } from '$lib/services/member.service';
 	import { createEquipment, deleteEquipment, type Equipment, EquipmentType } from '$lib/services/equipment.service';
 
 	interface Props {
@@ -24,6 +24,12 @@
 		[EquipmentType.Trousers]: 'Hose',
 		[EquipmentType.Boots]: 'Stiefel',
 		[EquipmentType.TShirt]: 'T-Shirt'
+	};
+
+	const groupLabels = {
+		[Group.FRIDAY]: 'Freitagsgruppe',
+		[Group.MONDAY]: 'Montagsgruppe',
+		[Group.MINI]: 'Minigruppe'
 	};
 
 	const handleClose = () => {
@@ -87,6 +93,28 @@
 		}
 	};
 
+	let groupChanged = $state(false);
+
+	const handleGroupInput = (event: Event) => {
+		if (!editingMember) return;
+		const select = event.target as HTMLSelectElement;
+		const newGroup = select.value as Group;
+		groupChanged = editingMember.group !== newGroup;
+		editingMember.group = newGroup;
+	};
+
+	const handleGroupSave = async () => {
+		if (!editingMember) return;
+		try {
+			const updatedMember = await updateMember(editingMember);
+			editingMember = updatedMember;
+			onMemberUpdated(updatedMember);
+			groupChanged = false;
+		} catch (error) {
+			console.error('Failed to update group:', error);
+		}
+	};
+
 	const handleDeleteMember = async () => {
 		if (!editingMember) return;
 		if (!confirm('Soll dieses Mitglied wirklich gelöscht werden?')) return;
@@ -114,7 +142,8 @@
 				</button>
 			</div>
 
-			<div class="space-y-4">
+
+			<div class="space-y-4 mb-4">
 				{#each Object.values(EquipmentType) as equipmentType}
 					{@const equipment = editingMember.equipments[equipmentType]}
 					<form class="border rounded-lg p-4" onsubmit={() => equipment ? removeEquipment(equipmentType) : addEquipment(equipmentType)}>
@@ -146,6 +175,30 @@
 				{/each}
 			</div>
 
+			<!-- Group Selector with Save Button -->
+			<div class="mb-4 flex items-end gap-2">
+				<label class="block text-xs text-gray-500 mb-1 flex-grow">Gruppe
+					<select
+						class="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:border-purple-500 focus:ring focus:ring-purple-200 focus:ring-opacity-50"
+						bind:value={editingMember.group}
+						oninput={handleGroupInput}
+					>
+						{#each Object.values(Group) as group}
+							<option value={group}>{groupLabels[group]}</option>
+						{/each}
+					</select>
+				</label>
+				<button
+					type="button"
+					style="margin-bottom: 4px; padding-bottom: 3px; padding-top: 3px;"
+					class="px-3 py-1 bg-purple-600 text-white rounded hover:bg-purple-700 transition-colors"
+					onclick={handleGroupSave}
+					disabled={!groupChanged}
+				>
+					Speichern
+				</button>
+			</div>
+			
 			<div class="flex justify-end mt-2">
 				<button
 					type="button"

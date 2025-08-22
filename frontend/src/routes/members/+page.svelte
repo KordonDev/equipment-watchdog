@@ -61,6 +61,7 @@
 		const index = members.findIndex(m => m.id === updatedMember.id);
 		if (index !== -1) {
 			members[index] = updatedMember;
+			members = [...members]; // Trigger reactivity and update filteredMembers
 		}
 	};
 
