@@ -69,6 +69,10 @@
 		onEquipmentChanged && onEquipmentChanged(); // Equipment-Update triggern
 	};
 
+	function formatDate(date: Date | undefined) {
+		if (!date) return '';
+		return date.toLocaleDateString();
+	}
 </script>
 
 {#if show}
@@ -97,9 +101,13 @@
 									<span class="text-xs text-gray-600 bg-gray-100 rounded px-2 py-0.5" title="Bestellte Größe">
 										Größe: {openOrder.size}
 									</span>
+									<span class="text-xs text-gray-500 bg-gray-50 rounded px-2 py-0.5" title="Bestelldatum">
+										{formatDate(openOrder.createdAt)}
+									</span>
+									<div class="flex-1"></div>
 									<button
 										type="button"
-										class="px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700 transition-colors"
+										class="px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700 transition-colors ml-auto"
 										on:click={() => handleDeleteOrder(openOrder.id)}
 									>
 										Löschen
