@@ -2,6 +2,7 @@
 	import { onMount } from 'svelte';
 	import { getMembers, Group, type Member } from '$lib/services/member.service';
 	import { EquipmentType } from '$lib/services/equipment.service';
+	import { getOrders } from '$lib/services/order.service';
 	import AddMemberDialog from '$lib/components/AddMemberDialog.svelte';
 	import MemberDetailDialog from '$lib/components/MemberDetailDialog.svelte';
 
@@ -11,14 +12,16 @@
 	let showDialog = $state(false);
 	let showDetailDialog = $state(false);
 	let selectedMember: Member | null = $state(null);
+	let orders: Order[] = $state([]);
 
 	let filteredMembers = $derived(members.filter(member => member.group === selectedGroup));
 
 	onMount(async () => {
 		try {
 			members = await getMembers();
+			orders = await getOrders();
 		} catch (error) {
-			console.error('Failed to load members:', error);
+			console.error('Failed to load members or orders:', error);
 		} finally {
 			loading = false;
 		}
@@ -57,12 +60,14 @@
 		showDetailDialog = true;
 	};
 
-	const handleMemberUpdated = (updatedMember: Member) => {
+	const handleMemberUpdated = async (updatedMember: Member) => {
 		const index = members.findIndex(m => m.id === updatedMember.id);
 		if (index !== -1) {
 			members[index] = updatedMember;
 			members = [...members]; // Trigger reactivity and update filteredMembers
 		}
+		// Nach Equipment-Änderung Bestellungen neu laden
+		orders = await getOrders();
 	};
 
 	const handleCloseDetailDialog = (deletedMemberId?: string) => {
@@ -73,6 +78,9 @@
 		selectedMember = null;
 		members = [...members]; // Trigger reactivity
 	};
+
+	const hasOrderForMemberAndType = (memberId: number, type: EquipmentType) =>
+		orders.some(order => order.memberId === memberId && order.type === type && !order.fulfilledAt);
 </script>
 
 <div class="p-6">
@@ -122,6 +130,9 @@
 							>
 								<span class="font-bold">{hasEquipment ? '✓' : '✗'}</span>
 								{equipmentLabels[equipmentType]}
+								{#if hasOrderForMemberAndType(member.id, equipmentType)}
+									<span class="ml-1 px-1 py-0.5 rounded bg-yellow-100 text-yellow-800" title="Bestellt">🛒</span>
+								{/if}
 							</span>
 						{/each}
 					</div>

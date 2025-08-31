@@ -1,6 +1,8 @@
 <script lang="ts">
-	import { type Member, updateMember, deleteMember, Group } from '$lib/services/member.service';
+	import { type Member, updateMember, deleteMember, Group, getMember } from '$lib/services/member.service';
 	import { createEquipment, deleteEquipment, type Equipment, EquipmentType } from '$lib/services/equipment.service';
+	import { getOrdersForMember, type Order } from '$lib/services/order.service';
+	import OrderDialog from './OrderDialog.svelte';
 
 	interface Props {
 		member: Member | null;
@@ -126,6 +128,38 @@
 			console.error('Mitglied konnte nicht gelöscht werden:', error);
 		}
 	};
+
+	let showOrderDialog = $state(false);
+
+	const handleOpenOrderDialog = () => {
+		showOrderDialog = true;
+	};
+
+	const handleCloseOrderDialog = () => {
+		showOrderDialog = false;
+	};
+
+	let orders: Order[] = $state([]);
+	let ordersLoading = $state(true);
+
+	$effect(() => {
+		if (editingMember !== null) {
+			ordersLoading = true;
+			getOrdersForMember(editingMember.id.toString())
+				.then(o => orders = o)
+				.finally(() => ordersLoading = false);
+		}
+	})
+
+	const hasOrderForType = (type: EquipmentType) =>
+		orders.some(order => order.type === type && !order.fulfilledAt);
+
+	const handleEquipmentChanged = async () => {
+		if (!editingMember) return;
+		const updated = await getMember(editingMember.id.toString());
+		editingMember = updated;
+		onMemberUpdated(updated);
+	};
 </script>
 
 {#if editingMember}
@@ -142,14 +176,27 @@
 				</button>
 			</div>
 
+			<!-- Order Equipment Button -->
+			<div class="flex justify-end mb-4">
+				<button
+					type="button"
+					class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+					onclick={handleOpenOrderDialog}
+				>
+					Bestellungen
+				</button>
+			</div>
 
 			<div class="space-y-4 mb-4">
 				{#each Object.values(EquipmentType) as equipmentType}
 					{@const equipment = editingMember.equipments[equipmentType]}
 					<form class="border rounded-lg p-4" onsubmit={() => equipment ? removeEquipment(equipmentType) : addEquipment(equipmentType)}>
 						<div class="flex items-center justify-between mb-2">
-							<div class="text-sm font-medium text-gray-700">
+							<div class="text-sm font-medium text-gray-700 flex items-center gap-2">
 								{equipmentLabels[equipmentType]}
+								{#if hasOrderForType(equipmentType)}
+									<span class="ml-2 px-2 py-0.5 text-xs rounded bg-yellow-100 text-yellow-800" title="Bestellt">🛒 Bestellt</span>
+								{/if}
 							</div>
 							<button
 								type="submit"
@@ -221,4 +268,13 @@
 			</div>
 		</div>
 	</div>
+
+	<OrderDialog
+		memberName={editingMember.name}
+		equipmentLabels={equipmentLabels}
+		show={showOrderDialog}
+		onClose={handleCloseOrderDialog}
+		memberId={editingMember.id}
+		onEquipmentChanged={handleEquipmentChanged}
+	/>
 {/if}
