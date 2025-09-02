@@ -45,7 +45,18 @@ func (edb *equipmentDB) getByType(equipmentType string) ([]*models.Equipment, er
 	return listFromDB(dbEquipment), nil
 }
 
-func (edb *equipmentDB) CreateEquipent(equipment *models.Equipment) (*models.Equipment, error) {
+func (edb *equipmentDB) getAll() ([]*models.Equipment, error) {
+	dbEquipment := make([]models.DbEquipment, 0)
+
+	err := edb.Find(&dbEquipment).Error
+	if err != nil {
+		return make([]*models.Equipment, 0), err
+	}
+
+	return listFromDB(dbEquipment), nil
+}
+
+func (edb *equipmentDB) CreateEquipment(equipment *models.Equipment) (*models.Equipment, error) {
 	e := equipment.ToDb()
 	err := edb.Create(&e).Error
 	if err != nil {

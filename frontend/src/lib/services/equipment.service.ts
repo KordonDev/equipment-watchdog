@@ -51,6 +51,10 @@ export function getFreeEquipment(): Promise<EquipmentListByType> {
   return fetchApi("/equipment/free");
 }
 
+export function getAllEquipment(): Promise<Equipment[]> {
+	return fetchApi("/equipment/");
+}
+
 export enum EquipmentType {
   Helmet = "helmet",
   Jacket = "jacket",
@@ -63,7 +67,7 @@ export enum EquipmentType {
 export const translatedEquipmentTypes = [
   { value: EquipmentType.Helmet, name: "Helm" },
   { value: EquipmentType.Jacket, name: "Jacke" },
-  { value: EquipmentType.Gloves, name: "Handschue" },
+  { value: EquipmentType.Gloves, name: "Handschuhe" },
   { value: EquipmentType.Trousers, name: "Hose" },
   { value: EquipmentType.Boots, name: "Stiefel" },
   { value: EquipmentType.TShirt, name: "T-Shirt" },

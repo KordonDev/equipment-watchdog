@@ -2,7 +2,7 @@ import { fetchApi } from "../apiService";
 import type { Equipment, EquipmentType } from "./equipment.service";
 
 export interface Member {
-  id: string;
+  id: number;
   name: string;
   group: string;
   equipments: EquipmentByType;

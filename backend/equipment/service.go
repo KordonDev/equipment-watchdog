@@ -6,8 +6,9 @@ import (
 )
 
 type EquipmentDatabase interface {
-	CreateEquipent(*models.Equipment) (*models.Equipment, error)
+	CreateEquipment(*models.Equipment) (*models.Equipment, error)
 	getById(uint64) (*models.Equipment, error)
+	getAll() ([]*models.Equipment, error)
 	getByType(string) ([]*models.Equipment, error)
 	delete(uint64) error
 	getForIds([]uint64) ([]*models.Equipment, error)
@@ -36,7 +37,7 @@ func (s EquipmentService) getAllEquipmentByType(eType string) ([]*models.Equipme
 }
 
 func (s EquipmentService) createEquipment(e models.Equipment) (*models.Equipment, error) {
-	return s.db.CreateEquipent(&e)
+	return s.db.CreateEquipment(&e)
 }
 
 func (s EquipmentService) deleteEquipment(id uint64) error {
@@ -45,6 +46,10 @@ func (s EquipmentService) deleteEquipment(id uint64) error {
 
 func (s EquipmentService) GetForIds(ids []uint64) ([]*models.Equipment, error) {
 	return s.db.getForIds(ids)
+}
+
+func (s EquipmentService) getEquipments() ([]*models.Equipment, error) {
+	return s.db.getAll()
 }
 
 func (s EquipmentService) getFreeEquipment() (map[models.EquipmentType][]*models.Equipment, error) {
