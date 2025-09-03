@@ -1,6 +1,7 @@
 import { routes } from "./routes";
 import { BASE_URL } from "./constants";
 import { goto } from '$app/navigation';
+import { showError } from '$lib/services/notification.svelte';
 
 
 export function fetchApi(url: string, headers?: RequestInit) {
@@ -33,6 +34,7 @@ export function fetchApi(url: string, headers?: RequestInit) {
 					}
 				});
 			}
+			showError('Ein Fehler ist aufgetreten');
 			throw res;
 		});
 }
