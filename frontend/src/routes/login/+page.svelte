@@ -11,7 +11,7 @@
 	let loading = $state(false);
 
 	// If username is not set from URL, try to get it from localStorage
-	if (!username) {
+	if (!data.username) {
 		const stored = getStoredUsername();
 		if (stored) {
 			username = stored;
@@ -53,6 +53,7 @@
 					id="username"
 					bind:value={username}
 					type="text"
+					autocomplete="username webauthn"
 				/>
 			</div>
 			<div class="flex items-center">
