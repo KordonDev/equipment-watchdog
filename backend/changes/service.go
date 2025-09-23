@@ -14,6 +14,7 @@ type ChangeDatabase interface {
 	getForEquipment(uint64) ([]*models.Change, error)
 	getForOrder(uint64) ([]*models.Change, error)
 	getForMember(uint64) ([]*models.Change, error)
+	getRecentChanges() ([]*models.Change, error)
 }
 
 type ChangeService struct {
@@ -81,6 +82,14 @@ func (cs ChangeService) getForMember(id uint64) ([]string, error) {
 	}
 
 	return cs.enrich(chs), nil
+}
+
+func (cs ChangeService) getRecent() ([]*models.Change, error) {
+	chs, err := cs.db.getRecentChanges()
+	if err != nil {
+		return nil, err
+	}
+	return chs, nil
 }
 
 func (cs ChangeService) enrich(chs []*models.Change) []string {

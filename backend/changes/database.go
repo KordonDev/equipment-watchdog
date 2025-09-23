@@ -2,6 +2,7 @@ package changes
 
 import (
 	"errors"
+	"time"
 
 	"github.com/cloudflare/cfssl/log"
 
@@ -85,6 +86,15 @@ func (mdb *changeDB) save(change models.Change) (*models.Change, error) {
 		return nil, err
 	}
 	return c.FromDB(), nil
+}
+
+func (db *changeDB) getRecentChanges() ([]*models.Change, error) {
+	var dbChanges []models.DbChange
+	sixMonthsAgo := time.Now().AddDate(0, -6, 0)
+	if err := db.Where("created_at >= ?", sixMonthsAgo).Find(&dbChanges).Error; err != nil {
+		return nil, err
+	}
+	return listFromDB(dbChanges), nil
 }
 
 func listFromDB(dbChanges []models.DbChange) []*models.Change {

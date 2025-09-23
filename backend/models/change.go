@@ -17,13 +17,13 @@ func (DbChange) TableName() string {
 }
 
 type Change struct {
-	ID          uint64
-	CreatedAt   time.Time
-	MemberId    uint64
-	EquipmentId uint64
-	OrderId     uint64
-	Action      string
-	UserId      uint64
+	ID          uint64    `json:"id"`
+	CreatedAt   time.Time `json:"createdAt"`
+	MemberId    uint64    `json:"memberId"`
+	EquipmentId uint64    `json:"equipmentId"`
+	OrderId     uint64    `json:"orderId"`
+	Action      string    `json:"action"`
+	UserId      uint64    `json:"userId"`
 }
 
 const (
@@ -60,5 +60,4 @@ func (c Change) ToDB() DbChange {
 		Action:      c.Action,
 		UserId:      c.UserId,
 	}
-
 }
