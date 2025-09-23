@@ -2,6 +2,7 @@
 	import { onMount } from 'svelte';
 	import { EquipmentType, type Equipment, getAllEquipment } from '$lib/services/equipment.service';
 	import { getMembers, type Member } from '$lib/services/member.service';
+	import BurgerMenu from '$lib/components/BurgerMenu.svelte';
 
 	let equipment: Equipment[] = [];
 	let members: Member[] = [];
@@ -34,6 +35,7 @@
 </script>
 
 <div class="p-6">
+	<BurgerMenu />
 	<h1 class="text-2xl font-bold mb-6">Ausrüstungsliste</h1>
 	{#if loading}
 		<div>Lade Ausrüstung...</div>

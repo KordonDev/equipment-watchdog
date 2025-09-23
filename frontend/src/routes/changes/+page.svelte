@@ -4,6 +4,7 @@
 	import { getOrders, type Order } from '$lib/services/order.service';
 	import { getMembers, type Member } from '$lib/services/member.service';
 	import { translateEquipmentType } from '$lib/services/equipment.service';
+	import BurgerMenu from '$lib/components/BurgerMenu.svelte';
 
 	let changes: Change[] = [];
 	let loading = true;
@@ -101,6 +102,7 @@
 </script>
 
 <div class="p-6">
+	<BurgerMenu />
 	<h1 class="text-2xl font-bold mb-6">Änderungen</h1>
 	{#if loading}
 		<div>Lade Änderungen...</div>

@@ -3,6 +3,7 @@
 	import { getOrders, type Order } from '$lib/services/order.service';
 	import { EquipmentType } from '$lib/services/equipment.service';
 	import { getMembers, type Member } from '$lib/services/member.service';
+	import BurgerMenu from '$lib/components/BurgerMenu.svelte';
 
 	let orders: Order[] = [];
 	let members: Member[] = [];
@@ -44,6 +45,7 @@
 </script>
 
 <div class="p-6">
+	<BurgerMenu />
 	<h1 class="text-2xl font-bold mb-6">Bestellungen</h1>
 	{#if loading}
 		<div>Lade Bestellungen...</div>

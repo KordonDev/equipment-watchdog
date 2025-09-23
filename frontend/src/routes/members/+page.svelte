@@ -5,6 +5,7 @@
 	import { getOrders } from '$lib/services/order.service';
 	import AddMemberDialog from '$lib/components/AddMemberDialog.svelte';
 	import MemberDetailDialog from '$lib/components/MemberDetailDialog.svelte';
+	import BurgerMenu from '$lib/components/BurgerMenu.svelte';
 
 	let members: Member[] = $state([]);
 	let selectedGroup: Group = $state(Group.FRIDAY);
@@ -84,6 +85,7 @@
 </script>
 
 <div class="p-6">
+	<BurgerMenu />
 	<h1 class="text-2xl font-bold mb-6">Personen</h1>
 
 	<!-- Group Switcher with Add Button -->

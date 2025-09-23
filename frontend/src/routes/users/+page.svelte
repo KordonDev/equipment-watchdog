@@ -2,6 +2,7 @@
 	import { onMount } from 'svelte';
 	import { getAllUser, toggleApproveUser, toggleAdminUser, getMe, type User } from '$lib/services/user.service';
 	import { changePassword, addLogin } from '$lib/services/authentication';
+	import BurgerMenu from '$lib/components/BurgerMenu.svelte';
 
 	let users: User[] = [];
 	let loading = true;
@@ -61,6 +62,7 @@
 </script>
 
 <div class="p-6">
+	<BurgerMenu />
 	<h1 class="text-2xl font-bold mb-6">Benutzerverwaltung</h1>
 	{#if loading}
 		<div>Lade Benutzer...</div>
