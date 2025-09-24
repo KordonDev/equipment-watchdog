@@ -1,6 +1,8 @@
 <script lang="ts">
 	import { onDestroy } from 'svelte';
   import { page } from '$app/state';
+  import { logout } from "$lib/services/authentication";
+	import { goto } from "$app/navigation";
 
   const links = [
     { href: "/members", label: "Mitglieder" },
@@ -35,6 +37,12 @@
   onDestroy(() => {
     document.removeEventListener("click", handleDocumentClick);
   });
+
+  async function handleLogout() {
+    await logout();
+    showMenu = false;
+    goto('/login');
+  }
 </script>
 
 <div class="burger-menu-container">
@@ -48,6 +56,7 @@
           <a href={link.href} class:selected={link.href === page.url.pathname}>{link.label}</a>
         </li>
       {/each}
+      <li><button class="logout-btn" on:click={handleLogout}>Logout</button></li>
     </ul>
   </nav>
 </div>
@@ -102,5 +111,20 @@
   background: #e3f2fd;
   border-radius: 4px;
   padding: 2px 6px;
+}
+.logout-btn {
+  background: #f44336;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  padding: 4px 10px;
+  cursor: pointer;
+  font-weight: bold;
+  margin-top: 0.5rem;
+  width: 100%;
+  text-align: left;
+}
+.logout-btn:hover {
+  background: #d32f2f;
 }
 </style>
