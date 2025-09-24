@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { EquipmentType } from '$lib/services/equipment.service';
 	import { createOrder, getOrdersForMember, deleteOrder, fulfillOrder, type Order } from '$lib/services/order.service';
+	import { getNextGloveId, markGloveIdAsUsed, type GloveId } from '$lib/services/gloveId.service';
 
 	export let memberName: string;
 	export let equipmentLabels: Record<EquipmentType, string>;
@@ -13,6 +14,8 @@
 	let registrationCodes: Record<EquipmentType, string> = {} as Record<EquipmentType, string>;
 	let orders: Order[] = [];
 	let loadingOrders = false;
+	let nextGloveId: string | null = null;
+	let loadingGloveId = false;
 
 	const loadOrders = async () => {
 		loadingOrders = true;
@@ -20,8 +23,21 @@
 		loadingOrders = false;
 	};
 
+	const loadNextGloveId = async () => {
+		try {
+			loadingGloveId = true;
+			nextGloveId = (await getNextGloveId()).nextId;
+		} catch (error) {
+			console.error('Failed to load next glove ID:', error);
+			nextGloveId = null;
+		} finally {
+			loadingGloveId = false;
+		}
+	};
+
 	$: if (show) {
 		loadOrders();
+		loadNextGloveId();
 	}
 
 	const getOpenOrder = (type: EquipmentType) =>
@@ -63,6 +79,7 @@
 			alert('Bitte eine Ausrüstungsnummer angeben.');
 			return;
 		}
+
 		await fulfillOrder(order, regCode);
 		registrationCodes[equipmentType] = '';
 		await loadOrders();
@@ -144,6 +161,16 @@
 										Erfüllen
 									</button>
 								</div>
+								{#if equipmentType === EquipmentType.Gloves && nextGloveId}
+									<div class="text-xs text-green-600 mt-1">
+										✓ Nächste verfügbare Handschuh-ID: {nextGloveId}
+									</div>
+								{/if}
+								{#if equipmentType === EquipmentType.Gloves && loadingGloveId}
+									<div class="text-xs text-blue-600 mt-1">
+										⏳ Lade nächste Handschuh-ID...
+									</div>
+								{/if}
 							{/if}
 						</div>
 					{/each}

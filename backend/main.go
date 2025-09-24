@@ -14,6 +14,7 @@ import (
 	"github.com/kordondev/equipment-watchdog/changes"
 	"github.com/kordondev/equipment-watchdog/config"
 	"github.com/kordondev/equipment-watchdog/equipment"
+	"github.com/kordondev/equipment-watchdog/gloveids"
 	"github.com/kordondev/equipment-watchdog/members"
 	"github.com/kordondev/equipment-watchdog/orders"
 	"github.com/kordondev/equipment-watchdog/registrationcodes"
@@ -64,7 +65,9 @@ func main() {
 
 	changeWriter := changes.NewChangeWriterService(db, userService)
 
-	equipmentService := equipment.NewEquipmentService(db)
+	gloveIdService := gloveids.NewGloveIdService(db)
+
+	equipmentService := equipment.NewEquipmentService(db, gloveIdService)
 	database := members.NewMemberDB(db)
 	memberService := members.NewMemberService(database, &equipmentService)
 	members.NewController(api, memberService, changeWriter)
@@ -80,6 +83,8 @@ func main() {
 
 	changeService := changes.NewChangeService(db, equipmentService, memberService, userService, orderService)
 	changes.NewController(api, changeService)
+
+	gloveids.NewController(api, gloveIdService)
 
 	router.Run(":8080")
 }

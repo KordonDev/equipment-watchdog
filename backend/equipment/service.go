@@ -18,13 +18,19 @@ type EquipmentDatabase interface {
 	registrationCodeExists(string) bool
 }
 
-type EquipmentService struct {
-	db EquipmentDatabase
+type GloveIdService interface {
+	MarkGloveIdAsUsed(gloveId string) error
 }
 
-func NewEquipmentService(db *gorm.DB) EquipmentService {
+type EquipmentService struct {
+	db             EquipmentDatabase
+	gloveIdService GloveIdService
+}
+
+func NewEquipmentService(db *gorm.DB, gloveIdService GloveIdService) EquipmentService {
 	return EquipmentService{
-		db: newEquipmentDB(db),
+		db:             newEquipmentDB(db),
+		gloveIdService: gloveIdService,
 	}
 }
 
@@ -37,7 +43,14 @@ func (s EquipmentService) getAllEquipmentByType(eType string) ([]*models.Equipme
 }
 
 func (s EquipmentService) createEquipment(e models.Equipment) (*models.Equipment, error) {
-	return s.db.CreateEquipment(&e)
+	equip, err := s.db.CreateEquipment(&e)
+	if err != nil {
+		return nil, err
+	}
+	if equip.Type == models.Gloves {
+		err = s.gloveIdService.MarkGloveIdAsUsed(equip.RegistrationCode)
+	}
+	return equip, nil
 }
 
 func (s EquipmentService) deleteEquipment(id uint64) error {

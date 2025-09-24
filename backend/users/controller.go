@@ -22,7 +22,7 @@ type Controller struct {
 	domain  string
 }
 
-func NewController(baseUrl *gin.RouterGroup, service Service, domain string) error {
+func NewController(baseUrl *gin.RouterGroup, service Service, domain string) {
 
 	ctrl := Controller{
 		service: service,
@@ -37,7 +37,6 @@ func NewController(baseUrl *gin.RouterGroup, service Service, domain string) err
 		userRoute.PATCH("/:username/toggle-approve", security.AdminOnlyMiddleware(), ctrl.toggleApprove)
 		userRoute.PATCH("/:username/toggle-admin", security.AdminOnlyMiddleware(), ctrl.toggleAdmin)
 	}
-	return nil
 }
 
 func (ctrl Controller) getMe(c *gin.Context) {

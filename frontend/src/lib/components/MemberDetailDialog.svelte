@@ -2,6 +2,7 @@
 	import { type Member, updateMember, deleteMember, Group, getMember } from '$lib/services/member.service';
 	import { createEquipment, deleteEquipment, type Equipment, EquipmentType } from '$lib/services/equipment.service';
 	import { getOrdersForMember, type Order } from '$lib/services/order.service';
+	import { getNextGloveId, markGloveIdAsUsed, type GloveId } from '$lib/services/gloveId.service';
 	import OrderDialog from './OrderDialog.svelte';
 
 	interface Props {
@@ -15,9 +16,30 @@
 	let editingMember: Member | null = $state(JSON.parse(JSON.stringify(member)));// Deep copy
 	let saving = $state(false);
 	let tempRegistrationCodes: Record<EquipmentType, string> = $state({} as Record<EquipmentType, string>);
+	let nextGloveId: string | null = $state(null);
+	let loadingGloveId = $state(false);
+
 	Object.values(EquipmentType).forEach(type => {
 		tempRegistrationCodes[type] = editingMember?.equipments[type]?.registrationCode || '';
 	});
+
+	$effect(() => {
+		if (editingMember) {
+			loadNextGloveId();
+		}
+	});
+
+	const loadNextGloveId = async () => {
+		try {
+			loadingGloveId = true;
+			nextGloveId = (await getNextGloveId()).nextId;
+		} catch (error) {
+			console.error('Failed to load next glove ID:', error);
+			nextGloveId = null;
+		} finally {
+			loadingGloveId = false;
+		}
+	};
 
 	const equipmentLabels = {
 		[EquipmentType.Helmet]: 'Helm',
@@ -217,6 +239,16 @@
 								class="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:border-purple-500 focus:ring focus:ring-purple-200 focus:ring-opacity-50 {equipment ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : ''}"
 							/>
 							</label>
+							{#if equipmentType === EquipmentType.Gloves && !equipment && nextGloveId}
+								<div class="text-xs text-green-600 mt-1">
+									✓ Nächste verfügbare Handschuh-ID: {nextGloveId}
+								</div>
+							{/if}
+							{#if equipmentType === EquipmentType.Gloves && !equipment && loadingGloveId}
+								<div class="text-xs text-blue-600 mt-1">
+									⏳ Lade nächste Handschuh-ID...
+								</div>
+							{/if}
 						</div>
 					</form>
 				{/each}
