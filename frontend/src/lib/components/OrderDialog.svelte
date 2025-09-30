@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { EquipmentType } from '$lib/services/equipment.service';
-	import { createOrder, getOrdersForMember, deleteOrder, fulfillOrder, type Order } from '$lib/services/order.service';
-	import { getNextGloveId, markGloveIdAsUsed, type GloveId } from '$lib/services/gloveId.service';
+	import { createOrder, deleteOrder, fulfillOrder, getOrdersForMember, type Order } from '$lib/services/order.service';
+	import { getNextGloveId } from '$lib/services/gloveId.service';
 
 	export let memberName: string;
 	export let equipmentLabels: Record<EquipmentType, string>;
@@ -10,7 +10,9 @@
 	export let memberId: string;
 	export let onEquipmentChanged: () => void; // Callback für Equipment-Update
 
-	let orderSizes: Record<EquipmentType, string> = {} as Record<EquipmentType, string>;
+	let orderSizes: Record<EquipmentType, string> = {
+		[EquipmentType.Helmet]: '0',
+	} as Record<EquipmentType, string>;
 	let registrationCodes: Record<EquipmentType, string> = {} as Record<EquipmentType, string>;
 	let orders: Order[] = [];
 	let loadingOrders = false;
@@ -59,7 +61,9 @@
 				memberId: memberIdInternal,
 				fulfilledAt: undefined
 			});
-			orderSizes[equipmentType] = '';
+			if (equipmentType !== EquipmentType.Helmet) {
+				orderSizes[equipmentType] = '';
+			}
 			await loadOrders();
 			onEquipmentChanged && onEquipmentChanged(); // Equipment/Order-Update triggern
 		} catch (e) {
@@ -115,9 +119,11 @@
 							<div class="flex items-center gap-2">
 								<span class="w-28">{equipmentLabels[equipmentType]}</span>
 								{#if openOrder}
-									<span class="text-xs text-gray-600 bg-gray-100 rounded px-2 py-0.5" title="Bestellte Größe">
-										Größe: {openOrder.size}
-									</span>
+									{#if equipmentType !== EquipmentType.Helmet}
+										<span class="text-xs text-gray-600 bg-gray-100 rounded px-2 py-0.5" title="Bestellte Größe">
+											Größe: {openOrder.size}
+										</span>
+									{/if}
 									<span class="text-xs text-gray-500 bg-gray-50 rounded px-2 py-0.5" title="Bestelldatum">
 										{formatDate(openOrder.createdAt)}
 									</span>
@@ -130,12 +136,16 @@
 										Löschen
 									</button>
 								{:else}
-									<input
-										type="text"
-										placeholder="Größe"
-										class="flex-1 px-2 py-1 border border-gray-300 rounded focus:border-blue-500"
-										bind:value={orderSizes[equipmentType]}
-									/>
+									{#if equipmentType !== EquipmentType.Helmet}
+										<input
+											type="text"
+											placeholder="Größe"
+											class="flex-1 px-2 py-1 border border-gray-300 rounded focus:border-blue-500"
+											bind:value={orderSizes[equipmentType]}
+										/>
+									{:else}
+										<div class="flex-1"></div>
+									{/if}
 									<button
 										type="button"
 										class="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"

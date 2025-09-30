@@ -36,7 +36,7 @@
 
 <div class="p-6">
 	<BurgerMenu />
-	<h1 class="text-2xl font-bold mb-6">Ausrüstungsliste</h1>
+	<h1 class="text-2xl font-bold mb-6">Ausrüstung</h1>
 	{#if loading}
 		<div>Lade Ausrüstung...</div>
 	{:else}

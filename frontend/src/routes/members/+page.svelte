@@ -89,8 +89,8 @@
 	<h1 class="text-2xl font-bold mb-6">Personen</h1>
 
 	<!-- Group Switcher with Add Button -->
-	<div class="mb-6 flex items-center justify-between">
-		<div class="flex space-x-2">
+	<div class="mb-6 flex items-center justify-between flex-wrap">
+		<div class="flex space-x-2 space-y-2">
 			{#each Object.values(Group) as group}
 				<button
 					class="px-4 py-2 rounded {selectedGroup === group ? 'bg-purple-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}"
@@ -104,7 +104,7 @@
 			class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition-colors"
 			onclick={handleAddMember}
 		>
-			+ Mitglied hinzufügen
+			+ Mitglied
 		</button>
 	</div>
 

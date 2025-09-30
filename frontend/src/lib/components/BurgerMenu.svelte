@@ -87,11 +87,13 @@
   transition: transform 0.3s cubic-bezier(.4,0,.2,1);
   opacity: 0;
   pointer-events: none;
+		display: none;
 }
 .burger-menu.open {
   transform: translateX(0);
   opacity: 1;
   pointer-events: auto;
+		display: flex;
 }
 .burger-menu ul {
   list-style: none;
