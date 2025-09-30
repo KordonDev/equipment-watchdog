@@ -63,7 +63,7 @@
 
 <div class="p-6">
 	<BurgerMenu />
-	<h1 class="text-2xl font-bold mb-6">Benutzerverwaltung</h1>
+	<h1 class="text-2xl font-bold mb-6">Benutzer</h1>
 	{#if loading}
 		<div>Lade Benutzer...</div>
 	{:else if users.length === 0}
@@ -73,7 +73,6 @@
 			<thead>
 				<tr>
 					<th class="px-4 py-2 border-b text-left">Name</th>
-					<th class="px-4 py-2 border-b text-left">E-Mail</th>
 					<th class="px-4 py-2 border-b text-left">Genehmigt</th>
 					<th class="px-4 py-2 border-b text-left">Admin</th>
 					<th class="px-4 py-2 border-b text-left">Aktionen</th>
@@ -83,7 +82,6 @@
 				{#each users as user (user.id)}
 					<tr>
 						<td class="px-4 py-2 border-b">{user.name}</td>
-						<td class="px-4 py-2 border-b">{user.email}</td>
 						<td class="px-4 py-2 border-b">
 							{user.isApproved ? '✅' : '❌'}
 						</td>
@@ -91,9 +89,9 @@
 							{user.isAdmin ? '✅' : '❌'}
 						</td>
 						<td class="px-4 py-2 border-b space-x-2">
-							{#if currentUser && currentUser.isAdmin}
+							{#if currentUser && currentUser.isAdmin && currentUser.id !== user.id}
 								<button
-									class="px-2 py-1 bg-blue-600 text-white rounded hover:bg-blue-700"
+									class="px-2 py-1 mb-2 bg-blue-600 text-white rounded hover:bg-blue-700"
 									on:click={() => handleToggleApprove(user)}
 								>
 									{user.isApproved ? 'Entfernen' : 'Genehmigen'}
@@ -101,7 +99,7 @@
 								<button
 									class="px-2 py-1 bg-purple-600 text-white rounded hover:bg-purple-700"
 								>
-									{user.isAdmin ? 'Admin entfernen' : 'Zum Admin machen'}
+									{user.isAdmin ? 'Admin entfernen' : 'Admin machen'}
 								</button>
 							{/if}
 						</td>
