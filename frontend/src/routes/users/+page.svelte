@@ -30,6 +30,11 @@
 		await loadUsers();
 	};
 
+	const handleToggleAdmin = async (user: User) => {
+		await toggleAdminUser(user.name);
+		await loadUsers();
+	};
+
 	const handleChangePassword = async () => {
 		passwordChangeLoading = true;
 		passwordChangeSuccess = false;
@@ -96,11 +101,14 @@
 								>
 									{user.isApproved ? 'Entfernen' : 'Genehmigen'}
 								</button>
-								<button
-									class="px-2 py-1 bg-purple-600 text-white rounded hover:bg-purple-700"
-								>
-									{user.isAdmin ? 'Admin entfernen' : 'Admin machen'}
-								</button>
+								{#if currentUser && user.isApproved}
+									<button
+										class="px-2 py-1 bg-purple-600 text-white rounded hover:bg-purple-700"
+										on:click={() => handleToggleAdmin(user)}
+									>
+										{user.isAdmin ? 'Admin entfernen' : 'Admin machen'}
+									</button>
+								{/if}
 							{/if}
 						</td>
 					</tr>
