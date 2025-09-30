@@ -1,8 +1,8 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { getMembers, Group, type Member } from '$lib/services/member.service';
+	import { getMembers, Group, groupLabels, type Member } from '$lib/services/member.service';
 	import { EquipmentType } from '$lib/services/equipment.service';
-	import { getOrders } from '$lib/services/order.service';
+	import { getOrders, type Order } from '$lib/services/order.service';
 	import AddMemberDialog from '$lib/components/AddMemberDialog.svelte';
 	import MemberDetailDialog from '$lib/components/MemberDetailDialog.svelte';
 	import BurgerMenu from '$lib/components/BurgerMenu.svelte';
@@ -27,12 +27,6 @@
 			loading = false;
 		}
 	});
-
-	const groupLabels = {
-		[Group.FRIDAY]: 'Freitag',
-		[Group.MONDAY]: 'Montag',
-		[Group.MINI]: 'Mini'
-	};
 
 	const equipmentLabels = {
 		[EquipmentType.Helmet]: 'Helm',
@@ -89,8 +83,8 @@
 	<h1 class="text-2xl font-bold mb-6">Personen</h1>
 
 	<!-- Group Switcher with Add Button -->
-	<div class="mb-6 flex items-center justify-between flex-wrap">
-		<div class="flex space-x-2 space-y-2">
+	<div class="mb-6 flex items-center justify-between flex-wrap gap-2">
+		<div class="flex space-x-2">
 			{#each Object.values(Group) as group}
 				<button
 					class="px-4 py-2 rounded {selectedGroup === group ? 'bg-purple-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}"
@@ -101,7 +95,7 @@
 			{/each}
 		</div>
 		<button
-			class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition-colors"
+			class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition-colors ml-auto"
 			onclick={handleAddMember}
 		>
 			+ Mitglied

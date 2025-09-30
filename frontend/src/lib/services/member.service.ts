@@ -49,10 +49,16 @@ export function deleteMember(id: string): Promise<void> {
 }
 
 export enum Group {
+	MONDAY = "monday",
   FRIDAY = "friday",
-  MONDAY = "monday",
   MINI = "mini",
 }
+
+export const groupLabels = {
+	[Group.FRIDAY]: 'Freitag',
+	[Group.MINI]: 'Mini',
+	[Group.MONDAY]: 'Montag'
+};
 
 export interface Groups {
   [Group.FRIDAY]: EquipmentType[];
