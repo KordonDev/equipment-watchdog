@@ -1,12 +1,16 @@
-# Equipment watchdog
+# 🧑‍🚒 Equipment watchdog
 
 It should track the equipment of members. This includes moving equipment from one member to another but also requesting new equipment.
 
+## Start up the application
+
+With using flox:
+  - Install flox if not already installed (curl -sS https://get.flox.dev | sh)
+  - `flox activate` in root folder
+
 ### Backend
 
-
 `cd backend && go run .`
-
 
 ### Frontend
 
@@ -15,7 +19,10 @@ It should track the equipment of members. This includes moving equipment from on
 ### Docker
 `docker run -v ${PWD}/configuration:/configuration -p8080:8080 kordondev/equipment-watchdog`
 
-#### Icons the noun project
+
+## Assets
+
+#### Icons from [the noun project](https://thenounproject.com/)
 
 - Helmet: https://thenounproject.com/icon/helmet-1731740/
 - Jacket: https://thenounproject.com/icon/jacket-3740852/
