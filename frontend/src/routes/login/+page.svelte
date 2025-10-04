@@ -5,7 +5,7 @@
 
 	let { data }: PageProps = $props();
 
-	let notification: string | null = $state(data.message);
+	let infoMessage: string | null = $state(data.message);
 	let username = $state(data.username || '');
 	let storeUsername = $state(false);
 	let loading = $state(false);
@@ -21,7 +21,7 @@
 	const handleLogin = async (event: SubmitEvent) => {
 		event.preventDefault();
 		loading = true;
-		notification = null;
+		infoMessage = null;
 		try {
 			await login(username);
 			if (storeUsername) {
@@ -31,7 +31,7 @@
 			}
 			goto('/members');
 		} catch (e) {
-			notification = "Login fehlgeschlagen. Bitte überprüfe deinen Benutzernamen.";
+			infoMessage = "Login fehlgeschlagen. Bitte überprüfe deinen Benutzernamen.";
 		} finally {
 			loading = false;
 		}
@@ -41,8 +41,8 @@
 <div class="min-h-screen flex items-center justify-center bg-gray-100">
 	<div class="w-full max-w-md bg-white rounded-lg shadow-lg p-8">
 		<h2 class="text-2xl font-bold text-center text-gray-800 mb-6">Login</h2>
-		{#if notification}
-			<div class="mb-4 text-sm text-green-700 bg-green-100 rounded px-3 py-2">{notification}</div>
+		{#if infoMessage}
+			<div class="mb-4 text-sm text-green-700 bg-green-100 rounded px-3 py-2">{infoMessage}</div>
 		{/if}
 		<form onsubmit={handleLogin} class="space-y-4">
 			<div>

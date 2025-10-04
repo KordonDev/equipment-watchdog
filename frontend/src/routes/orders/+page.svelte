@@ -1,39 +1,24 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { getOrders, type Order } from '$lib/services/order.service';
-	import { EquipmentType } from '$lib/services/equipment.service';
+	import { equipmentLabels, EquipmentType } from '$lib/services/equipment.service';
 	import { getMembers, type Member } from '$lib/services/member.service';
 	import BurgerMenu from '$lib/components/BurgerMenu.svelte';
+	import { formatToDate } from '$lib/services/timeHelper';
 
 	let orders: Order[] = [];
 	let members: Member[] = [];
 	let loading = true;
 
-	const equipmentLabels: Record<EquipmentType, string> = {
-		[EquipmentType.Helmet]: 'Helm',
-		[EquipmentType.Jacket]: 'Jacke',
-		[EquipmentType.Gloves]: 'Handschuhe',
-		[EquipmentType.Trousers]: 'Hose',
-		[EquipmentType.Boots]: 'Stiefel',
-		[EquipmentType.TShirt]: 'T-Shirt'
-	};
-
 	onMount(async () => {
 		loading = true;
-		orders = await getOrders();
-		members = await getMembers();
+		[orders, members] = await Promise.all([getOrders(), getMembers()]);
 		loading = false;
 	});
 
 	function getMemberName(memberId: number) {
 		const member = members.find(m => m.id === memberId);
 		return member ? member.name : 'Unbekannt';
-	}
-
-	function formatDate(date: Date | string | undefined) {
-		if (!date) return '';
-		const d = typeof date === 'string' ? new Date(date) : date;
-		return d.toLocaleDateString();
 	}
 
 	// Create segments for each equipment type
@@ -74,7 +59,7 @@
 						{#each getOrdersByType(type) as order}
 							<tr>
 								<td class="px-4 py-2 border-b">{order.size}</td>
-								<td class="px-4 py-2 border-b">{formatDate(order.createdAt)}</td>
+								<td class="px-4 py-2 border-b">{formatToDate(order.createdAt)}</td>
 								<td class="px-4 py-2 border-b">{getMemberName(order.memberId)}</td>
 							</tr>
 						{/each}

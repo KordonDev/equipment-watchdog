@@ -2,6 +2,7 @@
   import { register } from "$lib/services/authentication";
 	import { goto } from '$app/navigation';
 	import { routes } from '$lib/routes';
+	import { showError } from '$lib/services/notification.svelte';
 
   let username = '';
   let loading = false;
@@ -13,10 +14,10 @@
     error = null;
     try {
       await register(username);
-			goto(`${routes.Login.link}?message=Registrierung erfolgreich! Bitte einloggen.&username=${encodeURIComponent(username)}`);
+			goto(`${routes.login}?message=Registrierung erfolgreich! Bitte einloggen.&username=${encodeURIComponent(username)}`);
       // Optionally redirect or show success message here
     } catch (e) {
-      error = "Registrierung fehlgeschlagen. Bitte versuche es erneut.";
+      showError("Registrierung fehlgeschlagen. Bitte versuche es erneut.")
     } finally {
       loading = false;
     }

@@ -5,10 +5,11 @@ export const getDate = (date: string): Date | undefined => {
   return new Date(date);
 }
 
-export const formatToDate = (date?: Date): string => {
+export const formatToDate = (date?: Date | string): string => {
   if (!date) {
     return "-";
   }
-  return date.toLocaleDateString('de-de', { year: "numeric", month: "short", day: "numeric" });
+	const d = typeof date === 'string' ? new Date(date) : date;
+  return d.toLocaleDateString('de-de', { year: "numeric", month: "short", day: "numeric" });
 }
 

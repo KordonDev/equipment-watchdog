@@ -27,10 +27,10 @@ export function fetchApi(url: string, headers?: RequestInit) {
 			if (contentType && contentType.indexOf("application/json") !== -1) {
 				return res.json().then((data: any) => {
 					if (data.redirect === "login") {
-						return goto(routes.Login.link, { replaceState: true });
+						return goto(routes.login, { replaceState: true });
 					}
 					if (data.redirect === "not-approved") {
-						return goto(routes.NotApproved.link, { replaceState: true });
+						return goto(routes.notApproved, { replaceState: true });
 					}
 				});
 			}

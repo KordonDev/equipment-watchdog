@@ -1,7 +1,6 @@
 import { getDate } from "./timeHelper";
 import { fetchApi } from "../apiService";
 import type { Equipment, EquipmentType } from "./equipment.service";
-import { useRegistrationCode } from "./registrationCode.service";
 
 export interface Order<T = Date | undefined> {
   id: number;
@@ -17,19 +16,9 @@ export function getOrders(): Promise<Order[]> {
     .then(orders => orders.map(parseOrderDates));
 }
 
-export function getFulfilledOrders(): Promise<Order[]> {
-  return fetchApi(`/orders/fulfilled`)
-    .then(orders => orders.map(parseOrderDates));
-}
-
 export function getOrdersForMember(id: string): Promise<Order[]> {
   return fetchApi(`/orders/member/${id}`)
     .then(orders => orders.map(parseOrderDates));
-}
-
-export function getOrder(id: string): Promise<Order> {
-  return fetchApi(`/orders/${id}`)
-    .then(parseOrderDates);
 }
 
 export function createOrder(order: Order): Promise<Order> {
@@ -39,14 +28,6 @@ export function createOrder(order: Order): Promise<Order> {
       ...order,
       id: 0,
     }),
-  })
-    .then(parseOrderDates);
-}
-
-export function updateOrder(order: Order): Promise<Order> {
-  return fetchApi(`/orders/${order.id}`, {
-    method: "PUT",
-    body: JSON.stringify(order),
   })
     .then(parseOrderDates);
 }
@@ -67,20 +48,11 @@ interface Change {
   byUser: number;
 }
 
-export function getAllChanges(): Promise<Change[]> {
-  return fetchApi(`/changes/`);
-}
-
-
 export function fulfillOrder(order: Order, registrationCode: string): Promise<Equipment> {
   return fetchApi(`/orders/${registrationCode}/toEquipment`, {
     method: "POST",
     body: JSON.stringify(order)
   })
-    .then(e => {
-      useRegistrationCode(e.registrationCode);
-      return e;
-    })
 }
 
 function parseOrderDates(order: Order<string>): Order {

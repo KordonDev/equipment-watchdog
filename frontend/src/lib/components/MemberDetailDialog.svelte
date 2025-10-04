@@ -1,9 +1,16 @@
 <script lang="ts">
-	import { type Member, updateMember, deleteMember, Group, getMember } from '$lib/services/member.service';
-	import { createEquipment, deleteEquipment, type Equipment, EquipmentType } from '$lib/services/equipment.service';
+	import { type Member, updateMember, deleteMember, Group, getMember, groupLabels } from '$lib/services/member.service';
+	import {
+		createEquipment,
+		deleteEquipment,
+		type Equipment,
+		equipmentLabels,
+		EquipmentType
+	} from '$lib/services/equipment.service';
 	import { getOrdersForMember, type Order } from '$lib/services/order.service';
-	import { getNextGloveId, markGloveIdAsUsed, type GloveId } from '$lib/services/gloveId.service';
+	import { getNextGloveId } from '$lib/services/gloveId.service';
 	import OrderDialog from './OrderDialog.svelte';
+	import { showError } from '$lib/services/notification.svelte';
 
 	interface Props {
 		member: Member | null;
@@ -41,21 +48,6 @@
 		}
 	};
 
-	const equipmentLabels = {
-		[EquipmentType.Helmet]: 'Helm',
-		[EquipmentType.Jacket]: 'Jacke',
-		[EquipmentType.Gloves]: 'Handschuhe',
-		[EquipmentType.Trousers]: 'Hose',
-		[EquipmentType.Boots]: 'Stiefel',
-		[EquipmentType.TShirt]: 'T-Shirt'
-	};
-
-	const groupLabels = {
-		[Group.FRIDAY]: 'Freitagsgruppe',
-		[Group.MONDAY]: 'Montagsgruppe',
-		[Group.MINI]: 'Minigruppe'
-	};
-
 	const handleClose = () => {
 		editingMember = null;
 		onClose();
@@ -79,7 +71,8 @@
 			editingMember = updatedMember;
 			onMemberUpdated(updatedMember);
 		} catch (error) {
-			console.error('Failed to add equipment or update member:', error);
+			showError('Fehler beim Hinzufügen der Ausrüstung.');
+			console.error(error);
 			return;
 		}
 		editingMember = { ...editingMember }; // Trigger reactivity
@@ -102,7 +95,8 @@
 			editingMember = updatedMember;
 			onMemberUpdated(updatedMember);
 		} catch (error) {
-			console.error('Failed to remove equipment or update member:', error);
+			showError('Fehler beim Entfernen der Ausrüstung.');
+			console.error(error);
 			return;
 		}
 		editingMember = { ...editingMember }; // Trigger reactivity
@@ -127,7 +121,8 @@
 		editingMember.group = newGroup;
 	};
 
-	const handleGroupSave = async () => {
+	const handleGroupSave = async (e: SubmitEvent) => {
+		e.preventDefault();
 		if (!editingMember) return;
 		try {
 			const updatedMember = await updateMember(editingMember);
@@ -135,19 +130,21 @@
 			onMemberUpdated(updatedMember);
 			groupChanged = false;
 		} catch (error) {
-			console.error('Failed to update group:', error);
+			console.error(error);
+			showError('Fehler beim Speichern der Gruppe.');
 		}
 	};
 
 	const handleDeleteMember = async () => {
 		if (!editingMember) return;
-		if (!confirm('Soll dieses Mitglied wirklich gelöscht werden?')) return;
+		if (!confirm(`Soll ${editingMember.name} wirklich gelöscht werden?`)) return;
 		try {
 			await deleteMember(editingMember.id);
 			onClose(editingMember.id); // Pass deleted member ID
 			// Optionally, you can notify parent to refresh the member list here
 		} catch (error) {
-			console.error('Mitglied konnte nicht gelöscht werden:', error);
+			console.error(error);
+			showError("Fehler beim Löschen des Mitglieds.");
 		}
 	};
 
@@ -162,14 +159,11 @@
 	};
 
 	let orders: Order[] = $state([]);
-	let ordersLoading = $state(true);
 
 	$effect(() => {
 		if (editingMember !== null) {
-			ordersLoading = true;
 			getOrdersForMember(editingMember.id.toString())
 				.then(o => orders = o)
-				.finally(() => ordersLoading = false);
 		}
 	})
 
@@ -255,7 +249,7 @@
 			</div>
 
 			<!-- Group Selector with Save Button -->
-			<div class="mb-4 flex items-end gap-2">
+			<form onsubmit={handleGroupSave} class="mb-4 flex items-end gap-2">
 				<label class="block text-xs text-gray-500 mb-1 flex-grow">Gruppe
 					<select
 						class="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:border-purple-500 focus:ring focus:ring-purple-200 focus:ring-opacity-50"
@@ -271,12 +265,11 @@
 					type="button"
 					style="margin-bottom: 4px; padding-bottom: 3px; padding-top: 3px;"
 					class="px-3 py-1 bg-purple-600 text-white rounded hover:bg-purple-700 transition-colors"
-					onclick={handleGroupSave}
 					disabled={!groupChanged}
 				>
 					Speichern
 				</button>
-			</div>
+			</form>
 			
 			<div class="flex justify-end mt-2">
 				<button
@@ -301,12 +294,13 @@
 		</div>
 	</div>
 
+	{#if showOrderDialog}
 	<OrderDialog
 		memberName={editingMember.name}
 		equipmentLabels={equipmentLabels}
-		show={showOrderDialog}
 		onClose={handleCloseOrderDialog}
 		memberId={editingMember.id}
 		onEquipmentChanged={handleEquipmentChanged}
 	/>
+	{/if}
 {/if}

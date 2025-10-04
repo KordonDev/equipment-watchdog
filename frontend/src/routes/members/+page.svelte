@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { getMembers, Group, groupLabels, type Member } from '$lib/services/member.service';
-	import { EquipmentType } from '$lib/services/equipment.service';
+	import { equipmentLabels, EquipmentType } from '$lib/services/equipment.service';
 	import { getOrders, type Order } from '$lib/services/order.service';
 	import AddMemberDialog from '$lib/components/AddMemberDialog.svelte';
 	import MemberDetailDialog from '$lib/components/MemberDetailDialog.svelte';
@@ -10,9 +10,9 @@
 	let members: Member[] = $state([]);
 	let selectedGroup: Group = $state(Group.FRIDAY);
 	let loading = $state(true);
-	let showDialog = $state(false);
+	let showAddMemberDialog = $state(false);
 	let showDetailDialog = $state(false);
-	let selectedMember: Member | null = $state(null);
+	let memberForDetails: Member | null = $state(null);
 	let orders: Order[] = $state([]);
 
 	let filteredMembers = $derived(members.filter(member => member.group === selectedGroup));
@@ -28,30 +28,21 @@
 		}
 	});
 
-	const equipmentLabels = {
-		[EquipmentType.Helmet]: 'Helm',
-		[EquipmentType.Jacket]: 'Jacke',
-		[EquipmentType.Gloves]: 'Handschuhe',
-		[EquipmentType.Trousers]: 'Hose',
-		[EquipmentType.Boots]: 'Stiefel',
-		[EquipmentType.TShirt]: 'T-Shirt'
-	};
-
 	const handleAddMember = () => {
-		showDialog = true;
+		showAddMemberDialog = true;
 	};
 
 	const handleMemberAdded = (newMember: Member) => {
 		members = [...members, newMember];
-		showDialog = false;
+		showAddMemberDialog = false;
 	};
 
 	const handleCloseDialog = () => {
-		showDialog = false;
+		showAddMemberDialog = false;
 	};
 
 	const handleMemberClick = (member: Member) => {
-		selectedMember = member;
+		memberForDetails = member;
 		showDetailDialog = true;
 	};
 
@@ -70,7 +61,7 @@
 		if (deletedMemberId) {
 			members = members.filter(m => m.id !== deletedMemberId);
 		}
-		selectedMember = null;
+		memberForDetails = null;
 		members = [...members]; // Trigger reactivity
 	};
 
@@ -80,7 +71,7 @@
 
 <div class="p-6">
 	<BurgerMenu />
-	<h1 class="text-2xl font-bold mb-6">Personen</h1>
+	<h1 class="text-2xl font-bold mb-6">Mitglieder</h1>
 
 	<!-- Group Switcher with Add Button -->
 	<div class="mb-6 flex items-center justify-between flex-wrap gap-2">
@@ -139,7 +130,7 @@
 </div>
 
 
-{#if showDialog}
+{#if showAddMemberDialog}
 	<AddMemberDialog
 		{selectedGroup}
 		{groupLabels}
@@ -150,7 +141,7 @@
 
 {#if showDetailDialog}
 	<MemberDetailDialog
-		member={selectedMember}
+		member={memberForDetails}
 		onClose={handleCloseDetailDialog}
 		onMemberUpdated={handleMemberUpdated}
 	/>

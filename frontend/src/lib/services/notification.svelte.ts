@@ -6,13 +6,23 @@ export type Notification = {
 
 export const notifications = $state<Notification[]>([]);
 
-export function showError(message: string, duration = 2000) {
+export function showError(message: string, duration = 3000) {
+	showNotification(message, duration, 'error');
+}
+
+export function showInfo(message: string, duration = 3000) {
+	showNotification(message, duration, 'info');
+}
+export function showSuccess(message: string, duration = 2000) {
+	showNotification(message, duration, 'success');
+}
+
+function showNotification(message: string, duration: number, type: 'error' | 'info' | 'success') {
 	const id = Math.random().toString(36);
-	console.log(`${id}: ${message}`);
 	notifications.push({
 		id: id,
 		message: message,
-		type: 'error',
+		type: type,
 	})
 	setTimeout(() => {
 		const index = notifications.findIndex(n => n.id === id);

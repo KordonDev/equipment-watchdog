@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { EquipmentType, type Equipment, getAllEquipment } from '$lib/services/equipment.service';
+	import { EquipmentType, type Equipment, getAllEquipment, equipmentLabels } from '$lib/services/equipment.service';
 	import { getMembers, type Member } from '$lib/services/member.service';
 	import BurgerMenu from '$lib/components/BurgerMenu.svelte';
 
@@ -8,19 +8,9 @@
 	let members: Member[] = [];
 	let loading = true;
 
-	const equipmentLabels: Record<EquipmentType, string> = {
-		[EquipmentType.Gloves]: 'Handschuhe',
-		[EquipmentType.Jacket]: 'Jacke',
-		[EquipmentType.Trousers]: 'Hose',
-		[EquipmentType.Boots]: 'Stiefel',
-		[EquipmentType.TShirt]: 'TShirt',
-		[EquipmentType.Helmet]: 'Helm'
-	};
-
 	onMount(async () => {
 		loading = true;
-		equipment = await getAllEquipment();
-		members = await getMembers();
+		[equipment, members] = await Promise.all([getAllEquipment(), getMembers()]);
 		loading = false;
 	});
 
@@ -57,7 +47,7 @@
 						<tr>
 							<th class="px-4 py-2 border-b">Code</th>
 							<th class="px-4 py-2 border-b">Größe</th>
-							<th class="px-4 py-2 border-b">Besitzer</th>
+							<th class="px-4 py-2 border-b">Von</th>
 						</tr>
 					</thead>
 					<tbody>

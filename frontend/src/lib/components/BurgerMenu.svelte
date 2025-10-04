@@ -3,13 +3,14 @@
   import { page } from '$app/state';
   import { logout } from "$lib/services/authentication";
 	import { goto } from "$app/navigation";
+	import { routes } from '$lib/routes';
 
   const links = [
-    { href: "/members", label: "Mitglieder" },
-    { href: "/equipments", label: "Ausrüstung" },
-    { href: "/orders", label: "Bestellungen" },
-    { href: "/changes", label: "Änderungen" },
-		{ href: "/users", label: "Benutzer" }
+    { href: routes.members, label: "Mitglieder" },
+    { href: routes.equipment, label: "Ausrüstung" },
+    { href: routes.orders, label: "Bestellungen" },
+    { href: routes.changes, label: "Änderungen" },
+		{ href: routes.users, label: "Benutzer" }
   ];
   let showMenu = false;
   let menuRef: any;

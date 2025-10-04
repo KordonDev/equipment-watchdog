@@ -3,22 +3,20 @@
 	import { getAllUser, toggleApproveUser, toggleAdminUser, getMe, type User } from '$lib/services/user.service';
 	import { changePassword, addLogin } from '$lib/services/authentication';
 	import BurgerMenu from '$lib/components/BurgerMenu.svelte';
+	import { showError, showSuccess } from '$lib/services/notification.svelte';
 
 	let users: User[] = [];
 	let loading = true;
 	let currentUser: User | null = null;
 	let newPassword = '';
 	let passwordChangeLoading = false;
-	let passwordChangeSuccess = false;
-	let passwordChangeError = '';
 	let passkeyLoading = false;
-	let passkeySuccess = false;
-	let passkeyError = '';
 
 	const loadUsers = async () => {
 		currentUser = await getMe();
 		if (currentUser.isAdmin) {
-			users = await getAllUser();
+			const allUsers = await getAllUser();
+			users = [currentUser, ...(allUsers.filter(u => u.id !== currentUser?.id))]
 		} else {
 			users = [currentUser];
 		}
@@ -37,28 +35,25 @@
 
 	const handleChangePassword = async () => {
 		passwordChangeLoading = true;
-		passwordChangeSuccess = false;
-		passwordChangeError = '';
 		try {
 			await changePassword(newPassword);
-			passwordChangeSuccess = true;
+			showSuccess("Passwort erfolgreich geändert.");
 			newPassword = '';
 		} catch (e) {
-			passwordChangeError = 'Fehler beim Ändern des Passworts.';
+			console.error(e)
+			showError('Fehler beim Ändern des Passworts.');
 		}
 		passwordChangeLoading = false;
 	};
 
 	const handleAddPasskey = async () => {
 		passkeyLoading = true;
-		passkeySuccess = false;
-		passkeyError = '';
 		try {
 			await addLogin();
-			passkeySuccess = true;
+			showSuccess("Passkey erfolgreich hinzugefügt.");
 		} catch (e) {
 			console.error(e)
-			passkeyError = 'Fehler beim Hinzufügen des Passkeys.';
+			showError('Fehler beim Hinzufügen des Passkeys.');
 		}
 		passkeyLoading = false;
 	};
@@ -80,7 +75,7 @@
 					<th class="px-4 py-2 border-b text-left">Name</th>
 					<th class="px-4 py-2 border-b text-left">Genehmigt</th>
 					<th class="px-4 py-2 border-b text-left">Admin</th>
-					<th class="px-4 py-2 border-b text-left">Aktionen</th>
+					<th class="px-4 py-2 border-b text-left"></th>
 				</tr>
 			</thead>
 			<tbody>
@@ -136,12 +131,6 @@
 					Ändern
 				</button>
 			</div>
-			{#if passwordChangeSuccess}
-				<div class="text-green-600 mt-2">Passwort erfolgreich geändert.</div>
-			{/if}
-			{#if passwordChangeError}
-				<div class="text-red-600 mt-2">{passwordChangeError}</div>
-			{/if}
 
 			<h2 class="text-lg font-semibold mt-8 mb-2">Neuen Passkey hinzufügen</h2>
 			<div class="flex gap-2 items-center">
@@ -153,12 +142,6 @@
 					Passkey hinzufügen
 				</button>
 			</div>
-			{#if passkeySuccess}
-				<div class="text-green-600 mt-2">Passkey erfolgreich hinzugefügt.</div>
-			{/if}
-			{#if passkeyError}
-				<div class="text-red-600 mt-2">{passkeyError}</div>
-			{/if}
 		</div>
 	{/if}
 </div>

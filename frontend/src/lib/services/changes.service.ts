@@ -22,24 +22,6 @@ export interface Change {
 	userId: number;
 }
 
-
-
-export function getChangesForEquipment(id: number): Promise<string[]> {
-  return fetchApi(`/changes/equipments/${id}`);
-}
-
-export function getChangesForOrder(id: number): Promise<string[]> {
-  return fetchApi(`/changes/orders/${id}`);
-}
-
-export function getChangesForMember(id: number): Promise<string[]> {
-  return fetchApi(`/changes/members/${id}`);
-}
-
-export function getAllChanges(): Promise<string[]> {
-	return fetchApi(`/changes/`);
-}
-
 export function getRecentChanges(): Promise<Change[]> {
 	return fetchApi(`/changes/recent`);
 }

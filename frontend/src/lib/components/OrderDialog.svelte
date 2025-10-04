@@ -2,10 +2,11 @@
 	import { EquipmentType } from '$lib/services/equipment.service';
 	import { createOrder, deleteOrder, fulfillOrder, getOrdersForMember, type Order } from '$lib/services/order.service';
 	import { getNextGloveId } from '$lib/services/gloveId.service';
+	import { onMount } from 'svelte';
+	import { showError } from '$lib/services/notification.svelte';
 
 	export let memberName: string;
 	export let equipmentLabels: Record<EquipmentType, string>;
-	export let show: boolean;
 	export let onClose: () => void;
 	export let memberId: string;
 	export let onEquipmentChanged: () => void; // Callback für Equipment-Update
@@ -37,20 +38,17 @@
 		}
 	};
 
-	$: if (show) {
+	onMount(() => {
 		loadOrders();
 		loadNextGloveId();
-	}
+	})
 
 	const getOpenOrder = (type: EquipmentType) =>
 		orders.find(order => order.type === type && !order.fulfilledAt);
 
-	const handleOrderEquipment = async (equipmentType: EquipmentType) => {
+	const handleOrderEquipment = async (e: SubmitEvent,equipmentType: EquipmentType) => {
+		e.preventDefault();
 		const size = orderSizes[equipmentType]?.trim();
-		if (!size) {
-			alert('Bitte eine Größe angeben.');
-			return;
-		}
 		try {
 			const memberIdInternal = parseInt(memberId, 10);
 			await createOrder({
@@ -67,7 +65,7 @@
 			await loadOrders();
 			onEquipmentChanged && onEquipmentChanged(); // Equipment/Order-Update triggern
 		} catch (e) {
-			alert('Bestellung fehlgeschlagen.');
+			showError("Fehler beim Erstellen der Bestellung.");
 		}
 	};
 
@@ -77,7 +75,8 @@
 		onEquipmentChanged && onEquipmentChanged(); // Equipment/Order-Update triggern
 	};
 
-	const handleFulfillOrder = async (order: Order, equipmentType: EquipmentType) => {
+	const handleFulfillOrder = async (e: SubmitEvent,order: Order, equipmentType: EquipmentType) => {
+		e.preventDefault()
 		const regCode = registrationCodes[equipmentType]?.trim();
 		if (!regCode) {
 			alert('Bitte eine Ausrüstungsnummer angeben.');
@@ -96,7 +95,6 @@
 	}
 </script>
 
-{#if show}
 	<div class="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-60">
 		<div class="bg-white rounded-lg p-6 w-full max-w-md shadow-lg relative">
 			<div class="flex items-center justify-between mb-4">
@@ -136,41 +134,44 @@
 										Löschen
 									</button>
 								{:else}
+									<form onsubmit={e => handleOrderEquipment(e, equipmentType)}>
 									{#if equipmentType !== EquipmentType.Helmet}
 										<input
 											type="text"
 											placeholder="Größe"
 											class="flex-1 px-2 py-1 border border-gray-300 rounded focus:border-blue-500"
+											required
 											bind:value={orderSizes[equipmentType]}
 										/>
 									{:else}
 										<div class="flex-1"></div>
 									{/if}
 									<button
-										type="button"
+										type="submit"
 										class="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
-										on:click={() => handleOrderEquipment(equipmentType)}
 									>
 										Bestellen
 									</button>
+									</form>
 								{/if}
 							</div>
+
 							{#if openOrder}
-								<div class="flex items-center gap-2 mt-1">
+								<form onsubmit={e => handleFulfillOrder(e, openOrder, equipmentType)} class="flex items-center gap-2 mt-1">
 									<input
 										type="text"
 										placeholder="Ausrüstungsnummer"
+										required
 										class="flex-1 px-2 py-1 border border-gray-300 rounded focus:border-blue-500"
 										bind:value={registrationCodes[equipmentType]}
 									/>
 									<button
-										type="button"
+										type="submit"
 										class="px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700 transition-colors"
-										on:click={() => handleFulfillOrder(openOrder, equipmentType)}
 									>
 										Erfüllen
 									</button>
-								</div>
+								</form>
 								{#if equipmentType === EquipmentType.Gloves && nextGloveId}
 									<div class="text-xs text-green-600 mt-1">
 										✓ Nächste verfügbare Handschuh-ID: {nextGloveId}
@@ -197,4 +198,3 @@
 			</div>
 		</div>
 	</div>
-{/if}
