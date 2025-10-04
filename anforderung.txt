@@ -1,7 +1,0 @@
-Ich brauche eine App die Hauptsächlich am Handy verwendet wird, aber auch am Laptop verwendet wird. Es soll eine Webseite werden, die mit tailwind gebaut wird. Sie soll Kleider von Personen verwalten.
-Mögliche Kleider sind Helm, Handschuhe, Jacke 1, Jacke 2, Hose, Stiefel und TShirt. Für Hose die beiden Jacken und das TShirt soll eine 6 Stellige Nummer gespeichert werden. Für den rest nur ob es vorhanden ist.
-Die Personen sind in 3 Listen unterteilt, die schnell zu wechseln sein sollen. Für jede Person kann man die Kleider bestellen und muss dann eine Größe angeben. Gespeichert wird zusätzlich noch das aktuelle Datum als Bestelldatum.
-Für jede Person kann man schon in der Liste sehen, welche Kleider vorhanden sind, auf der Datailansicht sieht man dann die Nummern die Zugeteilt wurden.
-Namen, Gruppenzugehörigkeit und Kleider können alle in der Detailansicht geändert werden.
-Außerdem solle es eine Liste geben, mit allen Änderungen aller Personen.
-Und eine Liste aller Nutzer, die freigeschalten werden sollen. Natürlich soll man sich auch ein und ausloggen können.
