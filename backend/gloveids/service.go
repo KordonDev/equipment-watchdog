@@ -7,7 +7,6 @@ import (
 type Database interface {
 	getNextAvailableId() (string, error)
 	markIdAsUsed(gloveId string) error
-	getAllUsedIds() ([]string, error)
 }
 
 type Service struct {
@@ -27,8 +26,4 @@ func (s *Service) GetNextGloveId() (string, error) {
 
 func (s *Service) MarkGloveIdAsUsed(gloveId string) error {
 	return s.db.markIdAsUsed(gloveId)
-}
-
-func (s *Service) GetUsedGloveIds() ([]string, error) {
-	return s.db.getAllUsedIds()
 }

@@ -25,16 +25,20 @@ func newGloveIdDB(db *gorm.DB) *gloveIdDB {
 }
 
 func (gdb *gloveIdDB) getNextAvailableId() (string, error) {
-	for id := 1; id < 1000; id++ {
-		gloveId := fmt.Sprintf("%d", id)
-		var count int64
-		err := gdb.Model(&models.DbGloveId{}).Where("glove_id = ? and used = true", gloveId).Count(&count).Error
-		if err != nil {
-			return "", err
-		}
+	usedGloveIds := make([]uint64, 0)
+	err := gdb.Model(&models.DbGloveId{}).Where("used = true").Pluck("glove_id", &usedGloveIds).Error
+	if err != nil {
+		return "", err
+	}
+	// make list to map for faster lookup
+	usedGloveIdMap := make(map[uint64]bool)
+	for _, id := range usedGloveIds {
+		usedGloveIdMap[id] = true
+	}
 
-		if count == 0 {
-			return gloveId, nil
+	for id := 1; id < 1000; id++ {
+		if usedGloveIdMap[uint64(id)] {
+			return fmt.Sprintf("%d", id), nil
 		}
 	}
 
@@ -58,20 +62,9 @@ func (gdb *gloveIdDB) markIdAsUsed(gloveId string) error {
 		return err
 	}
 
+	if existingId.Used {
+		return errors.New("glove ID already used")
+	}
+
 	return gdb.Model(&existingId).Update("used", true).Error
-}
-
-func (gdb *gloveIdDB) getAllUsedIds() ([]string, error) {
-	var gloveIds []models.DbGloveId
-	err := gdb.Where("used = ?", true).Find(&gloveIds).Error
-	if err != nil {
-		return nil, err
-	}
-
-	usedIds := make([]string, len(gloveIds))
-	for i, gId := range gloveIds {
-		usedIds[i] = gId.GloveId
-	}
-
-	return usedIds, nil
 }

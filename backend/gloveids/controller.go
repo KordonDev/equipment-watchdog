@@ -9,7 +9,6 @@ import (
 type GloveIdService interface {
 	GetNextGloveId() (string, error)
 	MarkGloveIdAsUsed(gloveId string) error
-	GetUsedGloveIds() ([]string, error)
 }
 
 type Controller struct {
@@ -25,7 +24,6 @@ func NewController(baseRoute *gin.RouterGroup, service GloveIdService) {
 	{
 		gloveIdRoute.GET("/next", ctrl.getNextGloveId)
 		gloveIdRoute.POST("/mark-used/:id", ctrl.markGloveIdAsUsed)
-		gloveIdRoute.GET("/used", ctrl.getUsedGloveIds)
 	}
 }
 
@@ -51,16 +49,4 @@ func (ctrl Controller) markGloveIdAsUsed(c *gin.Context) {
 	}
 
 	c.Status(http.StatusOK)
-}
-
-func (ctrl Controller) getUsedGloveIds(c *gin.Context) {
-	usedIds, err := ctrl.service.GetUsedGloveIds()
-	if err != nil {
-		c.AbortWithError(http.StatusInternalServerError, err)
-		return
-	}
-
-	c.JSON(http.StatusOK, gin.H{
-		"usedIds": usedIds,
-	})
 }

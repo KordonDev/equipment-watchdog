@@ -61,7 +61,7 @@ func (s EquipmentService) GetForIds(ids []uint64) ([]*models.Equipment, error) {
 	return s.db.getForIds(ids)
 }
 
-func (s EquipmentService) getEquipments() ([]*models.Equipment, error) {
+func (s EquipmentService) getAllEquipment() ([]*models.Equipment, error) {
 	return s.db.getAll()
 }
 
