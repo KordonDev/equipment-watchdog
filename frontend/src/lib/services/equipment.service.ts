@@ -1,4 +1,5 @@
 import { fetchApi } from "../apiService";
+import { Group } from '$lib/services/member.service';
 
 export interface Equipment {
   id: number;

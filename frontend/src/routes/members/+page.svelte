@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { getMembers, Group, groupLabels, type Member } from '$lib/services/member.service';
+	import { equipmentForGroup, getMembers, Group, groupLabels, type Member } from '$lib/services/member.service';
 	import { equipmentLabels, EquipmentType } from '$lib/services/equipment.service';
 	import { getOrders, type Order } from '$lib/services/order.service';
 	import AddMemberDialog from '$lib/components/AddMemberDialog.svelte';
@@ -109,7 +109,7 @@
 
 					<!-- Equipment Indicators -->
 					<div class="flex flex-wrap gap-1">
-						{#each Object.values(EquipmentType) as equipmentType}
+						{#each (equipmentForGroup[member.group] || []) as equipmentType}
 							{@const hasEquipment = member.equipments[equipmentType]}
 							<span
 								class="px-2 py-1 text-xs rounded flex items-center gap-1 {hasEquipment ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}"

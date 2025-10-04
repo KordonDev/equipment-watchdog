@@ -5,11 +5,11 @@
 	import { onMount } from 'svelte';
 	import { showError } from '$lib/services/notification.svelte';
 	import { formatToDate } from '$lib/services/timeHelper';
+	import { equipmentForGroup, type Member } from '$lib/services/member.service';
 
-	export let memberName: string;
+	export let member: Member;
 	export let equipmentLabels: Record<EquipmentType, string>;
 	export let onClose: () => void;
-	export let memberId: string;
 	export let onEquipmentChanged: () => void; // Callback für Equipment-Update
 
 	let orderSizes: Record<EquipmentType, string> = {
@@ -23,7 +23,7 @@
 
 	const loadOrders = async () => {
 		loadingOrders = true;
-		orders = await getOrdersForMember(memberId);
+		orders = await getOrdersForMember(member.id);
 		loadingOrders = false;
 	};
 
@@ -49,9 +49,10 @@
 
 	const handleOrderEquipment = async (e: SubmitEvent,equipmentType: EquipmentType) => {
 		e.preventDefault();
+		debugger;
 		const size = orderSizes[equipmentType]?.trim();
 		try {
-			const memberIdInternal = parseInt(memberId, 10);
+			const memberIdInternal = parseInt(member.id, 10);
 			await createOrder({
 				id: 0,
 				type: equipmentType,
@@ -66,6 +67,7 @@
 			await loadOrders();
 			onEquipmentChanged && onEquipmentChanged(); // Equipment/Order-Update triggern
 		} catch (e) {
+			console.error(e);
 			showError("Fehler beim Erstellen der Bestellung.");
 		}
 	};
@@ -94,7 +96,7 @@
 	<div class="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-60">
 		<div class="bg-white rounded-lg p-6 w-full max-w-md shadow-lg relative">
 			<div class="flex items-center justify-between mb-4">
-				<h3 class="text-lg font-bold">Bestellungen {memberName}</h3>
+				<h3 class="text-lg font-bold">Bestellungen {member.name}</h3>
 				<button
 					type="button"
 					onclick={onClose}
@@ -107,9 +109,9 @@
 				<div class="text-center py-4">Lade Bestellungen...</div>
 			{:else}
 				<div class="space-y-4">
-					{#each Object.values(EquipmentType) as equipmentType}
+					{#each equipmentForGroup[member.group] as equipmentType}
 						{@const openOrder = getOpenOrder(equipmentType)}
-						<div class="flex flex-col gap-1">
+						<div class="border rounded-lg p-4 flex flex-col gap-1">
 							<div class="flex items-center gap-2">
 								<span class="w-28">{equipmentLabels[equipmentType]}</span>
 								{#if openOrder}

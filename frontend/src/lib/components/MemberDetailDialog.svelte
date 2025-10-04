@@ -1,5 +1,13 @@
 <script lang="ts">
-	import { type Member, updateMember, deleteMember, Group, getMember, groupLabels } from '$lib/services/member.service';
+	import {
+		type Member,
+		updateMember,
+		deleteMember,
+		Group,
+		getMember,
+		groupLabels,
+		equipmentForGroup
+	} from '$lib/services/member.service';
 	import {
 		createEquipment,
 		deleteEquipment,
@@ -204,7 +212,7 @@
 			</div>
 
 			<div class="space-y-4 mb-4">
-				{#each Object.values(EquipmentType) as equipmentType}
+				{#each equipmentForGroup[editingMember.group] as equipmentType}
 					{@const equipment = editingMember.equipments[equipmentType]}
 					<form class="border rounded-lg p-4" onsubmit={() => equipment ? removeEquipment(equipmentType) : addEquipment(equipmentType)}>
 						<div class="flex items-center justify-between mb-2">
@@ -296,10 +304,9 @@
 
 	{#if showOrderDialog}
 	<OrderDialog
-		memberName={editingMember.name}
+		member={editingMember}
 		equipmentLabels={equipmentLabels}
 		onClose={handleCloseOrderDialog}
-		memberId={editingMember.id}
 		onEquipmentChanged={handleEquipmentChanged}
 	/>
 	{/if}
