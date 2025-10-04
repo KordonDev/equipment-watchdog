@@ -4,6 +4,7 @@
 	import { getNextGloveId } from '$lib/services/gloveId.service';
 	import { onMount } from 'svelte';
 	import { showError } from '$lib/services/notification.svelte';
+	import { formatToDate } from '$lib/services/timeHelper';
 
 	export let memberName: string;
 	export let equipmentLabels: Record<EquipmentType, string>;
@@ -88,11 +89,6 @@
 		await loadOrders();
 		onEquipmentChanged && onEquipmentChanged(); // Equipment-Update triggern
 	};
-
-	function formatDate(date: Date | undefined) {
-		if (!date) return '';
-		return date.toLocaleDateString();
-	}
 </script>
 
 	<div class="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-60">
@@ -101,7 +97,7 @@
 				<h3 class="text-lg font-bold">Bestellungen {memberName}</h3>
 				<button
 					type="button"
-					on:click={onClose}
+					onclick={onClose}
 					class="text-gray-400 hover:text-gray-600 text-2xl leading-none"
 				>
 					×
@@ -123,13 +119,13 @@
 										</span>
 									{/if}
 									<span class="text-xs text-gray-500 bg-gray-50 rounded px-2 py-0.5" title="Bestelldatum">
-										{formatDate(openOrder.createdAt)}
+										{formatToDate(openOrder.createdAt)}
 									</span>
 									<div class="flex-1"></div>
 									<button
 										type="button"
 										class="px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700 transition-colors ml-auto"
-										on:click={() => handleDeleteOrder(openOrder.id)}
+										onclick={() => handleDeleteOrder(openOrder.id)}
 									>
 										Löschen
 									</button>
@@ -190,7 +186,7 @@
 			<div class="flex justify-end mt-6">
 				<button
 					type="button"
-					on:click={onClose}
+					onclick={onClose}
 					class="px-4 py-2 text-gray-600 bg-gray-200 rounded hover:bg-gray-300 transition-colors"
 				>
 					Schließen
