@@ -1,6 +1,6 @@
 export const routes = {
   login: "/login",
-  passwordLogin: "/password-login",
+	loginPassword: "/login-password",
   register: "/register",
   members: "/members",
   users: "/users/",

@@ -34,7 +34,6 @@ export function fetchApi(url: string, headers?: RequestInit) {
 					}
 				});
 			}
-			showError('Ein Fehler ist aufgetreten');
 			throw res;
 		});
 }
