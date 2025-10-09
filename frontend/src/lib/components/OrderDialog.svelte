@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { EquipmentType } from '$lib/services/equipment.service';
+	import { EquipmentType, randomRegistrationCode } from '$lib/services/equipment.service';
 	import { createOrder, deleteOrder, fulfillOrder, getOrdersForMember, type Order } from '$lib/services/order.service';
 	import { getNextGloveId } from '$lib/services/gloveId.service';
 	import { onMount } from 'svelte';
@@ -15,7 +15,9 @@
 	let orderSizes: Record<EquipmentType, string> = {
 		[EquipmentType.Helmet]: '0',
 	} as Record<EquipmentType, string>;
-	let registrationCodes: Record<EquipmentType, string> = {} as Record<EquipmentType, string>;
+	let registrationCodes: Record<EquipmentType, string> = {
+		[EquipmentType.Helmet]: randomRegistrationCode()
+	} as Record<EquipmentType, string>;
 	let orders: Order[] = [];
 	let loadingOrders = false;
 	let nextGloveId: string | null = null;
@@ -155,13 +157,17 @@
 
 							{#if openOrder}
 								<form onsubmit={e => handleFulfillOrder(e, openOrder, equipmentType)} class="flex items-center gap-2 mt-1">
-									<input
-										type="text"
-										placeholder="Ausrüstungsnummer"
-										required
-										class="flex-1 px-2 py-1 border border-gray-300 rounded focus:border-blue-500"
-										bind:value={registrationCodes[equipmentType]}
-									/>
+									{#if equipmentType !== EquipmentType.Helmet}
+										<input
+											type="text"
+											placeholder="Ausrüstungsnummer"
+											required
+											class="flex-1 px-2 py-1 border border-gray-300 rounded focus:border-blue-500"
+											bind:value={registrationCodes[equipmentType]}
+										/>
+									{:else}
+										<div class="flex-1"></div>
+									{/if}
 									<button
 										type="submit"
 										class="px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700 transition-colors"

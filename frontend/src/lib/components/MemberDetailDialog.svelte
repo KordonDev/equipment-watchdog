@@ -13,7 +13,7 @@
 		deleteEquipment,
 		type Equipment,
 		equipmentLabels,
-		EquipmentType
+		EquipmentType, randomRegistrationCode
 	} from '$lib/services/equipment.service';
 	import { getOrdersForMember, type Order } from '$lib/services/order.service';
 	import { getNextGloveId } from '$lib/services/gloveId.service';
@@ -38,7 +38,7 @@
 		tempRegistrationCodes[type] = editingMember?.equipments[type]?.registrationCode || '';
 	});
 	if (tempRegistrationCodes[EquipmentType.Helmet] === '') {
-		tempRegistrationCodes[EquipmentType.Helmet] = (Math.random() + 1).toString(36).substring(7);
+		tempRegistrationCodes[EquipmentType.Helmet] = randomRegistrationCode();
 	}
 
 	$effect(() => {

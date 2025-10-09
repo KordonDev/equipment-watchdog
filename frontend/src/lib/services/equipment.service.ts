@@ -30,6 +30,10 @@ export function deleteEquipment(id: number): Promise<void> {
   });
 }
 
+export function randomRegistrationCode(): string {
+	return (Math.random() + 1).toString(36).substring(7)
+}
+
 export type EquipmentListByType = {
   [EquipmentType.Helmet]?: Equipment[];
   [EquipmentType.Jacket]?: Equipment[];
