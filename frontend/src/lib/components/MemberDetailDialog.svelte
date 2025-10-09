@@ -37,6 +37,9 @@
 	Object.values(EquipmentType).forEach(type => {
 		tempRegistrationCodes[type] = editingMember?.equipments[type]?.registrationCode || '';
 	});
+	if (tempRegistrationCodes[EquipmentType.Helmet] === '') {
+		tempRegistrationCodes[EquipmentType.Helmet] = (Math.random() + 1).toString(36).substring(7);
+	}
 
 	$effect(() => {
 		if (editingMember) {
@@ -100,6 +103,7 @@
 
 			// Save member after equipment change
 			const updatedMember = await updateMember(editingMember);
+			tempRegistrationCodes[equipmentType] = '';
 			editingMember = updatedMember;
 			onMemberUpdated(updatedMember);
 		} catch (error) {
@@ -135,6 +139,9 @@
 		try {
 			const updatedMember = await updateMember(editingMember);
 			editingMember = updatedMember;
+			if (member) {
+				member.group = updatedMember.group;
+			}
 			onMemberUpdated(updatedMember);
 			groupChanged = false;
 		} catch (error) {
@@ -212,7 +219,7 @@
 			</div>
 
 			<div class="space-y-4 mb-4">
-				{#each equipmentForGroup[editingMember.group] as equipmentType}
+				{#each equipmentForGroup[member?.group] as equipmentType}
 					{@const equipment = editingMember.equipments[equipmentType]}
 					<form class="border rounded-lg p-4" onsubmit={() => equipment ? removeEquipment(equipmentType) : addEquipment(equipmentType)}>
 						<div class="flex items-center justify-between mb-2">
@@ -231,16 +238,18 @@
 						</div>
 
 						<div>
-							<label class="block text-xs text-gray-500 mb-1">Ausrüstungsnummer
-							<input
-								type="text"
-								required
-								value={equipment ? equipment.registrationCode : tempRegistrationCodes[equipmentType] || ''}
-								oninput={(e) => updateEquipmentNumber(equipmentType, e.target?.value || '')}
-								disabled={!!equipment}
-								class="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:border-purple-500 focus:ring focus:ring-purple-200 focus:ring-opacity-50 {equipment ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : ''}"
-							/>
-							</label>
+							{#if equipmentType !== EquipmentType.Helmet}
+								<label class="block text-xs text-gray-500 mb-1">Ausrüstungsnummer
+								<input
+									type="text"
+									required
+									value={equipment ? equipment.registrationCode : tempRegistrationCodes[equipmentType] || ''}
+									oninput={(e) => updateEquipmentNumber(equipmentType, e.target?.value || '')}
+									disabled={!!equipment}
+									class="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:border-purple-500 focus:ring focus:ring-purple-200 focus:ring-opacity-50 {equipment ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : ''}"
+								/>
+								</label>
+							{/if}
 							{#if equipmentType === EquipmentType.Gloves && !equipment && nextGloveId}
 								<div class="text-xs text-green-600 mt-1">
 									✓ Nächste verfügbare Handschuh-ID: {nextGloveId}
@@ -270,7 +279,7 @@
 					</select>
 				</label>
 				<button
-					type="button"
+					type="submit"
 					style="margin-bottom: 4px; padding-bottom: 3px; padding-top: 3px;"
 					class="px-3 py-1 bg-purple-600 text-white rounded hover:bg-purple-700 transition-colors"
 					disabled={!groupChanged}

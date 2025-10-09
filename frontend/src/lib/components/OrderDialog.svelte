@@ -49,7 +49,6 @@
 
 	const handleOrderEquipment = async (e: SubmitEvent,equipmentType: EquipmentType) => {
 		e.preventDefault();
-		debugger;
 		const size = orderSizes[equipmentType]?.trim();
 		try {
 			const memberIdInternal = parseInt(member.id, 10);
