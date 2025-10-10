@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { EquipmentType, randomRegistrationCode } from '$lib/services/equipment.service';
+	import { deleteEquipment, EquipmentType, randomRegistrationCode } from '$lib/services/equipment.service';
 	import { createOrder, deleteOrder, fulfillOrder, getOrdersForMember, type Order } from '$lib/services/order.service';
 	import { getNextGloveId } from '$lib/services/gloveId.service';
 	import { onMount } from 'svelte';
@@ -87,7 +87,13 @@
 			return;
 		}
 
-		await fulfillOrder(order, regCode);
+		const oldEquipmentId = member.equipments[equipmentType]?.id;
+		const newEquipment = await fulfillOrder(order, regCode);
+		if (oldEquipmentId) {
+			await deleteEquipment(oldEquipmentId)
+		}
+		member.equipments[equipmentType] = newEquipment;
+
 		registrationCodes[equipmentType] = '';
 		await loadOrders();
 		onEquipmentChanged && onEquipmentChanged(); // Equipment-Update triggern
