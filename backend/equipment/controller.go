@@ -1,16 +1,18 @@
 package equipment
 
 import (
+	"net/http"
+
 	"github.com/cloudflare/cfssl/log"
 	"github.com/gin-gonic/gin"
 	"github.com/kordondev/equipment-watchdog/models"
 	"github.com/kordondev/equipment-watchdog/url"
-	"net/http"
 )
 
 type Service interface {
 	createEquipment(models.Equipment) (*models.Equipment, error)
 	getEquipmentById(uint64) (*models.Equipment, error)
+	getAllEquipment() ([]*models.Equipment, error)
 	deleteEquipment(uint64) error
 	getFreeEquipment() (map[models.EquipmentType][]*models.Equipment, error)
 	getAllEquipmentByType(string) ([]*models.Equipment, error)
@@ -35,6 +37,7 @@ func NewController(baseRoute *gin.RouterGroup, service Service, changeWriter Cha
 	equipmentRoute := baseRoute.Group("/equipment")
 	{
 		equipmentRoute.GET("/:id", ctrl.getEquipmentById)
+		equipmentRoute.GET("/", ctrl.getAllEquipment)
 		equipmentRoute.GET("/type/:type", ctrl.getAllEquipmentByType)
 		equipmentRoute.GET("/free", ctrl.getFreeEquipment)
 		equipmentRoute.POST("/", ctrl.createEquipment)
@@ -73,6 +76,17 @@ func (ctrl Controller) getEquipmentById(c *gin.Context) {
 	}
 
 	e, err := ctrl.service.getEquipmentById(id)
+	if err != nil {
+		log.Error(err)
+		c.AbortWithError(http.StatusNotFound, err)
+		return
+	}
+
+	c.JSON(http.StatusOK, e)
+}
+
+func (ctrl Controller) getAllEquipment(c *gin.Context) {
+	e, err := ctrl.service.getAllEquipment()
 	if err != nil {
 		log.Error(err)
 		c.AbortWithError(http.StatusNotFound, err)
