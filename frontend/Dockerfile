@@ -16,7 +16,7 @@ RUN npm run build
 
 
 # Run the app
-FROM 2.10-alpine
+FROM caddy:2.10-alpine
 
 ADD docker/Caddyfile /etc/caddy/Caddyfile
 
