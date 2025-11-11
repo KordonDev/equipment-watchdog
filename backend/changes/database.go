@@ -4,8 +4,6 @@ import (
 	"errors"
 	"time"
 
-	"github.com/cloudflare/cfssl/log"
-
 	"github.com/kordondev/equipment-watchdog/models"
 
 	"gorm.io/gorm"
@@ -16,11 +14,6 @@ type changeDB struct {
 }
 
 func newChangeDB(db *gorm.DB) *changeDB {
-	err := db.AutoMigrate(&models.DbChange{})
-	if err != nil {
-		log.Fatal(err)
-	}
-
 	return &changeDB{
 		DB: db,
 	}

@@ -11,6 +11,9 @@ import (
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/glebarez/sqlite"
+	"github.com/golang-migrate/migrate/v4"
+	"github.com/golang-migrate/migrate/v4/database/sqlite3"
+	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"github.com/kordondev/equipment-watchdog/changes"
 	"github.com/kordondev/equipment-watchdog/config"
 	"github.com/kordondev/equipment-watchdog/equipment"
@@ -35,12 +38,16 @@ func main() {
 		panic(err)
 	}
 
+	if err := runMigrations(db); err != nil {
+		panic(fmt.Sprintf("migration failed: %v", err))
+	}
+
 	userDB := users.NewDatebase(db)
 
 	jwtService := security.NewJwtService(configuration.Origin, configuration.JwtSecret)
 
 	router := gin.Default()
-	router.SetTrustedProxies(nil)
+	_ = router.SetTrustedProxies(nil)
 
 	corsConfig := cors.DefaultConfig()
 	corsConfig.AllowOrigins = []string{configuration.Origin}
@@ -59,8 +66,7 @@ func main() {
 	if err != nil {
 		panic(fmt.Sprintf("Error creating webAuthn: %v", err))
 	}
-	security.NewController(api, webAuthNService, configuration.Domain, authorizeJWTMiddleware)
-	// TODO: security.Controller
+	_ = security.NewController(api, webAuthNService, configuration.Domain, authorizeJWTMiddleware)
 	api.Use(authorizeJWTMiddleware)
 
 	changeWriter := changes.NewChangeWriterService(db, userService)
@@ -86,7 +92,7 @@ func main() {
 
 	gloveids.NewController(api, gloveIdService)
 
-	router.Run(":8080")
+	_ = router.Run(":8080")
 }
 
 func createDB(debug bool, dsn string) (*gorm.DB, error) {
@@ -109,4 +115,31 @@ func createDB(debug bool, dsn string) (*gorm.DB, error) {
 		return nil, errors.New("failed to connect database")
 	}
 	return db, nil
+}
+
+func runMigrations(gormDB *gorm.DB) error {
+	migrationPath := "file://migrations"
+	if _, err := os.Stat("migrations"); os.IsNotExist(err) {
+		migrationPath = "file:///migrations"
+	}
+
+	sqlDB, err := gormDB.DB()
+	if err != nil {
+		return fmt.Errorf("get underlying db: %w", err)
+	}
+
+	driver, err := sqlite3.WithInstance(sqlDB, &sqlite3.Config{})
+	if err != nil {
+		return fmt.Errorf("create migrate driver: %w", err)
+	}
+
+	m, err := migrate.NewWithDatabaseInstance(migrationPath, "sqlite3", driver)
+	if err != nil {
+		return fmt.Errorf("create migrate instance: %w", err)
+	}
+
+	if err := m.Up(); err != nil && !errors.Is(err, migrate.ErrNoChange) {
+		return fmt.Errorf("apply migrations: %w", err)
+	}
+	return nil
 }
