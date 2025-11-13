@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { deleteEquipment, EquipmentType, randomRegistrationCode } from '$lib/services/equipment.service';
+	import { EquipmentType, randomRegistrationCode, saveEquipmentForMember } from '$lib/services/equipment.service';
 	import { createOrder, deleteOrder, fulfillOrder, getOrdersForMember, type Order } from '$lib/services/order.service';
 	import { getNextGloveId } from '$lib/services/gloveId.service';
 	import { onMount } from 'svelte';
@@ -87,16 +87,33 @@
 			return;
 		}
 
-		const oldEquipmentId = member.equipments[equipmentType]?.id;
-		const newEquipment = await fulfillOrder(order, regCode);
-		if (oldEquipmentId) {
-			await deleteEquipment(oldEquipmentId)
-		}
-		member.equipments[equipmentType] = newEquipment;
+		try {
+			// Use new single equipment save endpoint
+			const newEquipment = await saveEquipmentForMember(
+				member.id,
+				equipmentType,
+				{
+					id: 0,
+					type: equipmentType,
+					registrationCode: regCode,
+					size: order.size,
+					memberId: member.id
+				}
+			);
 
-		registrationCodes[equipmentType] = '';
-		await loadOrders();
-		onEquipmentChanged && onEquipmentChanged(); // Equipment-Update triggern
+			// Fulfill the order
+			await fulfillOrder(order, regCode);
+
+			// Update local state
+			member.equipments[equipmentType] = newEquipment;
+			registrationCodes[equipmentType] = '';
+
+			await loadOrders();
+			onEquipmentChanged && onEquipmentChanged();
+		} catch (error) {
+			console.error(error);
+			showError('Fehler beim Erfüllen der Bestellung.');
+		}
 	};
 </script>
 

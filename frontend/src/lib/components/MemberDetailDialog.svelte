@@ -9,8 +9,7 @@
 		equipmentForGroup
 	} from '$lib/services/member.service';
 	import {
-		createEquipment,
-		deleteEquipment,
+		saveEquipmentForMember,
 		type Equipment,
 		equipmentLabels,
 		EquipmentType, randomRegistrationCode
@@ -68,50 +67,51 @@
 		if (!editingMember) return;
 
 		try {
-			// Add equipment with registration code from input
-			const newEquipment: Equipment = {
-				id: 0,
-				type: equipmentType,
-				registrationCode: tempRegistrationCodes[equipmentType] || '',
-				size: '42'
-			};
-			editingMember.equipments[equipmentType] = await createEquipment(newEquipment);
+			// Use new single equipment save endpoint
+			const newEquipment = await saveEquipmentForMember(
+				editingMember.id,
+				equipmentType,
+				{
+					id: 0,
+					type: equipmentType,
+					registrationCode: tempRegistrationCodes[equipmentType] || '',
+					size: '42',
+					memberId: editingMember.id
+				}
+			);
 
-			// Save member after equipment change
-			const updatedMember = await updateMember(editingMember);
+			// Update local state
+			editingMember.equipments[equipmentType] = newEquipment;
+
+			// Refresh member data from server
+			const updatedMember = await getMember(editingMember.id.toString());
 			editingMember = updatedMember;
 			onMemberUpdated(updatedMember);
 		} catch (error) {
 			showError('Fehler beim Hinzufügen der Ausrüstung.');
 			console.error(error);
-			return;
 		}
-		editingMember = { ...editingMember }; // Trigger reactivity
 	};
 
 	const removeEquipment = async (equipmentType: EquipmentType) => {
 		if (!editingMember) return;
 
 		try {
-			// Delete equipment via backend call
-			const equipmentToDelete = editingMember.equipments[equipmentType];
-			if (equipmentToDelete) {
-				await deleteEquipment(equipmentToDelete.id);
-			}
-			// Remove equipment from member
+			// Remove from local state (backend handles on updateMember)
 			delete editingMember.equipments[equipmentType];
 
-			// Save member after equipment change
+			// Update member to unassign equipment
 			const updatedMember = await updateMember(editingMember);
 			tempRegistrationCodes[equipmentType] = '';
+			if (equipmentType === EquipmentType.Helmet) {
+				tempRegistrationCodes[equipmentType] = randomRegistrationCode();
+			}
 			editingMember = updatedMember;
 			onMemberUpdated(updatedMember);
 		} catch (error) {
 			showError('Fehler beim Entfernen der Ausrüstung.');
 			console.error(error);
-			return;
 		}
-		editingMember = { ...editingMember }; // Trigger reactivity
 	};
 
 	const updateEquipmentNumber = (equipmentType: EquipmentType, number: string) => {

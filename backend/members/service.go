@@ -16,6 +16,8 @@ type MemberDatabase interface {
 
 type EquipmentService interface {
 	GetForIds([]uint64) ([]*models.Equipment, error)
+	AssignOrCreateEquipmentForMember(uint64, models.Equipment) (*models.Equipment, error)
+	UnassignEquipment(uint64, models.EquipmentType) error
 }
 type MemberService struct {
 	db               MemberDatabase
@@ -38,23 +40,35 @@ func (s MemberService) getMemberById(id uint64) (*models.Member, error) {
 }
 
 func (s MemberService) updateMember(id uint64, um *models.Member) ([]uint64, error) {
-	eqIds := make([]uint64, 0)
+	oldMember, _ := s.getMemberById(id)
+	changeIds := make([]uint64, 0)
+	assignedEquipment := make(map[models.EquipmentType]*models.Equipment)
 
 	for _, eT := range models.GroupWithEquipment[um.Group] {
-		if um.Equipment[eT] != nil {
-			eqIds = append(eqIds, um.Equipment[eT].Id)
+		newEquip := um.Equipment[eT]
+		var oldEquip *models.Equipment
+		if oldMember != nil {
+			oldEquip = oldMember.Equipment[eT]
+		}
+
+		if newEquip != nil {
+			equipment, err := s.equipmentService.AssignOrCreateEquipmentForMember(id, *newEquip)
+			if err != nil {
+				log.Error(err)
+				return nil, err
+			}
+			assignedEquipment[eT] = equipment
+			changeIds = append(changeIds, equipment.Id)
+		} else if oldEquip != nil {
+			if err := s.equipmentService.UnassignEquipment(oldEquip.Id, oldEquip.Type); err != nil {
+				log.Error(err)
+				return nil, err
+			}
 		}
 	}
 
-	equipments, err := s.equipmentService.GetForIds(eqIds)
-	if err != nil {
-		log.Error(err)
-		return nil, err
-	}
-
-	changeIds := s.diffEquipment(id, um)
 	um.Id = id
-	um.Equipment = um.ListToMap(equipments, um.Id)
+	um.Equipment = assignedEquipment
 	return changeIds, s.db.saveMember(um)
 }
 
@@ -74,24 +88,7 @@ func (s MemberService) GetForIds(ids []uint64) ([]*models.Member, error) {
 	return s.db.getForIds(ids)
 }
 
-func (s MemberService) diffEquipment(id uint64, nm *models.Member) []uint64 {
-	om, _ := s.getMemberById(id)
-	changeIds := make([]uint64, 0)
-	if om != nil {
-		for _, eT := range models.GroupWithEquipment[om.Group] {
-			oldId := uint64(0)
-			if om.Equipment[eT] != nil {
-				oldId = om.Equipment[eT].Id
-			}
-			newId := uint64(0)
-			if nm.Equipment[eT] != nil {
-				newId = nm.Equipment[eT].Id
-			}
-			if oldId != newId {
-				changeIds = append(changeIds, newId)
-			}
-		}
-	}
-
-	return changeIds
+func (s MemberService) saveEquipmentForMember(memberId uint64, equipmentType models.EquipmentType, equipment models.Equipment) (*models.Equipment, error) {
+	equipment.Type = equipmentType
+	return s.equipmentService.AssignOrCreateEquipmentForMember(memberId, equipment)
 }

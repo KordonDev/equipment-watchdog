@@ -15,6 +15,7 @@ type Service interface {
 	deleteMemberById(uint64) error
 	getAllGroups() map[models.Group][]models.EquipmentType
 	getAllMembers() ([]*models.Member, error)
+	saveEquipmentForMember(uint64, models.EquipmentType, models.Equipment) (*models.Equipment, error)
 }
 
 type Controller struct {
@@ -41,6 +42,7 @@ func NewController(baseRoute *gin.RouterGroup, service Service, changeWriter Cha
 		membersRoute.PUT("/:id", ctrl.updateMember)
 		membersRoute.DELETE("/:id", ctrl.deleteMemberById)
 		membersRoute.GET("/groups", ctrl.getAllGroups)
+		membersRoute.POST("/:id/:equipmentType", ctrl.saveEquipmentForMember)
 	}
 }
 
@@ -152,4 +154,39 @@ func (ctrl Controller) deleteMemberById(c *gin.Context) {
 
 func (ctrl Controller) getAllGroups(c *gin.Context) {
 	c.JSON(http.StatusOK, ctrl.service.getAllGroups())
+}
+
+func (ctrl Controller) saveEquipmentForMember(c *gin.Context) {
+	id, err := url.ParseToInt(c, "id")
+	if err != nil {
+		c.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+
+	equipmentType := c.Param("equipmentType")
+	if equipmentType == "" {
+		c.AbortWithStatus(http.StatusBadRequest)
+		return
+	}
+
+	var equipment models.Equipment
+	if err := c.BindJSON(&equipment); err != nil {
+		c.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+
+	savedEquipment, err := ctrl.service.saveEquipmentForMember(id, models.EquipmentType(equipmentType), equipment)
+	if err != nil {
+		log.Error(err)
+		c.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
+
+	ctrl.changeWriter.Save(models.Change{
+		Action:      models.UpdateMember,
+		MemberId:    id,
+		EquipmentId: savedEquipment.Id,
+	}, c)
+
+	c.JSON(http.StatusOK, savedEquipment)
 }

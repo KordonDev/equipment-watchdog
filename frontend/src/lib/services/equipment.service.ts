@@ -14,19 +14,17 @@ export function getEquipment(id: string): Promise<Equipment> {
   return fetchApi(`/equipment/${id}`);
 }
 
-export function createEquipment(equipment: Equipment): Promise<Equipment> {
-  return fetchApi("/equipment/", {
+export function saveEquipmentForMember(
+  memberId: number,
+  equipmentType: EquipmentType,
+  equipment: Equipment
+): Promise<Equipment> {
+  return fetchApi(`/members/${memberId}/${equipmentType}`, {
     method: "POST",
     body: JSON.stringify({
-      ...equipment,
-      id: 0,
+      registrationCode: equipment.registrationCode,
+      size: equipment.size,
     }),
-  })
-}
-
-export function deleteEquipment(id: number): Promise<void> {
-  return fetchApi(`/equipment/${id}`, {
-    method: "DELETE",
   });
 }
 

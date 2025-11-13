@@ -16,6 +16,7 @@ type EquipmentDatabase interface {
 	save(*models.Equipment) (*models.Equipment, error)
 	getByMemberIdAndType(uint64, models.EquipmentType) (*models.Equipment, error)
 	registrationCodeExists(string) bool
+	getByRegistrationCode(string) (*models.Equipment, error)
 }
 
 type GloveIdService interface {
@@ -116,4 +117,39 @@ func (s EquipmentService) ReplaceEquipmentForMember(equipment models.Equipment) 
 
 func (s EquipmentService) RegistrationCodeExists(rc string) bool {
 	return s.db.registrationCodeExists(rc)
+}
+
+func (s EquipmentService) AssignOrCreateEquipmentForMember(memberId uint64, equipment models.Equipment) (*models.Equipment, error) {
+	existingEquipment, err := s.db.getByRegistrationCode(equipment.RegistrationCode)
+	
+	if err != nil {
+		equipment.MemberID = memberId
+		return s.createEquipment(equipment)
+	}
+
+	oldEquipment, _ := s.db.getByMemberIdAndType(memberId, equipment.Type)
+	if oldEquipment != nil && oldEquipment.Id != existingEquipment.Id {
+		if err := s.UnassignEquipment(oldEquipment.Id, oldEquipment.Type); err != nil {
+			return nil, err
+		}
+	}
+
+	existingEquipment.MemberID = memberId
+	existingEquipment.Size = equipment.Size
+	return s.save(*existingEquipment)
+}
+
+func (s EquipmentService) UnassignEquipment(equipmentId uint64, equipmentType models.EquipmentType) error {
+	equipment, err := s.db.getById(equipmentId)
+	if err != nil {
+		return err
+	}
+
+	if equipmentType == models.Helmet {
+		return s.deleteEquipment(equipmentId)
+	}
+
+	equipment.MemberID = 0
+	_, err = s.save(*equipment)
+	return err
 }
