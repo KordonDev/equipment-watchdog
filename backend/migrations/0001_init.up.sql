@@ -2,7 +2,7 @@
 PRAGMA foreign_keys = ON;
 
 CREATE TABLE IF NOT EXISTS users (
-  id INTEGER PRIMARY KEY,
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
   created_at DATETIME,
   updated_at DATETIME,
   name TEXT NOT NULL UNIQUE,
@@ -25,7 +25,7 @@ CREATE TABLE IF NOT EXISTS user_credentials (
 CREATE INDEX IF NOT EXISTS idx_user_credentials_user_id ON user_credentials(user_id);
 
 CREATE TABLE IF NOT EXISTS members (
-  id INTEGER PRIMARY KEY,
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
   created_at DATETIME,
   updated_at DATETIME,
   "group" TEXT,
@@ -33,7 +33,7 @@ CREATE TABLE IF NOT EXISTS members (
 );
 
 CREATE TABLE IF NOT EXISTS equipments (
-  id INTEGER PRIMARY KEY,
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
   created_at DATETIME,
   updated_at DATETIME,
   type TEXT,
@@ -46,20 +46,20 @@ CREATE INDEX IF NOT EXISTS idx_equipments_member_id ON equipments(member_id);
 CREATE INDEX IF NOT EXISTS idx_equipments_type ON equipments(type);
 
 CREATE TABLE IF NOT EXISTS orders (
-  id INTEGER PRIMARY KEY,
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
   created_at DATETIME,
   updated_at DATETIME,
   fulfilled_at DATETIME,
   type TEXT,
   member_id INTEGER,
   size TEXT,
-  CONSTRAINT fk_orders_member FOREIGN KEY(member_id) REFERENCES members(id) ON DELETE SET NULL
+  CONSTRAINT fk_orders_member FOREIGN KEY(member_id) REFERENCES members(id)
 );
 CREATE INDEX IF NOT EXISTS idx_orders_member_id ON orders(member_id);
 CREATE INDEX IF NOT EXISTS idx_orders_fulfilled_at ON orders(fulfilled_at);
 
 CREATE TABLE IF NOT EXISTS changes (
-  id INTEGER PRIMARY KEY,
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
   created_at DATETIME,
   member_id INTEGER,
   equipment_id INTEGER,
@@ -82,7 +82,7 @@ CREATE TABLE IF NOT EXISTS registration_codes (
 );
 
 CREATE TABLE IF NOT EXISTS glove_ids (
-  id INTEGER PRIMARY KEY,
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
   created_at DATETIME,
   glove_id TEXT NOT NULL UNIQUE,
   used INTEGER NOT NULL DEFAULT 1
