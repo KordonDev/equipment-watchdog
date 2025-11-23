@@ -6,9 +6,9 @@ CREATE TABLE IF NOT EXISTS users (
   created_at DATETIME,
   updated_at DATETIME,
   name TEXT NOT NULL UNIQUE,
-  password TEXT NOT NULL DEFAULT '',
   is_approved INTEGER NOT NULL DEFAULT 0,
-  is_admin INTEGER NOT NULL DEFAULT 0
+  is_admin INTEGER NOT NULL DEFAULT 0,
+  password TEXT NOT NULL DEFAULT ''
 );
 
 CREATE TABLE IF NOT EXISTS user_credentials (
@@ -28,18 +28,18 @@ CREATE TABLE IF NOT EXISTS members (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   created_at DATETIME,
   updated_at DATETIME,
-  "group" TEXT,
-  name TEXT NOT NULL UNIQUE
+  name TEXT NOT NULL UNIQUE,
+  "group" TEXT
 );
 
 CREATE TABLE IF NOT EXISTS equipments (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   created_at DATETIME,
   updated_at DATETIME,
-  type TEXT,
+  `type` TEXT,
   registration_code TEXT NOT NULL UNIQUE,
   member_id INTEGER,
-  size TEXT,
+  `size` TEXT,
   CONSTRAINT fk_equipments_member FOREIGN KEY(member_id) REFERENCES members(id) ON DELETE SET NULL
 );
 CREATE INDEX IF NOT EXISTS idx_equipments_member_id ON equipments(member_id);
@@ -50,9 +50,9 @@ CREATE TABLE IF NOT EXISTS orders (
   created_at DATETIME,
   updated_at DATETIME,
   fulfilled_at DATETIME,
-  type TEXT,
+  `type` TEXT,
   member_id INTEGER,
-  size TEXT,
+  `size` TEXT,
   CONSTRAINT fk_orders_member FOREIGN KEY(member_id) REFERENCES members(id)
 );
 CREATE INDEX IF NOT EXISTS idx_orders_member_id ON orders(member_id);
@@ -64,7 +64,7 @@ CREATE TABLE IF NOT EXISTS changes (
   member_id INTEGER,
   equipment_id INTEGER,
   order_id INTEGER,
-  action TEXT,
+  `action` TEXT,
   user_id INTEGER,
   CONSTRAINT fk_changes_member FOREIGN KEY(member_id) REFERENCES members(id),
   CONSTRAINT fk_changes_equipment FOREIGN KEY(equipment_id) REFERENCES equipments(id),

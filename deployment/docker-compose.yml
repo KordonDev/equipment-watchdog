@@ -2,8 +2,9 @@ version: '3.6'
 
 services:
   backend:
-    image: ghcr.io/kordondev/equipment-watchdog-backend:0.0.12-arm64
+    image: ghcr.io/kordondev/equipment-watchdog-backend:latest-arm64
     container_name: equipment-watchdog-backend
+    user: "${UID}:${GID}"
     ports:
       - "8080:8080"
     volumes:
