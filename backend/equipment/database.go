@@ -2,7 +2,6 @@ package equipment
 
 import (
 	"errors"
-	"log"
 
 	"github.com/kordondev/equipment-watchdog/models"
 	"gorm.io/gorm"
@@ -13,11 +12,6 @@ type equipmentDB struct {
 }
 
 func newEquipmentDB(db *gorm.DB) *equipmentDB {
-	err := db.AutoMigrate(&models.DbEquipment{})
-	if err != nil {
-		log.Fatal(err)
-	}
-
 	return &equipmentDB{
 		DB: db,
 	}

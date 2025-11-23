@@ -3,7 +3,6 @@ package gloveids
 import (
 	"errors"
 	"fmt"
-	"log"
 
 	"github.com/kordondev/equipment-watchdog/models"
 	"gorm.io/gorm"
@@ -14,11 +13,6 @@ type gloveIdDB struct {
 }
 
 func newGloveIdDB(db *gorm.DB) *gloveIdDB {
-	err := db.AutoMigrate(&models.DbGloveId{})
-	if err != nil {
-		log.Fatal(err)
-	}
-
 	return &gloveIdDB{
 		DB: db,
 	}

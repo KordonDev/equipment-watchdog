@@ -12,8 +12,6 @@ type userDB struct {
 }
 
 func NewDatebase(db *gorm.DB) *userDB {
-	db.AutoMigrate(&models.DbUser{}, &models.DbCredential{}, &models.DbAuthenticator{})
-
 	return &userDB{
 		db,
 	}

@@ -1,8 +1,6 @@
 package orders
 
 import (
-	"log"
-
 	"github.com/kordondev/equipment-watchdog/models"
 	"gorm.io/gorm"
 )
@@ -12,11 +10,6 @@ type orderDB struct {
 }
 
 func newOrderDB(db *gorm.DB) *orderDB {
-	err := db.AutoMigrate(&models.DBOrder{})
-	if err != nil {
-		log.Fatal(err)
-	}
-
 	return &orderDB{
 		db,
 	}

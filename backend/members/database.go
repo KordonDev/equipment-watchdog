@@ -2,7 +2,6 @@ package members
 
 import (
 	"fmt"
-	"log"
 
 	"github.com/kordondev/equipment-watchdog/models"
 
@@ -14,11 +13,6 @@ type memberDB struct {
 }
 
 func NewMemberDB(db *gorm.DB) *memberDB {
-	err := db.AutoMigrate(&models.DbMember{})
-	if err != nil {
-		log.Fatal(err)
-	}
-
 	return &memberDB{
 		DB: db,
 	}

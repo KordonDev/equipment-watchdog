@@ -62,10 +62,6 @@ type DbAuthenticator struct {
 	CloneWarning bool
 }
 
-func (DbAuthenticator) TableName() string {
-	return "user_credential_authenticators"
-}
-
 type DbCredential struct {
 	ID              []byte `gorm:"primarykey"`
 	UserID          uint64
