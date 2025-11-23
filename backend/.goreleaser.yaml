@@ -55,6 +55,8 @@ dockers:
       - "--pull"
       - "--platform=linux/amd64"
     goarch: amd64
+    extra_files:
+      - migrations
   - image_templates:
     - "ghcr.io/kordondev/equipment-watchdog-backend:{{ .Tag }}-arm64"
     - "ghcr.io/kordondev/equipment-watchdog-backend:latest-arm64"
@@ -63,6 +65,8 @@ dockers:
       - "--pull"
       - "--platform=linux/arm64"
     goarch: arm64
+    extra_files:
+      - migrations
 docker_manifests:
   - name_template: "ghcr.io/kordondev/equipment-watchdog-backend:{{ .Tag }}"
     image_templates:

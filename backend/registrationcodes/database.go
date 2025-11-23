@@ -4,7 +4,6 @@ import (
 	"errors"
 	"time"
 
-	"github.com/cloudflare/cfssl/log"
 	"github.com/kordondev/equipment-watchdog/models"
 	"gorm.io/gorm"
 )
@@ -14,11 +13,6 @@ type registrationCodesDB struct {
 }
 
 func newDatabase(db *gorm.DB) *registrationCodesDB {
-	err := db.AutoMigrate(&models.DbRegistrationCode{})
-	if err != nil {
-		log.Fatal(err)
-	}
-
 	return &registrationCodesDB{
 		db,
 	}

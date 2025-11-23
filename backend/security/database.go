@@ -4,10 +4,11 @@ import (
 	"database/sql/driver"
 	"encoding/json"
 	"fmt"
+	"time"
+
 	"github.com/go-webauthn/webauthn/protocol"
 	"github.com/go-webauthn/webauthn/webauthn"
 	"gorm.io/gorm"
-	"time"
 )
 
 type sessionDB struct {
@@ -15,8 +16,6 @@ type sessionDB struct {
 }
 
 func NewDatebase(db *gorm.DB) *sessionDB {
-	db.AutoMigrate(&DbSessionData{})
-
 	return &sessionDB{
 		db,
 	}
@@ -46,7 +45,6 @@ func (s *sessionDB) storeSession(username string, sessionData webauthn.SessionDa
 	return s.Save(&dbs).Where("username = ?", username).Error
 }
 
-
 type DbSessionData struct {
 	Username             string                               `gorm:"primaryKey"`
 	Challenge            string                               `json:"challenge"`
@@ -57,6 +55,7 @@ type DbSessionData struct {
 }
 
 type ByteArrayArray [][]byte
+
 func (b ByteArrayArray) Value() (driver.Value, error) {
 	return json.Marshal(b)
 }
