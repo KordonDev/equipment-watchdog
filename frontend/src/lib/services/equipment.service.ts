@@ -14,20 +14,6 @@ export function getEquipment(id: string): Promise<Equipment> {
   return fetchApi(`/equipment/${id}`);
 }
 
-export function saveEquipmentForMember(
-  memberId: number,
-  equipmentType: EquipmentType,
-  equipment: Equipment
-): Promise<Equipment> {
-  return fetchApi(`/members/${memberId}/${equipmentType}`, {
-    method: "POST",
-    body: JSON.stringify({
-      registrationCode: equipment.registrationCode,
-      size: equipment.size,
-    }),
-  });
-}
-
 export function randomRegistrationCode(): string {
 	return (Math.random() + 1).toString(36).substring(7)
 }

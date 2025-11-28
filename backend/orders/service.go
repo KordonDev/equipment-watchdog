@@ -19,7 +19,7 @@ type OrderDatabase interface {
 
 type EquipmentService interface {
 	CreateEquipmentFromOrder(models.Order, string) (*models.Equipment, error)
-	ReplaceEquipmentForMember(models.Equipment) (*models.Equipment, error)
+	ReplaceEquipmentForMember(models.Equipment) (*models.Equipment, *models.Equipment, error)
 }
 
 type OrderService struct {
@@ -74,23 +74,23 @@ func (s OrderService) GetForIds(ids []uint64) ([]models.Order, error) {
 	return s.db.getForIds(ids)
 }
 
-func (s OrderService) fulfill(order models.Order, registrationCode string) (*models.Equipment, error) {
+func (s OrderService) fulfill(order models.Order, registrationCode string) (*models.Equipment, *models.Equipment, error) {
 	equipment, err := s.equipmentService.CreateEquipmentFromOrder(order, registrationCode)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	equipment.MemberID = order.MemberID
-	_, err = s.equipmentService.ReplaceEquipmentForMember(*equipment)
+	_, oldEquip, err := s.equipmentService.ReplaceEquipmentForMember(*equipment)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	order.FulfilledAt = time.Now()
 	_, err = s.update(order.ID, order)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
-	return equipment, err
+	return equipment, oldEquip, err
 }

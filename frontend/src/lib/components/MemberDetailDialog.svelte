@@ -4,12 +4,12 @@
 		updateMember,
 		deleteMember,
 		Group,
-		getMember,
 		groupLabels,
-		equipmentForGroup
+		equipmentForGroup,
+		saveEquipmentForMember,
+		removeEquipmentFromMember
 	} from '$lib/services/member.service';
 	import {
-		saveEquipmentForMember,
 		type Equipment,
 		equipmentLabels,
 		EquipmentType, randomRegistrationCode
@@ -20,28 +20,31 @@
 	import { showError } from '$lib/services/notification.svelte';
 
 	interface Props {
-		member: Member | null;
+		member: Member;
 		onClose: (memberId?: string) => void;
 		onMemberUpdated: (member: Member) => void;
 	}
 
 	let { member, onClose, onMemberUpdated }: Props = $props();
 
-	let editingMember: Member | null = $state(JSON.parse(JSON.stringify(member)));// Deep copy
+	// is changed after backend calls
+	let changedMember: Member = $state(JSON.parse(JSON.stringify(member)));
+
 	let saving = $state(false);
 	let tempRegistrationCodes: Record<EquipmentType, string> = $state({} as Record<EquipmentType, string>);
+	let tempGroup = $state(member?.group);
 	let nextGloveId: string | null = $state(null);
 	let loadingGloveId = $state(false);
 
 	Object.values(EquipmentType).forEach(type => {
-		tempRegistrationCodes[type] = editingMember?.equipments[type]?.registrationCode || '';
+		tempRegistrationCodes[type] = changedMember?.equipments[type]?.registrationCode || '';
 	});
 	if (tempRegistrationCodes[EquipmentType.Helmet] === '') {
 		tempRegistrationCodes[EquipmentType.Helmet] = randomRegistrationCode();
 	}
 
 	$effect(() => {
-		if (editingMember) {
+		if (changedMember) {
 			loadNextGloveId();
 		}
 	});
@@ -58,35 +61,27 @@
 		}
 	};
 
-	const handleClose = () => {
-		editingMember = null;
-		onClose();
-	};
-
 	const addEquipment = async (equipmentType: EquipmentType) => {
-		if (!editingMember) return;
+		const registrationCode = tempRegistrationCodes[equipmentType]
+		if (!registrationCode) return;
 
 		try {
 			// Use new single equipment save endpoint
 			const newEquipment = await saveEquipmentForMember(
-				editingMember.id,
+				member.id,
 				equipmentType,
 				{
 					id: 0,
 					type: equipmentType,
-					registrationCode: tempRegistrationCodes[equipmentType] || '',
+					registrationCode: registrationCode,
 					size: '42',
-					memberId: editingMember.id
+					memberId: member.id
 				}
 			);
 
-			// Update local state
-			editingMember.equipments[equipmentType] = newEquipment;
+			changedMember.equipments[equipmentType] = newEquipment;
 
-			// Refresh member data from server
-			const updatedMember = await getMember(editingMember.id.toString());
-			editingMember = updatedMember;
-			onMemberUpdated(updatedMember);
+			onMemberUpdated(changedMember);
 		} catch (error) {
 			showError('Fehler beim Hinzufügen der Ausrüstung.');
 			console.error(error);
@@ -94,31 +89,26 @@
 	};
 
 	const removeEquipment = async (equipmentType: EquipmentType) => {
-		if (!editingMember) return;
-
 		try {
-			// Remove from local state (backend handles on updateMember)
-			delete editingMember.equipments[equipmentType];
+			await removeEquipmentFromMember(member.id, equipmentType)
+			delete changedMember.equipments[equipmentType];
+			onMemberUpdated(changedMember);
 
-			// Update member to unassign equipment
-			const updatedMember = await updateMember(editingMember);
 			tempRegistrationCodes[equipmentType] = '';
 			if (equipmentType === EquipmentType.Helmet) {
 				tempRegistrationCodes[equipmentType] = randomRegistrationCode();
 			}
-			editingMember = updatedMember;
-			onMemberUpdated(updatedMember);
 		} catch (error) {
 			showError('Fehler beim Entfernen der Ausrüstung.');
 			console.error(error);
 		}
 	};
 
-	const updateEquipmentNumber = (equipmentType: EquipmentType, number: string) => {
-		if (!editingMember) return;
+	const handleEquipmentNumberInput = (equipmentType: EquipmentType, number: string) => {
+		if (!changedMember) return;
 
 		// Only allow updating registration codes for equipment that hasn't been saved yet
-		if (!editingMember.equipments[equipmentType]) {
+		if (!changedMember.equipments[equipmentType]) {
 			tempRegistrationCodes[equipmentType] = number;
 		}
 	};
@@ -126,23 +116,19 @@
 	let groupChanged = $state(false);
 
 	const handleGroupInput = (event: Event) => {
-		if (!editingMember) return;
+		if (!changedMember) return;
 		const select = event.target as HTMLSelectElement;
 		const newGroup = select.value as Group;
-		groupChanged = editingMember.group !== newGroup;
-		editingMember.group = newGroup;
+		groupChanged = changedMember.group !== newGroup;
+		changedMember.group = newGroup;
 	};
 
 	const handleGroupSave = async (e: SubmitEvent) => {
 		e.preventDefault();
-		if (!editingMember) return;
 		try {
-			const updatedMember = await updateMember(editingMember);
-			editingMember = updatedMember;
-			if (member) {
-				member.group = updatedMember.group;
-			}
-			onMemberUpdated(updatedMember);
+			const updatedMember = await updateMember(changedMember);
+			changedMember.group = updatedMember.group
+			onMemberUpdated(changedMember);
 			groupChanged = false;
 		} catch (error) {
 			console.error(error);
@@ -151,11 +137,10 @@
 	};
 
 	const handleDeleteMember = async () => {
-		if (!editingMember) return;
-		if (!confirm(`Soll ${editingMember.name} wirklich gelöscht werden?`)) return;
+		if (!confirm(`Soll ${changedMember.name} wirklich gelöscht werden?`)) return;
 		try {
-			await deleteMember(editingMember.id);
-			onClose(editingMember.id); // Pass deleted member ID
+			await deleteMember(changedMember.id);
+			onClose(changedMember.id); // Pass deleted member ID
 			// Optionally, you can notify parent to refresh the member list here
 		} catch (error) {
 			console.error(error);
@@ -175,9 +160,10 @@
 
 	let orders: Order[] = $state([]);
 
+	// TODO: only once?
 	$effect(() => {
-		if (editingMember !== null) {
-			getOrdersForMember(editingMember.id.toString())
+		if (changedMember !== null) {
+			getOrdersForMember(changedMember.id.toString())
 				.then(o => orders = o)
 		}
 	})
@@ -185,22 +171,29 @@
 	const hasOrderForType = (type: EquipmentType) =>
 		orders.some(order => order.type === type && !order.fulfilledAt);
 
-	const handleEquipmentChanged = async () => {
-		if (!editingMember) return;
-		const updated = await getMember(editingMember.id.toString());
-		editingMember = updated;
-		onMemberUpdated(updated);
+	const handleOrderCreated = (order: Order) => {
+		orders = [...orders, order];
+	}
+
+	const handleOrderRemoved = (orderId: number) => {
+		orders = orders.filter(o => o.id !== orderId);
+	}
+
+	const handleEquipmentChanged = async (equipment: Equipment) => {
+		tempRegistrationCodes[equipment.type] = equipment.registrationCode;
+		changedMember.equipments[equipment.type] = equipment;
+		onMemberUpdated(changedMember);
 	};
 </script>
 
-{#if editingMember}
+{#if changedMember}
 	<div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
 		<div class="bg-white rounded-lg p-6 w-full max-w-2xl max-h-[80vh] overflow-y-auto">
 			<div class="flex items-start justify-between mb-4">
-				<h2 class="text-xl font-bold">{editingMember.name} bearbeiten</h2>
+				<h2 class="text-xl font-bold">{changedMember.name} bearbeiten</h2>
 				<button
 					type="button"
-					onclick={handleClose}
+					onclick={() => onClose()}
 					class="text-gray-400 hover:text-gray-600 text-2xl leading-none"
 				>
 					×
@@ -220,7 +213,7 @@
 
 			<div class="space-y-4 mb-4">
 				{#each equipmentForGroup[member?.group] as equipmentType}
-					{@const equipment = editingMember.equipments[equipmentType]}
+					{@const equipment = changedMember.equipments[equipmentType]}
 					<form class="border rounded-lg p-4" onsubmit={() => equipment ? removeEquipment(equipmentType) : addEquipment(equipmentType)}>
 						<div class="flex items-center justify-between mb-2">
 							<div class="text-sm font-medium text-gray-700 flex items-center gap-2">
@@ -243,8 +236,8 @@
 								<input
 									type="text"
 									required
-									value={equipment ? equipment.registrationCode : tempRegistrationCodes[equipmentType] || ''}
-									oninput={(e) => updateEquipmentNumber(equipmentType, e.target?.value || '')}
+									value={tempRegistrationCodes[equipmentType] || ''}
+									oninput={(e) => handleEquipmentNumberInput(equipmentType, e.target?.value || '')}
 									disabled={!!equipment}
 									class="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:border-purple-500 focus:ring focus:ring-purple-200 focus:ring-opacity-50 {equipment ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : ''}"
 								/>
@@ -270,7 +263,7 @@
 				<label class="block text-xs text-gray-500 mb-1 flex-grow">Gruppe
 					<select
 						class="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:border-purple-500 focus:ring focus:ring-purple-200 focus:ring-opacity-50"
-						bind:value={editingMember.group}
+						bind:value={tempGroup}
 						oninput={handleGroupInput}
 					>
 						{#each Object.values(Group) as group}
@@ -301,7 +294,7 @@
 			<div class="flex justify-end space-x-2 mt-6">
 				<button
 					type="button"
-					onclick={handleClose}
+					onclick={() => onClose()}
 					class="px-4 py-2 text-gray-600 bg-gray-200 rounded hover:bg-gray-300 transition-colors"
 					disabled={saving}
 				>
@@ -312,11 +305,12 @@
 	</div>
 
 	{#if showOrderDialog}
-	<OrderDialog
-		member={editingMember}
-		equipmentLabels={equipmentLabels}
-		onClose={handleCloseOrderDialog}
-		onEquipmentChanged={handleEquipmentChanged}
-	/>
+		<OrderDialog
+			member={changedMember}
+			onClose={handleCloseOrderDialog}
+			onEquipmentChanged={handleEquipmentChanged}
+			onOrderCreated={handleOrderCreated}
+			onOrderRemoved={handleOrderRemoved}
+		/>
 	{/if}
 {/if}

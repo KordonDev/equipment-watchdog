@@ -1,11 +1,12 @@
 package orders
 
 import (
+	"net/http"
+
 	"github.com/cloudflare/cfssl/log"
 	"github.com/gin-gonic/gin"
 	"github.com/kordondev/equipment-watchdog/models"
 	"github.com/kordondev/equipment-watchdog/url"
-	"net/http"
 )
 
 type Service interface {
@@ -15,7 +16,7 @@ type Service interface {
 	update(uint64, models.Order) (models.Order, error)
 	delete(uint64) error
 	getAll(bool) ([]models.Order, error)
-	fulfill(models.Order, string) (*models.Equipment, error)
+	fulfill(models.Order, string) (*models.Equipment, *models.Equipment, error)
 }
 
 type Controller struct {
@@ -182,18 +183,24 @@ func (ctrl Controller) createEquipmentFromOrder(c *gin.Context) {
 		return
 	}
 
-	equipment, err := ctrl.service.fulfill(order, registrationCode)
+	equipment, oldEquip, err := ctrl.service.fulfill(order, registrationCode)
 	if err != nil {
 		log.Error(err)
 		c.AbortWithError(http.StatusInternalServerError, err)
 		return
 	}
 
+	var oldEquipId uint64 = 0
+	if oldEquip != nil {
+		oldEquipId = oldEquip.Id
+	}
+
 	ctrl.changeWriter.Save(models.Change{
-		Action:      models.OrderToEquipment,
-		OrderId:     order.ID,
-		EquipmentId: equipment.Id,
-		MemberId:    equipment.MemberID,
+		Action:         models.OrderToEquipment,
+		OrderId:        order.ID,
+		EquipmentId:    equipment.Id,
+		OldEquipmentId: oldEquipId,
+		MemberId:       equipment.MemberID,
 	}, c)
 
 	c.JSON(http.StatusOK, equipment)

@@ -1,6 +1,8 @@
 package equipment
 
 import (
+	"errors"
+
 	"github.com/kordondev/equipment-watchdog/models"
 	"gorm.io/gorm"
 )
@@ -91,10 +93,10 @@ func (s EquipmentService) CreateEquipmentFromOrder(order models.Order, registrat
 	return s.createEquipment(newEquipment)
 }
 
-func (s EquipmentService) ReplaceEquipmentForMember(equipment models.Equipment) (*models.Equipment, error) {
+func (s EquipmentService) ReplaceEquipmentForMember(equipment models.Equipment) (*models.Equipment, *models.Equipment, error) {
 	newEquipment, err := s.getEquipmentById(equipment.Id)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	oldEquipment, _ := s.db.getByMemberIdAndType(equipment.MemberID, equipment.Type)
@@ -102,54 +104,58 @@ func (s EquipmentService) ReplaceEquipmentForMember(equipment models.Equipment) 
 		oldEquipment.MemberID = 0
 		_, err := s.save(*oldEquipment)
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 	}
 
 	newEquipment.MemberID = equipment.MemberID
 	e, err := s.save(*newEquipment)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
-	return e, nil
+	return e, oldEquipment, nil
 }
 
 func (s EquipmentService) RegistrationCodeExists(rc string) bool {
 	return s.db.registrationCodeExists(rc)
 }
 
-func (s EquipmentService) AssignOrCreateEquipmentForMember(memberId uint64, equipment models.Equipment) (*models.Equipment, error) {
+func (s EquipmentService) AssignOrCreateEquipmentForMember(memberId uint64, equipment models.Equipment) (*models.Equipment, *models.Equipment, error) {
 	existingEquipment, err := s.db.getByRegistrationCode(equipment.RegistrationCode)
-	
-	if err != nil {
+	var newEquipment *models.Equipment
+	if errors.Is(err, gorm.ErrRecordNotFound) {
 		equipment.MemberID = memberId
-		return s.createEquipment(equipment)
+		newEquipment, err = s.createEquipment(equipment)
 	}
 
 	oldEquipment, _ := s.db.getByMemberIdAndType(memberId, equipment.Type)
-	if oldEquipment != nil && oldEquipment.Id != existingEquipment.Id {
-		if err := s.UnassignEquipment(oldEquipment.Id, oldEquipment.Type); err != nil {
-			return nil, err
+	if oldEquipment != nil && oldEquipment.Id != equipment.Id {
+		if _, err := s.UnassignEquipment(oldEquipment.Id); err != nil {
+			return nil, nil, err
 		}
+	}
+
+	if newEquipment != nil {
+		return newEquipment, oldEquipment, nil
 	}
 
 	existingEquipment.MemberID = memberId
 	existingEquipment.Size = equipment.Size
-	return s.save(*existingEquipment)
+	saved, err := s.save(*existingEquipment)
+	return saved, oldEquipment, err
 }
 
-func (s EquipmentService) UnassignEquipment(equipmentId uint64, equipmentType models.EquipmentType) error {
+func (s EquipmentService) UnassignEquipment(equipmentId uint64) (*models.Equipment, error) {
 	equipment, err := s.db.getById(equipmentId)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	if equipmentType == models.Helmet {
-		return s.deleteEquipment(equipmentId)
+	if equipment.Type == models.Helmet {
+		return equipment, s.deleteEquipment(equipmentId)
 	}
 
 	equipment.MemberID = 0
-	_, err = s.save(*equipment)
-	return err
+	return s.save(*equipment)
 }

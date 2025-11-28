@@ -1,27 +1,36 @@
 <script lang="ts">
-	import { EquipmentType, randomRegistrationCode, saveEquipmentForMember } from '$lib/services/equipment.service';
+	import {
+		type Equipment,
+		equipmentLabels,
+		EquipmentType,
+		randomRegistrationCode
+	} from '$lib/services/equipment.service';
 	import { createOrder, deleteOrder, fulfillOrder, getOrdersForMember, type Order } from '$lib/services/order.service';
 	import { getNextGloveId } from '$lib/services/gloveId.service';
 	import { onMount } from 'svelte';
 	import { showError } from '$lib/services/notification.svelte';
 	import { formatToDate } from '$lib/services/timeHelper';
-	import { equipmentForGroup, type Member } from '$lib/services/member.service';
+	import { equipmentForGroup, type Member, saveEquipmentForMember } from '$lib/services/member.service';
 
-	export let member: Member;
-	export let equipmentLabels: Record<EquipmentType, string>;
-	export let onClose: () => void;
-	export let onEquipmentChanged: () => void; // Callback für Equipment-Update
+	interface Props {
+		member: Member;
+		onClose: () => void;
+		onEquipmentChanged: (equipment: Equipment) => void;
+		onOrderCreated: (order: Order) => void;
+		onOrderRemoved: (orderId: number) => void;
+	}
+	let { member, onClose, onEquipmentChanged, onOrderCreated, onOrderRemoved }: Props = $props();
 
-	let orderSizes: Record<EquipmentType, string> = {
+	let orderSizes: Record<EquipmentType, string> = $state({
 		[EquipmentType.Helmet]: '0',
-	} as Record<EquipmentType, string>;
-	let registrationCodes: Record<EquipmentType, string> = {
+	}) as Record<EquipmentType, string>;
+	let registrationCodes: Record<EquipmentType, string> = $state({
 		[EquipmentType.Helmet]: randomRegistrationCode()
-	} as Record<EquipmentType, string>;
-	let orders: Order[] = [];
-	let loadingOrders = false;
-	let nextGloveId: string | null = null;
-	let loadingGloveId = false;
+	}) as Record<EquipmentType, string>;
+	let orders: Order[] = $state([]);
+	let loadingOrders = $state(false);
+	let nextGloveId: string | null = $state(null);
+	let loadingGloveId = $state(false);
 
 	const loadOrders = async () => {
 		loadingOrders = true;
@@ -54,7 +63,7 @@
 		const size = orderSizes[equipmentType]?.trim();
 		try {
 			const memberIdInternal = parseInt(member.id, 10);
-			await createOrder({
+			const newOrder = await createOrder({
 				id: 0,
 				type: equipmentType,
 				createdAt: undefined,
@@ -65,8 +74,8 @@
 			if (equipmentType !== EquipmentType.Helmet) {
 				orderSizes[equipmentType] = '';
 			}
-			await loadOrders();
-			onEquipmentChanged && onEquipmentChanged(); // Equipment/Order-Update triggern
+			orders = [...orders, newOrder];
+			onOrderCreated(newOrder);
 		} catch (e) {
 			console.error(e);
 			showError("Fehler beim Erstellen der Bestellung.");
@@ -75,11 +84,11 @@
 
 	const handleDeleteOrder = async (orderId: number) => {
 		await deleteOrder(orderId);
-		await loadOrders();
-		onEquipmentChanged && onEquipmentChanged(); // Equipment/Order-Update triggern
+		orders = orders.filter(order => order.id !== orderId);
+		onOrderRemoved(orderId);
 	};
 
-	const handleFulfillOrder = async (e: SubmitEvent,order: Order, equipmentType: EquipmentType) => {
+	const handleFulfillOrder = async (e: SubmitEvent, order: Order, equipmentType: EquipmentType) => {
 		e.preventDefault()
 		const regCode = registrationCodes[equipmentType]?.trim();
 		if (!regCode) {
@@ -88,28 +97,11 @@
 		}
 
 		try {
-			// Use new single equipment save endpoint
-			const newEquipment = await saveEquipmentForMember(
-				member.id,
-				equipmentType,
-				{
-					id: 0,
-					type: equipmentType,
-					registrationCode: regCode,
-					size: order.size,
-					memberId: member.id
-				}
-			);
-
-			// Fulfill the order
-			await fulfillOrder(order, regCode);
-
-			// Update local state
-			member.equipments[equipmentType] = newEquipment;
+			const equipment = await fulfillOrder(order, regCode);
 			registrationCodes[equipmentType] = '';
 
-			await loadOrders();
-			onEquipmentChanged && onEquipmentChanged();
+			await handleDeleteOrder(order.id)
+			onEquipmentChanged(equipment);
 		} catch (error) {
 			console.error(error);
 			showError('Fehler beim Erfüllen der Bestellung.');

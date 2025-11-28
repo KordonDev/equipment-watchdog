@@ -1,21 +1,23 @@
 package members
 
 import (
+	"net/http"
+
 	"github.com/cloudflare/cfssl/log"
 	"github.com/gin-gonic/gin"
 	"github.com/kordondev/equipment-watchdog/models"
 	"github.com/kordondev/equipment-watchdog/url"
-	"net/http"
 )
 
 type Service interface {
 	createMember(*models.Member) (*models.Member, error)
 	getMemberById(uint64) (*models.Member, error)
-	updateMember(uint64, *models.Member) ([]uint64, error)
+	updateMember(uint64, *models.Member) error
 	deleteMemberById(uint64) error
 	getAllGroups() map[models.Group][]models.EquipmentType
 	getAllMembers() ([]*models.Member, error)
-	saveEquipmentForMember(uint64, models.EquipmentType, models.Equipment) (*models.Equipment, error)
+	saveEquipmentForMember(uint64, models.EquipmentType, models.Equipment) (*models.Equipment, *models.Equipment, error)
+	removeEquipmentFromMember(uint64, models.EquipmentType) (*models.Equipment, error)
 }
 
 type Controller struct {
@@ -43,6 +45,7 @@ func NewController(baseRoute *gin.RouterGroup, service Service, changeWriter Cha
 		membersRoute.DELETE("/:id", ctrl.deleteMemberById)
 		membersRoute.GET("/groups", ctrl.getAllGroups)
 		membersRoute.POST("/:id/:equipmentType", ctrl.saveEquipmentForMember)
+		membersRoute.DELETE("/:id/:equipmentType", ctrl.removeEquipmentFromMember)
 	}
 }
 
@@ -114,18 +117,10 @@ func (ctrl Controller) updateMember(c *gin.Context) {
 		return
 	}
 
-	changedEquipments, err := ctrl.service.updateMember(id, &um)
+	err = ctrl.service.updateMember(id, &um)
 	if err != nil {
 		c.AbortWithError(http.StatusInternalServerError, err)
 		return
-	}
-
-	for _, id := range changedEquipments {
-		ctrl.changeWriter.Save(models.Change{
-			Action:      models.UpdateMember,
-			MemberId:    um.Id,
-			EquipmentId: id,
-		}, c)
 	}
 
 	c.JSON(http.StatusOK, um)
@@ -175,7 +170,7 @@ func (ctrl Controller) saveEquipmentForMember(c *gin.Context) {
 		return
 	}
 
-	savedEquipment, err := ctrl.service.saveEquipmentForMember(id, models.EquipmentType(equipmentType), equipment)
+	savedEquipment, oldEquip, err := ctrl.service.saveEquipmentForMember(id, models.EquipmentType(equipmentType), equipment)
 	if err != nil {
 		log.Error(err)
 		c.AbortWithError(http.StatusInternalServerError, err)
@@ -183,10 +178,45 @@ func (ctrl Controller) saveEquipmentForMember(c *gin.Context) {
 	}
 
 	ctrl.changeWriter.Save(models.Change{
-		Action:      models.UpdateMember,
-		MemberId:    id,
-		EquipmentId: savedEquipment.Id,
+		Action:         models.UpdateEquipmentOnMember,
+		MemberId:       id,
+		EquipmentId:    savedEquipment.Id,
+		OldEquipmentId: oldEquip.Id,
 	}, c)
 
 	c.JSON(http.StatusOK, savedEquipment)
+}
+
+func (ctrl Controller) removeEquipmentFromMember(c *gin.Context) {
+	id, err := url.ParseToInt(c, "id")
+	if err != nil {
+		c.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+
+	equipmentType := c.Param("equipmentType")
+	if equipmentType == "" {
+		c.AbortWithStatus(http.StatusBadRequest)
+		return
+	}
+
+	oldEquip, err := ctrl.service.removeEquipmentFromMember(id, models.EquipmentType(equipmentType))
+	if err != nil {
+		log.Error(err)
+		c.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
+
+	var oldEquipId uint64 = 0
+	if oldEquip != nil {
+		oldEquipId = oldEquip.Id
+	}
+
+	ctrl.changeWriter.Save(models.Change{
+		Action:         models.UpdateEquipmentOnMember,
+		MemberId:       id,
+		OldEquipmentId: oldEquipId,
+	}, c)
+
+	c.JSON(http.StatusOK, oldEquip)
 }

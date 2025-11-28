@@ -1,7 +1,6 @@
 package members
 
 import (
-	"github.com/cloudflare/cfssl/log"
 	"github.com/kordondev/equipment-watchdog/models"
 )
 
@@ -16,8 +15,8 @@ type MemberDatabase interface {
 
 type EquipmentService interface {
 	GetForIds([]uint64) ([]*models.Equipment, error)
-	AssignOrCreateEquipmentForMember(uint64, models.Equipment) (*models.Equipment, error)
-	UnassignEquipment(uint64, models.EquipmentType) error
+	AssignOrCreateEquipmentForMember(uint64, models.Equipment) (*models.Equipment, *models.Equipment, error)
+	UnassignEquipment(uint64) (*models.Equipment, error)
 }
 type MemberService struct {
 	db               MemberDatabase
@@ -39,37 +38,12 @@ func (s MemberService) getMemberById(id uint64) (*models.Member, error) {
 	return s.db.getMemberById(id)
 }
 
-func (s MemberService) updateMember(id uint64, um *models.Member) ([]uint64, error) {
+func (s MemberService) updateMember(id uint64, um *models.Member) error {
 	oldMember, _ := s.getMemberById(id)
-	changeIds := make([]uint64, 0)
-	assignedEquipment := make(map[models.EquipmentType]*models.Equipment)
-
-	for _, eT := range models.GroupWithEquipment[um.Group] {
-		newEquip := um.Equipment[eT]
-		var oldEquip *models.Equipment
-		if oldMember != nil {
-			oldEquip = oldMember.Equipment[eT]
-		}
-
-		if newEquip != nil {
-			equipment, err := s.equipmentService.AssignOrCreateEquipmentForMember(id, *newEquip)
-			if err != nil {
-				log.Error(err)
-				return nil, err
-			}
-			assignedEquipment[eT] = equipment
-			changeIds = append(changeIds, equipment.Id)
-		} else if oldEquip != nil {
-			if err := s.equipmentService.UnassignEquipment(oldEquip.Id, oldEquip.Type); err != nil {
-				log.Error(err)
-				return nil, err
-			}
-		}
-	}
 
 	um.Id = id
-	um.Equipment = assignedEquipment
-	return changeIds, s.db.saveMember(um)
+	um.Equipment = oldMember.Equipment
+	return s.db.saveMember(um)
 }
 
 func (s MemberService) createMember(m *models.Member) (*models.Member, error) {
@@ -88,7 +62,18 @@ func (s MemberService) GetForIds(ids []uint64) ([]*models.Member, error) {
 	return s.db.getForIds(ids)
 }
 
-func (s MemberService) saveEquipmentForMember(memberId uint64, equipmentType models.EquipmentType, equipment models.Equipment) (*models.Equipment, error) {
+func (s MemberService) saveEquipmentForMember(memberId uint64, equipmentType models.EquipmentType, equipment models.Equipment) (*models.Equipment, *models.Equipment, error) {
 	equipment.Type = equipmentType
 	return s.equipmentService.AssignOrCreateEquipmentForMember(memberId, equipment)
+}
+
+func (s MemberService) removeEquipmentFromMember(memberId uint64, equipmentType models.EquipmentType) (*models.Equipment, error) {
+	member, err := s.getMemberById(memberId)
+	if err != nil {
+		return nil, err
+	}
+	if member.Equipment[equipmentType] == nil {
+		return nil, nil
+	}
+	return s.equipmentService.UnassignEquipment(member.Equipment[equipmentType].Id)
 }
