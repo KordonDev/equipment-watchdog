@@ -49,5 +49,8 @@
     {#if error}
       <div class="mt-4 text-sm text-red-600 bg-red-100 rounded px-3 py-2">{error}</div>
     {/if}
+		<div class="mt-4 text-center">
+			<a href={routes.login} class="text-sm text-purple-600 hover:text-purple-800">Zum Login</a>
+		</div>
   </div>
 </div>

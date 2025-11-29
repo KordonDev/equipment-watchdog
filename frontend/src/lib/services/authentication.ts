@@ -41,6 +41,49 @@ export function login(username: string) {
 		});
 }
 
+export function discoverableLogin() {
+	return fetchApi(`/login`)
+		.then((credentialRequestOptions) => {
+			credentialRequestOptions.publicKey.challenge = encodeBinary(
+				credentialRequestOptions.publicKey.challenge
+			);
+			if (credentialRequestOptions.publicKey.allowCredentials) {
+				credentialRequestOptions.publicKey.allowCredentials.forEach(
+					(listItem: any) => (listItem.id = encodeBinary(listItem.id))
+				);
+			}
+
+			return navigator.credentials.get({
+				publicKey: credentialRequestOptions.publicKey,
+			});
+		})
+		.then((assertion) => {
+			const authData = assertion.response.authenticatorData;
+			const clientDataJSON = assertion.response.clientDataJSON;
+			const rawId = assertion.rawId;
+			const sig = assertion.response.signature;
+			const userHandle = assertion.response.userHandle;
+			console.log("userId", encodeString(authData))
+
+			const body = {
+				id: assertion.id,
+				rawId: encodeString(rawId),
+				type: assertion.type,
+				response: {
+					authenticatorData: encodeString(authData),
+					clientDataJSON: encodeString(clientDataJSON),
+					signature: encodeString(sig),
+					userHandle: encodeString(userHandle),
+				},
+			};
+
+			return fetchApi(`/login`, {
+				method: "POST",
+				body: JSON.stringify(body),
+			});
+		});
+}
+
 export function addLogin() {
 	const startAddLogin = fetchApi(`/add-authentication`)
 	return handleRegister(startAddLogin, `/add-authentication`);

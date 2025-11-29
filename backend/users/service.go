@@ -2,6 +2,7 @@ package users
 
 import (
 	"context"
+
 	"github.com/kordondev/equipment-watchdog/models"
 
 	"golang.org/x/crypto/bcrypt"
@@ -16,6 +17,7 @@ type UserDatabase interface {
 	getForIds([]uint64) ([]*models.User, error)
 	changePassword(string, string) error
 	getPasswordHashForUser(username string) (string, error)
+	getUserByCredentialId(string) (*models.User, error)
 }
 
 type JwtService interface {
@@ -97,4 +99,8 @@ func (u *userService) CheckLogin(username, password string) error {
 		return err
 	}
 	return nil
+}
+
+func (u *userService) GetUserByCredentialId(credentialId string) (*models.User, error) {
+	return u.db.getUserByCredentialId(credentialId)
 }
