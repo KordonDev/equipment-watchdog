@@ -100,7 +100,8 @@
 			const equipment = await fulfillOrder(order, regCode);
 			registrationCodes[equipmentType] = '';
 
-			await handleDeleteOrder(order.id)
+			orders = orders.filter(o => order.id !== o.id);
+			onOrderRemoved(order.id);
 			onEquipmentChanged(equipment);
 		} catch (error) {
 			console.error(error);

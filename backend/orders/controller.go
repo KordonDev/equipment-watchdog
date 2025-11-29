@@ -17,6 +17,7 @@ type Service interface {
 	delete(uint64) error
 	getAll(bool) ([]models.Order, error)
 	fulfill(models.Order, string) (*models.Equipment, *models.Equipment, error)
+	getOpenOrRecentChanged() ([]models.Order, error)
 }
 
 type Controller struct {
@@ -38,6 +39,7 @@ func NewController(baseRoute *gin.RouterGroup, service Service, changeService Ch
 	ordersRoute := baseRoute.Group("/orders")
 	{
 		ordersRoute.GET("/", ctrl.getAllNotFulfilled)
+		ordersRoute.GET("/openOrChanged", ctrl.getOpenOrChanged)
 		ordersRoute.GET("/fulfilled", ctrl.getAllFulfilled)
 		ordersRoute.GET("/member/:id", ctrl.getForMember)
 		ordersRoute.GET("/:id", ctrl.getById)
@@ -50,6 +52,15 @@ func NewController(baseRoute *gin.RouterGroup, service Service, changeService Ch
 
 func (ctrl Controller) getAllNotFulfilled(c *gin.Context) {
 	orders, err := ctrl.service.getAll(false)
+	if err != nil {
+		c.AbortWithStatus(http.StatusInternalServerError)
+		return
+	}
+	c.JSON(http.StatusOK, orders)
+}
+
+func (ctrl Controller) getOpenOrChanged(c *gin.Context) {
+	orders, err := ctrl.service.getOpenOrRecentChanged()
 	if err != nil {
 		c.AbortWithStatus(http.StatusInternalServerError)
 		return

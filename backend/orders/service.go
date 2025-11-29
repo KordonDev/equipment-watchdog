@@ -14,6 +14,7 @@ type OrderDatabase interface {
 	save(*models.Order) error
 	delete(uint64) error
 	getAll(bool) ([]models.Order, error)
+	getAllOpenOrUpdatedAfter(time.Time) ([]models.Order, error)
 	getForIds([]uint64) ([]models.Order, error)
 }
 
@@ -93,4 +94,9 @@ func (s OrderService) fulfill(order models.Order, registrationCode string) (*mod
 	}
 
 	return equipment, oldEquip, err
+}
+
+func (s OrderService) getOpenOrRecentChanged() ([]models.Order, error) {
+	oneYearAgo := time.Now().AddDate(-1, 0, 0)
+	return s.db.getAllOpenOrUpdatedAfter(oneYearAgo)
 }
