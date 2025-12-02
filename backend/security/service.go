@@ -250,8 +250,6 @@ func (w WebAuthNService) finishDiscoverableLogin(request *http.Request) (*models
 		return nil, "", err
 	}
 
-	log.Infof("%v", response.ID)
-
 	sessionID := response.Response.CollectedClientData.Challenge
 	sessionData, err := w.sessionStore.getSession(sessionID)
 	if err != nil {

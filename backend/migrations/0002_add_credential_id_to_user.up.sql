@@ -1,2 +1,2 @@
 ALTER TABLE users
-    ADD credential_id TEXT;
+    ADD credential_id TEXT DEFAULT "";

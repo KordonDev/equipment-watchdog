@@ -1,2 +1,2 @@
 ALTER TABLE users
-    DROP credential_id TEXT DEFAULT "";
+    DROP credential_id;

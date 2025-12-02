@@ -63,7 +63,6 @@ export function discoverableLogin() {
 			const rawId = assertion.rawId;
 			const sig = assertion.response.signature;
 			const userHandle = assertion.response.userHandle;
-			console.log("userId", encodeString(authData))
 
 			const body = {
 				id: assertion.id,
