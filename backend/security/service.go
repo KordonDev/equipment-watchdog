@@ -7,7 +7,6 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/cloudflare/cfssl/log"
 	"golang.org/x/crypto/bcrypt"
 
 	"github.com/go-webauthn/webauthn/protocol"
