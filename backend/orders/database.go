@@ -1,6 +1,8 @@
 package orders
 
 import (
+	"time"
+
 	"github.com/kordondev/equipment-watchdog/models"
 	"gorm.io/gorm"
 )
@@ -64,6 +66,18 @@ func (odb orderDB) getAll(fulfilled bool) ([]models.Order, error) {
 		result, err = odb.getAllOpen()
 	}
 
+	if err != nil {
+		return nil, err
+	}
+
+	return listFormDB(result), nil
+}
+
+func (odb orderDB) getAllOpenOrUpdatedAfter(after time.Time) ([]models.Order, error) {
+	var result []models.DBOrder
+	err := odb.Model(&models.DBOrder{}).
+		Where("fulfilled_at = ? OR updated_at >= ?", time.Time{}, after).
+		Find(&result).Error
 	if err != nil {
 		return nil, err
 	}

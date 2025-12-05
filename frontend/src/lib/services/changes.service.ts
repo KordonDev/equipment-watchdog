@@ -9,7 +9,8 @@ export enum ChangeAction {
 	UpdateMember = "update-member",
 	DeleteMember = "delete-member",
 	CreateEquipment = "create-equipment",
-	DeleteEquipment = "delete-equipment"
+	DeleteEquipment = "delete-equipment",
+	UpdateEquipmentOnMember = "update-equipment-on-member"
 }
 
 export interface Change {
@@ -17,6 +18,7 @@ export interface Change {
 	createdAt: string;
 	memberId: number;
 	equipmentId: number;
+	oldEquipmentId?: number;
 	orderId: number;
 	action: ChangeAction;
 	userId: number;

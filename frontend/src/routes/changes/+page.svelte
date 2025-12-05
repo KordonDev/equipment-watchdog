@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { type Change, getRecentChanges, ChangeAction } from '$lib/services/changes.service';
-	import { getOrders, type Order } from '$lib/services/order.service';
+	import { getOrders, getOrdersOpenOrChanged, type Order } from '$lib/services/order.service';
 	import { getMembers, type Member } from '$lib/services/member.service';
 	import { translateEquipmentType } from '$lib/services/equipment.service';
 	import BurgerMenu from '$lib/components/BurgerMenu.svelte';
@@ -16,7 +16,7 @@
 		loading = true;
 		[changes, orders, members] = await Promise.all([
 			getRecentChanges(),
-			getOrders(),
+			getOrdersOpenOrChanged(),
 			getMembers()
 		]);
 		loading = false;
@@ -84,7 +84,7 @@
 			case ChangeAction.UpdateOrder:
 				return `Bestellung ${equipmentType} für ${memberName} wurde aktualisiert.`;
 			case ChangeAction.OrderToEquipment:
-				return `Bestellung ${equipmentType} wurde ${memberName} zugeordnet.`;
+				return `Bestellung ${equipmentType} (${change.equipmentId}) wurde ${memberName} zugeordnet.`;
 			case ChangeAction.CreateMember:
 				return `${memberName} wurde erstellt.`;
 			case ChangeAction.UpdateMember:
@@ -95,6 +95,14 @@
 				return `Ausrüstung ${equipmentType} (${change.equipmentId}) wurde erstellt.`;
 			case ChangeAction.DeleteEquipment:
 				return `Ausrüstung ${change.equipmentId} wurde gelöscht.`;
+			case ChangeAction.UpdateEquipmentOnMember:
+				if (change.oldEquipmentId) {
+					return `${memberName} hat ${equipmentType} ${change.oldEquipmentId} gegen ${change.equipmentId} getauscht.`;
+				}
+				if (change.equipmentId === 0) {
+					return `${memberName} hat ${equipmentType} zurückgegeben.`;
+				}
+				return `${memberName} hat ${equipmentType} ${change.equipmentId} bekommen.`;
 			default:
 				return change.action;
 		}

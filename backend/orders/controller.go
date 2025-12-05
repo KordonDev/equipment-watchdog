@@ -1,11 +1,12 @@
 package orders
 
 import (
+	"net/http"
+
 	"github.com/cloudflare/cfssl/log"
 	"github.com/gin-gonic/gin"
 	"github.com/kordondev/equipment-watchdog/models"
 	"github.com/kordondev/equipment-watchdog/url"
-	"net/http"
 )
 
 type Service interface {
@@ -15,7 +16,8 @@ type Service interface {
 	update(uint64, models.Order) (models.Order, error)
 	delete(uint64) error
 	getAll(bool) ([]models.Order, error)
-	fulfill(models.Order, string) (*models.Equipment, error)
+	fulfill(models.Order, string) (*models.Equipment, *models.Equipment, error)
+	getOpenOrRecentChanged() ([]models.Order, error)
 }
 
 type Controller struct {
@@ -37,6 +39,7 @@ func NewController(baseRoute *gin.RouterGroup, service Service, changeService Ch
 	ordersRoute := baseRoute.Group("/orders")
 	{
 		ordersRoute.GET("/", ctrl.getAllNotFulfilled)
+		ordersRoute.GET("/openOrChanged", ctrl.getOpenOrChanged)
 		ordersRoute.GET("/fulfilled", ctrl.getAllFulfilled)
 		ordersRoute.GET("/member/:id", ctrl.getForMember)
 		ordersRoute.GET("/:id", ctrl.getById)
@@ -49,6 +52,15 @@ func NewController(baseRoute *gin.RouterGroup, service Service, changeService Ch
 
 func (ctrl Controller) getAllNotFulfilled(c *gin.Context) {
 	orders, err := ctrl.service.getAll(false)
+	if err != nil {
+		c.AbortWithStatus(http.StatusInternalServerError)
+		return
+	}
+	c.JSON(http.StatusOK, orders)
+}
+
+func (ctrl Controller) getOpenOrChanged(c *gin.Context) {
+	orders, err := ctrl.service.getOpenOrRecentChanged()
 	if err != nil {
 		c.AbortWithStatus(http.StatusInternalServerError)
 		return
@@ -182,18 +194,24 @@ func (ctrl Controller) createEquipmentFromOrder(c *gin.Context) {
 		return
 	}
 
-	equipment, err := ctrl.service.fulfill(order, registrationCode)
+	equipment, oldEquip, err := ctrl.service.fulfill(order, registrationCode)
 	if err != nil {
 		log.Error(err)
 		c.AbortWithError(http.StatusInternalServerError, err)
 		return
 	}
 
+	var oldEquipId uint64 = 0
+	if oldEquip != nil {
+		oldEquipId = oldEquip.Id
+	}
+
 	ctrl.changeWriter.Save(models.Change{
-		Action:      models.OrderToEquipment,
-		OrderId:     order.ID,
-		EquipmentId: equipment.Id,
-		MemberId:    equipment.MemberID,
+		Action:         models.OrderToEquipment,
+		OrderId:        order.ID,
+		EquipmentId:    equipment.Id,
+		OldEquipmentId: oldEquipId,
+		MemberId:       equipment.MemberID,
 	}, c)
 
 	c.JSON(http.StatusOK, equipment)

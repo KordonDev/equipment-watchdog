@@ -17,25 +17,27 @@ func (DbChange) TableName() string {
 }
 
 type Change struct {
-	ID          uint64    `json:"id"`
-	CreatedAt   time.Time `json:"createdAt"`
-	MemberId    uint64    `json:"memberId"`
-	EquipmentId uint64    `json:"equipmentId"`
-	OrderId     uint64    `json:"orderId"`
-	Action      string    `json:"action"`
-	UserId      uint64    `json:"userId"`
+	ID             uint64    `json:"id"`
+	CreatedAt      time.Time `json:"createdAt"`
+	MemberId       uint64    `json:"memberId"`
+	EquipmentId    uint64    `json:"equipmentId"`
+	OrderId        uint64    `json:"orderId"`
+	Action         string    `json:"action"`
+	UserId         uint64    `json:"userId"`
+	OldEquipmentId uint64    `json:"oldEquipmentId,omitempty"`
 }
 
 const (
-	CreateOrder      string = "create-order"
-	DeleteOrder             = "delete-order"
-	UpdateOrder             = "update-order"
-	OrderToEquipment        = "order-to-equipment"
-	CreateMember            = "create-member"
-	UpdateMember            = "update-member"
-	DeleteMember            = "delete-member"
-	CreateEquipment         = "create-equipment"
-	DeleteEquipment         = "delete-equipment"
+	CreateOrder             string = "create-order"
+	DeleteOrder                    = "delete-order"
+	UpdateOrder                    = "update-order"
+	OrderToEquipment               = "order-to-equipment"
+	CreateMember                   = "create-member"
+	UpdateMember                   = "update-member"
+	DeleteMember                   = "delete-member"
+	CreateEquipment                = "create-equipment"
+	DeleteEquipment                = "delete-equipment"
+	UpdateEquipmentOnMember        = "update-equipment-on-member"
 )
 
 func (dbc DbChange) FromDB() *Change {

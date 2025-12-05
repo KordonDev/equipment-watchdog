@@ -139,7 +139,7 @@
 	/>
 {/if}
 
-{#if showDetailDialog}
+{#if showDetailDialog && memberForDetails}
 	<MemberDetailDialog
 		member={memberForDetails}
 		onClose={handleCloseDetailDialog}

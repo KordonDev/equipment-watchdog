@@ -16,6 +16,11 @@ export function getOrders(): Promise<Order[]> {
     .then(orders => orders.map(parseOrderDates));
 }
 
+export function getOrdersOpenOrChanged(): Promise<Order[]> {
+	return fetchApi(`/orders/openOrChanged`)
+		.then(orders => orders.map(parseOrderDates));
+}
+
 export function getOrdersForMember(id: string): Promise<Order[]> {
   return fetchApi(`/orders/member/${id}`)
     .then(orders => orders.map(parseOrderDates));
