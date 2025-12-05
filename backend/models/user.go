@@ -9,11 +9,12 @@ import (
 )
 
 type User struct {
-	ID          uint64                `json:"id"`
-	Name        string                `json:"name" mapstructure:"name"`
-	IsApproved  bool                  `json:"isApproved"`
-	IsAdmin     bool                  `json:"isAdmin"`
-	Credentials []webauthn.Credential `json:"-"`
+	ID           uint64                `json:"id"`
+	Name         string                `json:"name" mapstructure:"name"`
+	IsApproved   bool                  `json:"isApproved"`
+	IsAdmin      bool                  `json:"isAdmin"`
+	Credentials  []webauthn.Credential `json:"-"`
+	CredentialId string
 }
 
 func (u *User) WebAuthnID() []byte {
@@ -76,14 +77,15 @@ func (DbCredential) TableName() string {
 }
 
 type DbUser struct {
-	ID          uint64 `gorm:"primarykey"`
-	CreatedAt   time.Time
-	UpdatedAt   time.Time
-	Name        string `gorm:"unique"`
-	Password    string `gorm:"default:''"`
-	IsApproved  bool
-	IsAdmin     bool
-	Credentials []DbCredential `gorm:"foreignKey:UserID"`
+	ID           uint64 `gorm:"primarykey"`
+	CreatedAt    time.Time
+	UpdatedAt    time.Time
+	Name         string `gorm:"unique"`
+	Password     string `gorm:"default:''"`
+	IsApproved   bool
+	IsAdmin      bool
+	Credentials  []DbCredential `gorm:"foreignKey:UserID"`
+	CredentialId string
 }
 
 func (DbUser) TableName() string {
@@ -109,11 +111,12 @@ func (u *User) ToDBUser() *DbUser {
 		c = append(c, dbC)
 	}
 	dbu := DbUser{
-		ID:          u.ID,
-		Name:        u.Name,
-		IsApproved:  u.IsApproved,
-		IsAdmin:     u.IsAdmin,
-		Credentials: c,
+		ID:           u.ID,
+		Name:         u.Name,
+		IsApproved:   u.IsApproved,
+		IsAdmin:      u.IsAdmin,
+		Credentials:  c,
+		CredentialId: u.CredentialId,
 	}
 	return &dbu
 }
@@ -147,11 +150,12 @@ func (dbu *DbUser) ToUser() *User {
 		c = append(c, dbC)
 	}
 	user := User{
-		ID:          dbu.ID,
-		Name:        dbu.Name,
-		IsApproved:  dbu.IsApproved,
-		IsAdmin:     dbu.IsAdmin,
-		Credentials: c,
+		ID:           dbu.ID,
+		Name:         dbu.Name,
+		IsApproved:   dbu.IsApproved,
+		IsAdmin:      dbu.IsAdmin,
+		Credentials:  c,
+		CredentialId: dbu.CredentialId,
 	}
 	return &user
 }

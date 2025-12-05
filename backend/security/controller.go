@@ -16,6 +16,8 @@ type Service interface {
 	finishRegistration(string, *http.Request) (*models.User, error)
 	startLogin(string, *http.Request) (*protocol.CredentialAssertion, error)
 	finishLogin(string, *http.Request) (*models.User, string, error)
+	startDiscoverableLogin(*http.Request) (*protocol.CredentialAssertion, error)
+	finishDiscoverableLogin(*http.Request) (*models.User, string, error)
 	passwordLogin(ctx context.Context, username, password string) (*models.User, string, error)
 	changePassword(ctx context.Context, username, password string) error
 }
@@ -35,6 +37,8 @@ func NewController(baseUrl *gin.RouterGroup, service Service, domain string, aut
 	baseUrl.POST("/register/:username", ctrl.finishRegistration)
 	baseUrl.GET("/login/:username", ctrl.startLogin)
 	baseUrl.POST("/login/:username", ctrl.finishLogin)
+	baseUrl.GET("/login", ctrl.startDiscoverableLogin)
+	baseUrl.POST("/login", ctrl.finishDiscoverableLogin)
 	baseUrl.POST("/logout", ctrl.logout)
 	baseUrl.POST("/password-login", ctrl.passwordLogin)
 
@@ -168,6 +172,28 @@ func (ctrl Controller) passwordLogin(c *gin.Context) {
 	user, token, err := ctrl.service.passwordLogin(c, login.Username, login.Password)
 	if err != nil {
 		c.AbortWithError(http.StatusUnauthorized, err)
+		return
+	}
+
+	url.SetCookie(c, token, ctrl.domain)
+	c.JSON(http.StatusOK, user)
+}
+
+func (ctrl Controller) startDiscoverableLogin(c *gin.Context) {
+	options, err := ctrl.service.startDiscoverableLogin(c.Request)
+
+	if err != nil {
+		c.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
+
+	c.JSON(http.StatusOK, options)
+}
+
+func (ctrl Controller) finishDiscoverableLogin(c *gin.Context) {
+	user, token, err := ctrl.service.finishDiscoverableLogin(c.Request)
+	if err != nil {
+		c.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
 
