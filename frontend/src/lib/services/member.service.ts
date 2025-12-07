@@ -77,16 +77,19 @@ export enum Group {
 	MONDAY = "monday",
   FRIDAY = "friday",
   MINI = "mini",
+	GONE = "gone",
 }
 
 export const groupLabels = {
 	[Group.FRIDAY]: 'Freitag',
 	[Group.MINI]: 'Mini',
-	[Group.MONDAY]: 'Montag'
+	[Group.MONDAY]: 'Montag',
+	[Group.GONE]: 'Raus'
 };
 
 export const equipmentForGroup: any = {
   [Group.FRIDAY]: [EquipmentType.Helmet, EquipmentType.Jacket, EquipmentType.Gloves, EquipmentType.Trousers, EquipmentType.Boots, EquipmentType.TShirt],
 	[Group.MONDAY]: [EquipmentType.Helmet, EquipmentType.Jacket, EquipmentType.Gloves, EquipmentType.Trousers, EquipmentType.Boots, EquipmentType.TShirt],
-  [Group.MINI]: [EquipmentType.Helmet, EquipmentType.Gloves, EquipmentType.TShirt]
+  [Group.MINI]: [EquipmentType.Helmet, EquipmentType.Gloves, EquipmentType.TShirt],
+	[Group.GONE]: [EquipmentType.Helmet, EquipmentType.Jacket, EquipmentType.Gloves, EquipmentType.Trousers, EquipmentType.Boots, EquipmentType.TShirt],
 }
