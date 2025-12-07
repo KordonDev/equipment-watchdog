@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { PageProps } from './$types';
-	import { login, setStoredUsername, getStoredUsername } from "$lib/services/authentication";
+	import { login, discoverableLogin, setStoredUsername, getStoredUsername } from "$lib/services/authentication";
 	import { goto } from '$app/navigation';
 	import { routes } from '$lib/routes';
 
@@ -24,15 +24,19 @@
 		loading = true;
 		infoMessage = null;
 		try {
-			await login(username);
-			if (storeUsername) {
-				setStoredUsername(username);
+			if (username.trim()) {
+				await login(username);
+				if (storeUsername) {
+					setStoredUsername(username);
+				} else {
+					setStoredUsername('');
+				}
 			} else {
-				setStoredUsername('');
+				await discoverableLogin();
 			}
 			goto('/members');
 		} catch (e) {
-			infoMessage = "Login fehlgeschlagen. Bitte überprüfe deinen Benutzernamen.";
+			infoMessage = "Login fehlgeschlagen. Bitte überprüfe deinen Benutzernamen oder nutze ein registriertes Gerät.";
 		} finally {
 			loading = false;
 		}
@@ -47,14 +51,14 @@
 		{/if}
 		<form onsubmit={handleLogin} class="space-y-4">
 			<div>
-				<label for="username" class="block mb-2 text-sm font-medium text-gray-700">Benutzer:</label>
+				<label for="username" class="block mb-2 text-sm font-medium text-gray-700">Benutzer (optional):</label>
 				<input
-					required
 					class="block w-full rounded border border-gray-300 px-3 py-2 focus:border-purple-500 focus:ring focus:ring-purple-200 focus:ring-opacity-50"
 					id="username"
 					bind:value={username}
 					type="text"
 					autocomplete="username webauthn"
+					placeholder="Leer lassen für automatischen Login"
 				/>
 			</div>
 			<div class="flex items-center">
@@ -76,6 +80,9 @@
 		</form>
 		<div class="mt-4 text-center">
 			<a href={routes.loginPassword} class="text-sm text-purple-600 hover:text-purple-800">Mit Passwort einloggen</a>
+		</div>
+		<div class="mt-4 text-center">
+			<a href={routes.register} class="text-sm text-purple-600 hover:text-purple-800">Registrieren</a>
 		</div>
 	</div>
 </div>

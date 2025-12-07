@@ -4,9 +4,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"golang.org/x/crypto/bcrypt"
 	"net/http"
 	"time"
+
+	"golang.org/x/crypto/bcrypt"
 
 	"github.com/go-webauthn/webauthn/protocol"
 	"github.com/go-webauthn/webauthn/webauthn"
@@ -21,6 +22,7 @@ type userService interface {
 	HasApprovedAndAdminUser() bool
 	CheckLogin(username, password string) error
 	ChangePassword(ctx context.Context, username, password string) error
+	GetUserByCredentialId(string) (*models.User, error)
 }
 
 type SessionStore interface {
@@ -185,10 +187,17 @@ func (w WebAuthNService) finishLogin(username string, request *http.Request) (*m
 		return nil, "", err
 	}
 
-	_, err = w.webAuthn.FinishLogin(user, sessionData, request)
+	cred, err := protocol.ParseCredentialRequestResponseBody(request.Body)
 	if err != nil {
 		return nil, "", err
 	}
+
+	_, err = w.webAuthn.ValidateLogin(user, sessionData, cred)
+	if err != nil {
+		return nil, "", err
+	}
+
+	user.CredentialId = cred.ID
 
 	user, err = w.userService.SaveUser(user)
 	if err != nil {
@@ -212,6 +221,62 @@ func (w WebAuthNService) passwordLogin(ctx context.Context, username, password s
 		return nil, "", err
 	}
 	user, err := w.userService.GetUser(username)
+	if err != nil {
+		return nil, "", err
+	}
+
+	token := w.jwtService.GenerateToken(*user)
+	return user, token, nil
+}
+
+func (w WebAuthNService) startDiscoverableLogin(request *http.Request) (*protocol.CredentialAssertion, error) {
+	options, sessionData, err := w.webAuthn.BeginDiscoverableLogin()
+	if err != nil {
+		return nil, err
+	}
+
+	sessionID := sessionData.Challenge
+	if err = w.sessionStore.storeSession(sessionID, *sessionData); err != nil {
+		return nil, err
+	}
+
+	return options, nil
+}
+
+func (w WebAuthNService) finishDiscoverableLogin(request *http.Request) (*models.User, string, error) {
+	response, err := protocol.ParseCredentialRequestResponseBody(request.Body)
+	if err != nil {
+		return nil, "", err
+	}
+
+	sessionID := response.Response.CollectedClientData.Challenge
+	sessionData, err := w.sessionStore.getSession(sessionID)
+	if err != nil {
+		return nil, "", err
+	}
+
+	if time.Now().After(sessionData.Expires) {
+		return nil, "", fmt.Errorf("session expired")
+	}
+
+	credentialId := response.ID
+	if len(credentialId) == 0 {
+		return nil, "", fmt.Errorf("credentialId is required for discoverable login")
+	}
+
+	user, err := w.userService.GetUserByCredentialId(credentialId)
+	if err != nil {
+		return nil, "", fmt.Errorf("user not found: %w", err)
+	}
+
+	_, err = w.webAuthn.ValidateDiscoverableLogin(func(rawID, userHandle []byte) (webauthn.User, error) {
+		return user, nil
+	}, sessionData, response)
+	if err != nil {
+		return nil, "", err
+	}
+
+	user, err = w.userService.SaveUser(user)
 	if err != nil {
 		return nil, "", err
 	}

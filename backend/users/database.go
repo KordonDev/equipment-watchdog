@@ -106,3 +106,12 @@ func (u *userDB) getPasswordHashForUser(username string) (string, error) {
 
 	return p.Password, nil
 }
+
+func (u *userDB) getUserByCredentialId(credentialId string) (*models.User, error) {
+	var dbu models.DbUser
+	err := u.Model(&models.DbUser{}).Preload("Credentials").First(&dbu, "credential_id = ?", credentialId).Error
+	if err != nil {
+		return &models.User{}, fmt.Errorf("error getting user by credential_id: %w", err)
+	}
+	return dbu.ToUser(), nil
+}
