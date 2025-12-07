@@ -18,6 +18,7 @@
 	import { getNextGloveId } from '$lib/services/gloveId.service';
 	import OrderDialog from './OrderDialog.svelte';
 	import { showError } from '$lib/services/notification.svelte';
+	import { onMount } from 'svelte';
 
 	interface Props {
 		member: Member;
@@ -43,11 +44,11 @@
 		tempRegistrationCodes[EquipmentType.Helmet] = randomRegistrationCode();
 	}
 
-	$effect(() => {
-		if (changedMember) {
-			loadNextGloveId();
-		}
-	});
+	onMount(() => {
+		getOrdersForMember(changedMember.id.toString())
+			.then(o => orders = o)
+		loadNextGloveId();
+	})
 
 	const loadNextGloveId = async () => {
 		try {
@@ -159,14 +160,6 @@
 	};
 
 	let orders: Order[] = $state([]);
-
-	// TODO: only once?
-	$effect(() => {
-		if (changedMember !== null) {
-			getOrdersForMember(changedMember.id.toString())
-				.then(o => orders = o)
-		}
-	})
 
 	const hasOrderForType = (type: EquipmentType) =>
 		orders.some(order => order.type === type && !order.fulfilledAt);
