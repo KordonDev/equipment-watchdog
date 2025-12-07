@@ -1,5 +1,4 @@
 import { fetchApi } from "../apiService";
-import { Group } from '$lib/services/member.service';
 
 export interface Equipment {
   id: number;
@@ -9,11 +8,6 @@ export interface Equipment {
   size: string;
 }
 
-
-export function getEquipment(id: string): Promise<Equipment> {
-  return fetchApi(`/equipment/${id}`);
-}
-
 export function randomRegistrationCode(): string {
 	return (Math.random() + 1).toString(36).substring(7)
 }
@@ -21,15 +15,12 @@ export function randomRegistrationCode(): string {
 export type EquipmentListByType = {
   [EquipmentType.Helmet]?: Equipment[];
   [EquipmentType.Jacket]?: Equipment[];
+	[EquipmentType.OverJacket]?: Equipment[];
   [EquipmentType.Gloves]?: Equipment[];
   [EquipmentType.Trousers]?: Equipment[];
   [EquipmentType.Boots]?: Equipment[];
   [EquipmentType.TShirt]?: Equipment[];
 };
-
-export function getFreeEquipment(): Promise<EquipmentListByType> {
-  return fetchApi("/equipment/free");
-}
 
 export function getAllEquipment(): Promise<Equipment[]> {
 	return fetchApi("/equipment/");
@@ -38,6 +29,7 @@ export function getAllEquipment(): Promise<Equipment[]> {
 export enum EquipmentType {
   Helmet = "helmet",
   Jacket = "jacket",
+	OverJacket = "overJacket",
   Gloves = "gloves",
   Trousers = "trousers",
   Boots = "boots",
@@ -47,6 +39,7 @@ export enum EquipmentType {
 export const equipmentLabels = {
 	[EquipmentType.Helmet]: 'Helm',
 	[EquipmentType.Jacket]: 'Jacke',
+	[EquipmentType.OverJacket]: 'Überjacke',
 	[EquipmentType.Gloves]: 'Handschuhe',
 	[EquipmentType.Trousers]: 'Hose',
 	[EquipmentType.Boots]: 'Stiefel',

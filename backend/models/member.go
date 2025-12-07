@@ -9,7 +9,7 @@ type DbMember struct {
 	CreatedAt time.Time
 	UpdatedAt time.Time
 	Name      string `gorm:"unique"`
-	Group     Group
+	Group     string
 	Equipment []*DbEquipment `gorm:"foreignKey:MemberID"`
 }
 
@@ -20,7 +20,7 @@ func (DbMember) TableName() string {
 type Member struct {
 	Id        uint64                       `json:"id"`
 	Name      string                       `json:"name"`
-	Group     Group                        `json:"group"`
+	Group     string                       `json:"group"`
 	Equipment map[EquipmentType]*Equipment `json:"equipments"`
 }
 
