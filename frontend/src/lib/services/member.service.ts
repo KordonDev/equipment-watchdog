@@ -49,6 +49,30 @@ export function deleteMember(id: string): Promise<void> {
   });
 }
 
+export function saveEquipmentForMember(
+	memberId: number,
+	equipmentType: EquipmentType,
+	equipment: Equipment
+): Promise<Equipment> {
+	return fetchApi(`/members/${memberId}/${equipmentType}`, {
+		method: "POST",
+		body: JSON.stringify({
+			registrationCode: equipment.registrationCode,
+			size: equipment.size,
+		}),
+	});
+}
+
+export function removeEquipmentFromMember(
+	memberId: number,
+	equipmentType: EquipmentType,
+): Promise<Equipment> {
+	return fetchApi(`/members/${memberId}/${equipmentType}`, {
+		method: "DELETE",
+	});
+}
+
+
 export enum Group {
 	MONDAY = "monday",
   FRIDAY = "friday",

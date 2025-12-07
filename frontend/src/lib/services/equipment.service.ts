@@ -14,22 +14,6 @@ export function getEquipment(id: string): Promise<Equipment> {
   return fetchApi(`/equipment/${id}`);
 }
 
-export function createEquipment(equipment: Equipment): Promise<Equipment> {
-  return fetchApi("/equipment/", {
-    method: "POST",
-    body: JSON.stringify({
-      ...equipment,
-      id: 0,
-    }),
-  })
-}
-
-export function deleteEquipment(id: number): Promise<void> {
-  return fetchApi(`/equipment/${id}`, {
-    method: "DELETE",
-  });
-}
-
 export function randomRegistrationCode(): string {
 	return (Math.random() + 1).toString(36).substring(7)
 }

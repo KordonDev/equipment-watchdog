@@ -42,7 +42,7 @@ func (edb *equipmentDB) getByType(equipmentType string) ([]*models.Equipment, er
 func (edb *equipmentDB) getAll() ([]*models.Equipment, error) {
 	dbEquipment := make([]models.DbEquipment, 0)
 
-	err := edb.Find(&dbEquipment).Error
+	err := edb.Where("member_id IS NOT NULL AND member_id != 0").Find(&dbEquipment).Error
 	if err != nil {
 		return make([]*models.Equipment, 0), err
 	}
@@ -116,4 +116,13 @@ func (edb *equipmentDB) registrationCodeExists(rc string) bool {
 	var e models.DbEquipment
 	err := edb.Model(&models.DbEquipment{}).First(&e, "registration_code = ?", rc).Error
 	return !errors.Is(err, gorm.ErrRecordNotFound)
+}
+
+func (edb *equipmentDB) getByRegistrationCode(rc string) (*models.Equipment, error) {
+	var e models.DbEquipment
+	err := edb.Model(&models.DbEquipment{}).First(&e, "registration_code = ?", rc).Error
+	if err != nil {
+		return nil, err
+	}
+	return e.FromDB(), nil
 }
