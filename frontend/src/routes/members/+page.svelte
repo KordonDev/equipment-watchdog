@@ -3,16 +3,21 @@
 	import { equipmentForGroup, getMembers, Group, groupLabels, type Member } from '$lib/services/member.service';
 	import { equipmentLabels, EquipmentType } from '$lib/services/equipment.service';
 	import { getOrders, type Order } from '$lib/services/order.service';
+	import {
+		loadMemberForDetails,
+		loadSelectedGroup,
+		storeMemberForDetails,
+		storeSelectedGroup
+	} from '$lib/services/storage.service';
 	import AddMemberDialog from '$lib/components/AddMemberDialog.svelte';
 	import MemberDetailDialog from '$lib/components/MemberDetailDialog.svelte';
 	import BurgerMenu from '$lib/components/BurgerMenu.svelte';
 
 	let members: Member[] = $state([]);
-	let selectedGroup: Group = $state(Group.FRIDAY);
+	let selectedGroup: Group = $state(loadSelectedGroup());
 	let loading = $state(true);
 	let showAddMemberDialog = $state(false);
-	let showDetailDialog = $state(false);
-	let memberForDetails: Member | null = $state(null);
+	let memberForDetails: Member | undefined = $state(undefined);
 	let orders: Order[] = $state([]);
 
 	let filteredMembers = $derived(members.filter(member => member.group === selectedGroup));
@@ -21,11 +26,16 @@
 		try {
 			members = await getMembers();
 			orders = await getOrders();
+			memberForDetails = loadMemberForDetails(members)
 		} catch (error) {
 			console.error('Failed to load members or orders:', error);
 		} finally {
 			loading = false;
 		}
+	});
+
+	$effect(() => {
+		storeSelectedGroup(selectedGroup)
 	});
 
 	const handleAddMember = () => {
@@ -43,7 +53,7 @@
 
 	const handleMemberClick = (member: Member) => {
 		memberForDetails = member;
-		showDetailDialog = true;
+		storeMemberForDetails(member)
 	};
 
 	const handleMemberUpdated = async (updatedMember: Member) => {
@@ -57,11 +67,11 @@
 	};
 
 	const handleCloseDetailDialog = (deletedMemberId?: string) => {
-		showDetailDialog = false;
 		if (deletedMemberId) {
-			members = members.filter(m => m.id !== deletedMemberId);
+			members = members.filter(m => m.id.toString() !== deletedMemberId);
 		}
-		memberForDetails = null;
+		memberForDetails = undefined;
+		storeMemberForDetails(undefined)
 		members = [...members]; // Trigger reactivity
 	};
 
@@ -139,7 +149,7 @@
 	/>
 {/if}
 
-{#if showDetailDialog && memberForDetails}
+{#if memberForDetails}
 	<MemberDetailDialog
 		member={memberForDetails}
 		onClose={handleCloseDetailDialog}
