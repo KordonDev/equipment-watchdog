@@ -12,6 +12,7 @@ export interface Member {
 export interface EquipmentByType {
   [EquipmentType.Helmet]?: Equipment;
   [EquipmentType.Jacket]?: Equipment;
+  [EquipmentType.OverJacket]?: Equipment;
   [EquipmentType.Gloves]?: Equipment;
   [EquipmentType.Trousers]?: Equipment;
   [EquipmentType.Boots]?: Equipment;
@@ -88,8 +89,8 @@ export const groupLabels = {
 };
 
 export const equipmentForGroup: any = {
-  [Group.FRIDAY]: [EquipmentType.Helmet, EquipmentType.Jacket, EquipmentType.Gloves, EquipmentType.Trousers, EquipmentType.Boots, EquipmentType.TShirt],
-	[Group.MONDAY]: [EquipmentType.Helmet, EquipmentType.Jacket, EquipmentType.Gloves, EquipmentType.Trousers, EquipmentType.Boots, EquipmentType.TShirt],
+  [Group.FRIDAY]: [EquipmentType.Helmet, EquipmentType.Jacket, EquipmentType.OverJacket, EquipmentType.Gloves, EquipmentType.Trousers, EquipmentType.Boots, EquipmentType.TShirt],
+	[Group.MONDAY]: [EquipmentType.Helmet, EquipmentType.Jacket, EquipmentType.OverJacket, EquipmentType.Gloves, EquipmentType.Trousers, EquipmentType.Boots, EquipmentType.TShirt],
   [Group.MINI]: [EquipmentType.Helmet, EquipmentType.Gloves, EquipmentType.TShirt],
-	[Group.GONE]: [EquipmentType.Helmet, EquipmentType.Jacket, EquipmentType.Gloves, EquipmentType.Trousers, EquipmentType.Boots, EquipmentType.TShirt],
+	[Group.GONE]: [EquipmentType.Helmet, EquipmentType.Jacket, EquipmentType.OverJacket, EquipmentType.Gloves, EquipmentType.Trousers, EquipmentType.Boots, EquipmentType.TShirt],
 }
