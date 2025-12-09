@@ -54,16 +54,13 @@ func (s MemberService) deleteMemberById(id uint64) error {
 	return s.db.deleteMember(&models.Member{Id: id})
 }
 
-func (s MemberService) getAllGroups() map[models.Group][]models.EquipmentType {
-	return models.GroupWithEquipment
-}
-
 func (s MemberService) GetForIds(ids []uint64) ([]*models.Member, error) {
 	return s.db.getForIds(ids)
 }
 
 func (s MemberService) saveEquipmentForMember(memberId uint64, equipmentType models.EquipmentType, equipment models.Equipment) (*models.Equipment, *models.Equipment, error) {
 	equipment.Type = equipmentType
+	equipment.MemberID = memberId
 	return s.equipmentService.AssignOrCreateEquipmentForMember(memberId, equipment)
 }
 

@@ -14,7 +14,6 @@ type Service interface {
 	getMemberById(uint64) (*models.Member, error)
 	updateMember(uint64, *models.Member) error
 	deleteMemberById(uint64) error
-	getAllGroups() map[models.Group][]models.EquipmentType
 	getAllMembers() ([]*models.Member, error)
 	saveEquipmentForMember(uint64, models.EquipmentType, models.Equipment) (*models.Equipment, *models.Equipment, error)
 	removeEquipmentFromMember(uint64, models.EquipmentType) (*models.Equipment, error)
@@ -43,7 +42,6 @@ func NewController(baseRoute *gin.RouterGroup, service Service, changeWriter Cha
 		membersRoute.POST("/", ctrl.createMember)
 		membersRoute.PUT("/:id", ctrl.updateMember)
 		membersRoute.DELETE("/:id", ctrl.deleteMemberById)
-		membersRoute.GET("/groups", ctrl.getAllGroups)
 		membersRoute.POST("/:id/:equipmentType", ctrl.saveEquipmentForMember)
 		membersRoute.DELETE("/:id/:equipmentType", ctrl.removeEquipmentFromMember)
 	}
@@ -57,7 +55,6 @@ func (ctrl Controller) getAllMembers(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, m)
-
 }
 
 func (ctrl Controller) createMember(c *gin.Context) {
@@ -145,10 +142,6 @@ func (ctrl Controller) deleteMemberById(c *gin.Context) {
 	}, c)
 
 	c.Status(http.StatusOK)
-}
-
-func (ctrl Controller) getAllGroups(c *gin.Context) {
-	c.JSON(http.StatusOK, ctrl.service.getAllGroups())
 }
 
 func (ctrl Controller) saveEquipmentForMember(c *gin.Context) {
