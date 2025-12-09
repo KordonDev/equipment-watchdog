@@ -123,13 +123,12 @@ func (s EquipmentService) RegistrationCodeExists(rc string) bool {
 
 func (s EquipmentService) AssignOrCreateEquipmentForMember(memberId uint64, equipment models.Equipment) (*models.Equipment, *models.Equipment, error) {
 	existingEquipment, err := s.db.getByRegistrationCode(equipment.RegistrationCode)
+	oldEquipment, _ := s.db.getByMemberIdAndType(memberId, equipment.Type)
 	var newEquipment *models.Equipment
 	if errors.Is(err, gorm.ErrRecordNotFound) {
-		equipment.MemberID = memberId
 		newEquipment, err = s.createEquipment(equipment)
 	}
 
-	oldEquipment, _ := s.db.getByMemberIdAndType(memberId, equipment.Type)
 	if oldEquipment != nil && oldEquipment.Id != equipment.Id {
 		if _, err := s.UnassignEquipment(oldEquipment.Id); err != nil {
 			return nil, nil, err

@@ -86,7 +86,7 @@ export const groupLabels = {
 };
 
 export const equipmentForGroup: any = {
-  [Group.FRIDAY]: [EquipmentType.Helmet, EquipmentType.Jacket, EquipmentType.Gloves, EquipmentType.Trousers, EquipmentType.Boots, EquipmentType.TShirt],
-	[Group.MONDAY]: [EquipmentType.Helmet, EquipmentType.Jacket, EquipmentType.Gloves, EquipmentType.Trousers, EquipmentType.Boots, EquipmentType.TShirt],
+  [Group.FRIDAY]: [EquipmentType.Helmet, EquipmentType.Jacket, EquipmentType.OverJacket, EquipmentType.Gloves, EquipmentType.Trousers, EquipmentType.Boots, EquipmentType.TShirt],
+	[Group.MONDAY]: [EquipmentType.Helmet, EquipmentType.Jacket, EquipmentType.OverJacket, EquipmentType.Gloves, EquipmentType.Trousers, EquipmentType.Boots, EquipmentType.TShirt],
   [Group.MINI]: [EquipmentType.Helmet, EquipmentType.Gloves, EquipmentType.TShirt]
 }

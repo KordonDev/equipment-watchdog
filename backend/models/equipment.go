@@ -7,12 +7,13 @@ import (
 type EquipmentType string
 
 const (
-	Helmet   EquipmentType = "helmet"
-	Jacket   EquipmentType = "jacket"
-	Gloves   EquipmentType = "gloves"
-	Trousers EquipmentType = "trousers"
-	Boots    EquipmentType = "boots"
-	TShirt   EquipmentType = "tshirt"
+	Helmet     EquipmentType = "helmet"
+	Jacket     EquipmentType = "jacket"
+	OverJacket EquipmentType = "overJacket"
+	Gloves     EquipmentType = "gloves"
+	Trousers   EquipmentType = "trousers"
+	Boots      EquipmentType = "boots"
+	TShirt     EquipmentType = "tshirt"
 )
 
 type DbEquipment struct {
