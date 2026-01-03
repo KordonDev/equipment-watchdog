@@ -9,12 +9,12 @@ import (
 )
 
 type User struct {
-	ID           uint64                `json:"id"`
-	Name         string                `json:"name" mapstructure:"name"`
-	IsApproved   bool                  `json:"isApproved"`
-	IsAdmin      bool                  `json:"isAdmin"`
-	Credentials  []webauthn.Credential `json:"-"`
-	CredentialId string
+	ID            uint64                `json:"id"`
+	Name          string                `json:"name" mapstructure:"name"`
+	IsApproved    bool                  `json:"isApproved"`
+	IsAdmin       bool                  `json:"isAdmin"`
+	Credentials   []webauthn.Credential `json:"-"`
+	CredentialIds []string
 }
 
 func (u *User) WebAuthnID() []byte {
@@ -40,8 +40,9 @@ func (u *User) WebAuthnCredentials() []webauthn.Credential {
 	return u.Credentials
 }
 
-func (u *User) AddCredential(c webauthn.Credential) {
+func (u *User) AddCredential(c webauthn.Credential, credentialId string) {
 	u.Credentials = append(u.Credentials, c)
+	u.CredentialIds = []string{credentialId} // append(u.CredentialIds, credentialId)
 }
 
 func (u *User) ExcludedCredentials() []protocol.CredentialDescriptor {
@@ -77,15 +78,20 @@ func (DbCredential) TableName() string {
 }
 
 type DbUser struct {
-	ID           uint64 `gorm:"primarykey"`
-	CreatedAt    time.Time
-	UpdatedAt    time.Time
-	Name         string `gorm:"unique"`
-	Password     string `gorm:"default:''"`
-	IsApproved   bool
-	IsAdmin      bool
-	Credentials  []DbCredential `gorm:"foreignKey:UserID"`
-	CredentialId string
+	ID            uint64 `gorm:"primarykey"`
+	CreatedAt     time.Time
+	UpdatedAt     time.Time
+	Name          string `gorm:"unique"`
+	Password      string `gorm:"default:''"`
+	IsApproved    bool
+	IsAdmin       bool
+	Credentials   []DbCredential `gorm:"foreignKey:UserID"`
+	CredentialIds []CredentialId `gorm:"foreignKey:UserId"`
+}
+
+type CredentialId struct {
+	UserId       uint64 `gorm:"primaryKey;autoIncrement:false"`
+	CredentialId string `gorm:"primaryKey;autoIncrement:false"`
 }
 
 func (DbUser) TableName() string {
@@ -110,13 +116,22 @@ func (u *User) ToDBUser() *DbUser {
 		}
 		c = append(c, dbC)
 	}
+
+	credentialIds := make([]CredentialId, len(u.CredentialIds))
+	for i, cred := range u.CredentialIds {
+		credentialIds[i] = CredentialId{
+			UserId:       u.ID,
+			CredentialId: cred,
+		}
+	}
+
 	dbu := DbUser{
-		ID:           u.ID,
-		Name:         u.Name,
-		IsApproved:   u.IsApproved,
-		IsAdmin:      u.IsAdmin,
-		Credentials:  c,
-		CredentialId: u.CredentialId,
+		ID:            u.ID,
+		Name:          u.Name,
+		IsApproved:    u.IsApproved,
+		IsAdmin:       u.IsAdmin,
+		Credentials:   c,
+		CredentialIds: credentialIds,
 	}
 	return &dbu
 }
@@ -149,13 +164,19 @@ func (dbu *DbUser) ToUser() *User {
 		}
 		c = append(c, dbC)
 	}
+
+	credentialIds := make([]string, len(dbu.CredentialIds))
+	for i, cred := range dbu.CredentialIds {
+		credentialIds[i] = cred.CredentialId
+	}
+
 	user := User{
-		ID:           dbu.ID,
-		Name:         dbu.Name,
-		IsApproved:   dbu.IsApproved,
-		IsAdmin:      dbu.IsAdmin,
-		Credentials:  c,
-		CredentialId: dbu.CredentialId,
+		ID:            dbu.ID,
+		Name:          dbu.Name,
+		IsApproved:    dbu.IsApproved,
+		IsAdmin:       dbu.IsAdmin,
+		Credentials:   c,
+		CredentialIds: credentialIds,
 	}
 	return &user
 }

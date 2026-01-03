@@ -19,7 +19,7 @@ func NewDatebase(db *gorm.DB) *userDB {
 
 func (u *userDB) getUser(username string) (*models.User, error) {
 	var dbu models.DbUser
-	err := u.Model(&models.DbUser{}).Preload("Credentials").First(&dbu, "name = ?", username).Error
+	err := u.Model(&models.DbUser{}).Preload("Credentials").Preload("CredentialIds").First(&dbu, "name = ?", username).Error
 
 	if err != nil {
 		return &models.User{}, fmt.Errorf("error getting user: %s", username)
@@ -53,7 +53,10 @@ func (u *userDB) addUser(user *models.User) (*models.User, error) {
 }
 
 func (u *userDB) saveUser(user *models.User) (*models.User, error) {
-	u.Save(user.ToDBUser())
+	err := u.Save(user.ToDBUser()).Error
+	if err != nil {
+		return nil, err
+	}
 	return u.getUser(user.Name)
 }
 
@@ -109,7 +112,7 @@ func (u *userDB) getPasswordHashForUser(username string) (string, error) {
 
 func (u *userDB) getUserByCredentialId(credentialId string) (*models.User, error) {
 	var dbu models.DbUser
-	err := u.Model(&models.DbUser{}).Preload("Credentials").First(&dbu, "credential_id = ?", credentialId).Error
+	err := u.Model(&models.DbUser{}).Preload("Credentials").Preload("CredentialIds").InnerJoins("JOIN credential_ids on users.id = credential_ids.user_id where credential_ids.credential_id = ?", credentialId).Find(&dbu).Error
 	if err != nil {
 		return &models.User{}, fmt.Errorf("error getting user by credential_id: %w", err)
 	}
