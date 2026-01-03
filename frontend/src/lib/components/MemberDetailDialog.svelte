@@ -121,13 +121,15 @@
 		const select = event.target as HTMLSelectElement;
 		const newGroup = select.value as Group;
 		groupChanged = changedMember.group !== newGroup;
-		changedMember.group = newGroup;
 	};
 
 	const handleGroupSave = async (e: SubmitEvent) => {
 		e.preventDefault();
 		try {
-			const updatedMember = await updateMember(changedMember);
+			const updatedMember = await updateMember({
+				...changedMember,
+				group: tempGroup
+			});
 			changedMember.group = updatedMember.group
 			onMemberUpdated(changedMember);
 			groupChanged = false;
@@ -140,8 +142,8 @@
 	const handleDeleteMember = async () => {
 		if (!confirm(`Soll ${changedMember.name} wirklich gelöscht werden?`)) return;
 		try {
-			await deleteMember(changedMember.id);
-			onClose(changedMember.id); // Pass deleted member ID
+			await deleteMember(changedMember.id.toString());
+			onClose(changedMember.id.toString()); // Pass deleted member ID as string
 			// Optionally, you can notify parent to refresh the member list here
 		} catch (error) {
 			console.error(error);
@@ -163,6 +165,11 @@
 
 	const hasOrderForType = (type: EquipmentType) =>
 		orders.some(order => order.type === type && !order.fulfilledAt);
+
+	const hasAssignedEquipment = () => {
+		if (!changedMember || !changedMember.equipments) return false;
+		return Object.values(changedMember.equipments).some(e => !!e);
+	};
 
 	const handleOrderCreated = (order: Order) => {
 		orders = [...orders, order];
@@ -205,7 +212,7 @@
 			</div>
 
 			<div class="space-y-4 mb-4">
-				{#each equipmentForGroup[member?.group] as equipmentType}
+				{#each equipmentForGroup[changedMember?.group] as equipmentType}
 					{@const equipment = changedMember.equipments[equipmentType]}
 					<form class="border rounded-lg p-4" onsubmit={() => equipment ? removeEquipment(equipmentType) : addEquipment(equipmentType)}>
 						<div class="flex items-center justify-between mb-2">
@@ -273,17 +280,19 @@
 					Speichern
 				</button>
 			</form>
-			
-			<div class="flex justify-end mt-2">
-				<button
-					type="button"
-					onclick={handleDeleteMember}
-					class="px-4 py-2 text-white bg-red-600 rounded hover:bg-red-700 transition-colors"
-					disabled={saving}
-				>
-					Mitglied löschen
-				</button>
-			</div>
+
+			{#if changedMember.group === Group.GONE}
+				<div class="flex justify-end mt-2">
+					<button
+						type="button"
+						onclick={handleDeleteMember}
+						class="px-4 py-2 text-white bg-red-600 rounded hover:bg-red-700 transition-colors"
+						disabled={saving || hasAssignedEquipment()}
+					>
+						Mitglied löschen
+					</button>
+				</div>
+			{/if}
 			<div class="flex justify-end space-x-2 mt-6">
 				<button
 					type="button"
