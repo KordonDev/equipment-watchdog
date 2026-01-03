@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"slices"
 	"time"
 
 	"golang.org/x/crypto/bcrypt"
@@ -134,12 +135,17 @@ func (w *WebAuthNService) finishRegistration(username string, request *http.Requ
 		return nil, err
 	}
 
-	credential, err := w.webAuthn.FinishRegistration(user, sessionData, request)
+	cred, err := protocol.ParseCredentialCreationResponse(request)
 	if err != nil {
 		return nil, err
 	}
 
-	user.AddCredential(*credential)
+	credential, err := w.webAuthn.CreateCredential(user, sessionData, cred)
+	if err != nil {
+		return nil, err
+	}
+
+	user.AddCredential(*credential, cred.ID)
 
 	if !w.userService.HasApprovedAndAdminUser() {
 		user.IsApproved = true
@@ -197,7 +203,9 @@ func (w WebAuthNService) finishLogin(username string, request *http.Request) (*m
 		return nil, "", err
 	}
 
-	user.CredentialId = cred.ID
+	if !slices.Contains(user.CredentialIds, cred.ID) {
+		user.CredentialIds = append(user.CredentialIds, cred.ID)
+	}
 
 	user, err = w.userService.SaveUser(user)
 	if err != nil {
