@@ -188,7 +188,7 @@
 
 {#if changedMember}
 	<div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-		<div class="bg-white rounded-lg p-6 w-full max-w-2xl max-h-[80vh] overflow-y-auto">
+		<div class="bg-white rounded-lg p-6 w-full max-w-2xl max-h-[95vh] overflow-y-auto">
 			<div class="flex items-start justify-between mb-4">
 				<h2 class="text-xl font-bold">{changedMember.name} bearbeiten</h2>
 				<button
