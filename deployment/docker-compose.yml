@@ -17,6 +17,6 @@ services:
     container_name: equipment-watchdog-frontend
     restart: always
     ports:
-      - "1080:80"
+      - "1080:9000"
     environment:
       - URL=http://localhost:8080/api
