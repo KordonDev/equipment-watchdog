@@ -20,3 +20,14 @@ services:
       - "1080:9000"
     environment:
       - URL=http://localhost:8080/api
+
+  backup:
+    image: ghcr.io/kordondev/equipment-watchdog-backup:latest-arm64
+    container_name: equipment-watchdog-backup
+    user: "${UID}:${GID}"
+    volumes:
+      - ./data:/data:ro
+      - ./backups:/backups
+    restart: always
+    depends_on:
+      - backend
