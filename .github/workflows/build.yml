@@ -46,3 +46,22 @@ jobs:
       - name: Run build
         run: npm run build
         working-directory: ./frontend
+
+  build-backup:
+    name: build backup
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - run: git fetch --force --tags
+      - uses: docker/setup-qemu-action@v3
+      - uses: docker/setup-buildx-action@v3
+      - name: Build
+        uses: docker/build-push-action@v5
+        with:
+          context: './backup'
+          file: './backup/Dockerfile.backup'
+          platforms: linux/amd64,linux/arm64
+          push: false
