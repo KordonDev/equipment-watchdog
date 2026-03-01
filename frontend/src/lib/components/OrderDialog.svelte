@@ -111,7 +111,7 @@
 </script>
 
 	<div class="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-60">
-		<div class="bg-white rounded-lg p-6 w-full max-w-md shadow-lg relative">
+		<div class="bg-white rounded-lg p-6 w-full max-w-md max-h-[95vh] overflow-y-auto">
 			<div class="flex items-center justify-between mb-4">
 				<h3 class="text-lg font-bold">Bestellungen {member.name}</h3>
 				<button
