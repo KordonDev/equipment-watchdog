@@ -6,6 +6,7 @@ import (
 
 	"github.com/kordondev/equipment-watchdog/models"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 type gloveIdDB struct {
@@ -19,19 +20,19 @@ func newGloveIdDB(db *gorm.DB) *gloveIdDB {
 }
 
 func (gdb *gloveIdDB) getNextAvailableId() (string, error) {
-	usedGloveIds := make([]uint64, 0)
-	err := gdb.Model(&models.DbGloveId{}).Where("used = true").Pluck("glove_id", &usedGloveIds).Error
+	existingIds := make([]uint64, 0)
+	err := gdb.Model(&models.DbGloveId{}).Pluck("glove_id", &existingIds).Error
 	if err != nil {
 		return "", err
 	}
-	// make list to map for faster lookup
-	usedGloveIdMap := make(map[uint64]bool)
-	for _, id := range usedGloveIds {
-		usedGloveIdMap[id] = true
+
+	existingIdMap := make(map[uint64]bool)
+	for _, id := range existingIds {
+		existingIdMap[id] = true
 	}
 
 	for id := 1; id < 1000; id++ {
-		if !usedGloveIdMap[uint64(id)] {
+		if !existingIdMap[uint64(id)] {
 			return fmt.Sprintf("%d", id), nil
 		}
 	}
@@ -39,7 +40,14 @@ func (gdb *gloveIdDB) getNextAvailableId() (string, error) {
 	return "", errors.New("no available glove ID found")
 }
 
-func (gdb *gloveIdDB) addFreeGloveId(gloveId string) error {
+func (gdb *gloveIdDB) markIdAsUsed(gloveId string) error {
+	newEntry := &models.DbGloveId{
+		GloveId: gloveId,
+	}
+	return gdb.Clauses(clause.OnConflict{DoNothing: true}).Create(newEntry).Error
+}
+
+func (gdb *gloveIdDB) addGloveId(gloveId string) error {
 	var existing models.DbGloveId
 	err := gdb.Where("glove_id = ?", gloveId).First(&existing).Error
 	if err == nil {
@@ -51,35 +59,10 @@ func (gdb *gloveIdDB) addFreeGloveId(gloveId string) error {
 
 	newEntry := &models.DbGloveId{
 		GloveId: gloveId,
-		Used:    false,
 	}
 	return gdb.Create(newEntry).Error
 }
 
 func (gdb *gloveIdDB) deleteGloveId(gloveId string) error {
 	return gdb.Where("glove_id = ?", gloveId).Delete(&models.DbGloveId{}).Error
-}
-
-func (gdb *gloveIdDB) markIdAsUsed(gloveId string) error {
-	// Prüfe ob ID bereits existiert
-	var existingId models.DbGloveId
-	err := gdb.Where("glove_id = ?", gloveId).First(&existingId).Error
-
-	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			// ID existiert noch nicht, erstelle sie
-			newGloveId := &models.DbGloveId{
-				GloveId: gloveId,
-				Used:    true,
-			}
-			return gdb.Create(newGloveId).Error
-		}
-		return err
-	}
-
-	if existingId.Used {
-		return errors.New("glove ID already used")
-	}
-
-	return gdb.Model(&existingId).Update("used", true).Error
 }

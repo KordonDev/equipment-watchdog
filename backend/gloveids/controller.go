@@ -9,7 +9,7 @@ import (
 type GloveIdService interface {
 	GetNextGloveId() (string, error)
 	MarkGloveIdAsUsed(gloveId string) error
-	AddFreeGloveId(gloveId string) error
+	AddGloveId(gloveId string) error
 	DeleteGloveId(gloveId string) error
 }
 
@@ -26,7 +26,7 @@ func NewController(baseRoute *gin.RouterGroup, service GloveIdService) {
 	{
 		gloveIdRoute.GET("/next", ctrl.getNextGloveId)
 		gloveIdRoute.POST("/mark-used/:id", ctrl.markGloveIdAsUsed)
-		gloveIdRoute.POST("/", ctrl.addFreeGloveId)
+		gloveIdRoute.POST("/", ctrl.addGloveId)
 		gloveIdRoute.DELETE("/:id", ctrl.deleteGloveId)
 	}
 }
@@ -59,14 +59,14 @@ type addGloveIdRequest struct {
 	GloveId string `json:"gloveId" binding:"required"`
 }
 
-func (ctrl Controller) addFreeGloveId(c *gin.Context) {
+func (ctrl Controller) addGloveId(c *gin.Context) {
 	var req addGloveIdRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
 
-	if err := ctrl.service.AddFreeGloveId(req.GloveId); err != nil {
+	if err := ctrl.service.AddGloveId(req.GloveId); err != nil {
 		c.AbortWithError(http.StatusConflict, err)
 		return
 	}

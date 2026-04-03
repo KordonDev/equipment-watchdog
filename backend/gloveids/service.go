@@ -7,7 +7,7 @@ import (
 type Database interface {
 	getNextAvailableId() (string, error)
 	markIdAsUsed(gloveId string) error
-	addFreeGloveId(gloveId string) error
+	addGloveId(gloveId string) error
 	deleteGloveId(gloveId string) error
 }
 
@@ -30,8 +30,8 @@ func (s *Service) MarkGloveIdAsUsed(gloveId string) error {
 	return s.db.markIdAsUsed(gloveId)
 }
 
-func (s *Service) AddFreeGloveId(gloveId string) error {
-	return s.db.addFreeGloveId(gloveId)
+func (s *Service) AddGloveId(gloveId string) error {
+	return s.db.addGloveId(gloveId)
 }
 
 func (s *Service) DeleteGloveId(gloveId string) error {
