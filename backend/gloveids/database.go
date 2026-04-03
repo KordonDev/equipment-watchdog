@@ -39,6 +39,27 @@ func (gdb *gloveIdDB) getNextAvailableId() (string, error) {
 	return "", errors.New("no available glove ID found")
 }
 
+func (gdb *gloveIdDB) addFreeGloveId(gloveId string) error {
+	var existing models.DbGloveId
+	err := gdb.Where("glove_id = ?", gloveId).First(&existing).Error
+	if err == nil {
+		return fmt.Errorf("glove ID %s already exists", gloveId)
+	}
+	if !errors.Is(err, gorm.ErrRecordNotFound) {
+		return err
+	}
+
+	newEntry := &models.DbGloveId{
+		GloveId: gloveId,
+		Used:    false,
+	}
+	return gdb.Create(newEntry).Error
+}
+
+func (gdb *gloveIdDB) deleteGloveId(gloveId string) error {
+	return gdb.Where("glove_id = ?", gloveId).Delete(&models.DbGloveId{}).Error
+}
+
 func (gdb *gloveIdDB) markIdAsUsed(gloveId string) error {
 	// Prüfe ob ID bereits existiert
 	var existingId models.DbGloveId

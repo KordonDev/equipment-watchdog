@@ -9,6 +9,8 @@ import (
 type GloveIdService interface {
 	GetNextGloveId() (string, error)
 	MarkGloveIdAsUsed(gloveId string) error
+	AddFreeGloveId(gloveId string) error
+	DeleteGloveId(gloveId string) error
 }
 
 type Controller struct {
@@ -24,6 +26,8 @@ func NewController(baseRoute *gin.RouterGroup, service GloveIdService) {
 	{
 		gloveIdRoute.GET("/next", ctrl.getNextGloveId)
 		gloveIdRoute.POST("/mark-used/:id", ctrl.markGloveIdAsUsed)
+		gloveIdRoute.POST("/", ctrl.addFreeGloveId)
+		gloveIdRoute.DELETE("/:id", ctrl.deleteGloveId)
 	}
 }
 
@@ -49,4 +53,34 @@ func (ctrl Controller) markGloveIdAsUsed(c *gin.Context) {
 	}
 
 	c.Status(http.StatusOK)
+}
+
+type addGloveIdRequest struct {
+	GloveId string `json:"gloveId" binding:"required"`
+}
+
+func (ctrl Controller) addFreeGloveId(c *gin.Context) {
+	var req addGloveIdRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+
+	if err := ctrl.service.AddFreeGloveId(req.GloveId); err != nil {
+		c.AbortWithError(http.StatusConflict, err)
+		return
+	}
+
+	c.Status(http.StatusCreated)
+}
+
+func (ctrl Controller) deleteGloveId(c *gin.Context) {
+	gloveId := c.Param("id")
+
+	if err := ctrl.service.DeleteGloveId(gloveId); err != nil {
+		c.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
+
+	c.Status(http.StatusNoContent)
 }
