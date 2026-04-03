@@ -1,23 +1,17 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import { goto } from '$app/navigation';
 	import { equipmentForGroup, getMembers, Group, groupLabels, type Member } from '$lib/services/member.service';
 	import { equipmentLabels, EquipmentType } from '$lib/services/equipment.service';
 	import { getOrders, type Order } from '$lib/services/order.service';
-	import {
-		loadMemberForDetails,
-		loadSelectedGroup,
-		storeMemberForDetails,
-		storeSelectedGroup
-	} from '$lib/services/storage.service';
+	import { loadSelectedGroup, storeSelectedGroup } from '$lib/services/storage.service';
 	import AddMemberDialog from '$lib/components/AddMemberDialog.svelte';
-	import MemberDetailDialog from '$lib/components/MemberDetailDialog.svelte';
 	import BurgerMenu from '$lib/components/BurgerMenu.svelte';
 
 	let members: Member[] = $state([]);
 	let selectedGroup: Group = $state(loadSelectedGroup());
 	let loading = $state(true);
 	let showAddMemberDialog = $state(false);
-	let memberForDetails: Member | undefined = $state(undefined);
 	let orders: Order[] = $state([]);
 
 	let filteredMembers = $derived(members.filter(member => member.group === selectedGroup));
@@ -26,7 +20,6 @@
 		try {
 			members = await getMembers();
 			orders = await getOrders();
-			memberForDetails = loadMemberForDetails(members)
 		} catch (error) {
 			console.error('Failed to load members or orders:', error);
 		} finally {
@@ -35,7 +28,7 @@
 	});
 
 	$effect(() => {
-		storeSelectedGroup(selectedGroup)
+		storeSelectedGroup(selectedGroup);
 	});
 
 	const handleAddMember = () => {
@@ -45,34 +38,11 @@
 	const handleMemberAdded = (newMember: Member) => {
 		members = [...members, newMember];
 		showAddMemberDialog = false;
+		goto(`/members/${newMember.id}`);
 	};
 
 	const handleCloseDialog = () => {
 		showAddMemberDialog = false;
-	};
-
-	const handleMemberClick = (member: Member) => {
-		memberForDetails = member;
-		storeMemberForDetails(member)
-	};
-
-	const handleMemberUpdated = async (updatedMember: Member) => {
-		const index = members.findIndex(m => m.id === updatedMember.id);
-		if (index !== -1) {
-			members[index] = updatedMember;
-			members = [...members]; // Trigger reactivity and update filteredMembers
-		}
-		// Nach Equipment-Änderung Bestellungen neu laden
-		orders = await getOrders();
-	};
-
-	const handleCloseDetailDialog = (deletedMemberId?: string) => {
-		if (deletedMemberId) {
-			members = members.filter(m => m.id.toString() !== deletedMemberId);
-		}
-		memberForDetails = undefined;
-		storeMemberForDetails(undefined)
-		members = [...members]; // Trigger reactivity
 	};
 
 	const hasOrderForMemberAndType = (memberId: number, type: EquipmentType) =>
@@ -113,7 +83,7 @@
 			{#each filteredMembers as member}
 				<button
 					class="bg-white rounded-lg shadow-md p-4 hover:shadow-lg transition-shadow cursor-pointer"
-					onclick={() => handleMemberClick(member)}
+					onclick={() => goto(`/members/${member.id}`)}
 				>
 					<h3 class="text-lg font-semibold text-gray-800 mb-3">{member.name}</h3>
 
@@ -139,20 +109,11 @@
 	{/if}
 </div>
 
-
 {#if showAddMemberDialog}
 	<AddMemberDialog
 		{selectedGroup}
 		{groupLabels}
 		onClose={handleCloseDialog}
 		onMemberAdded={handleMemberAdded}
-	/>
-{/if}
-
-{#if memberForDetails}
-	<MemberDetailDialog
-		member={memberForDetails}
-		onClose={handleCloseDetailDialog}
-		onMemberUpdated={handleMemberUpdated}
 	/>
 {/if}
