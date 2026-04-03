@@ -11,4 +11,4 @@ for f in /var/www/*.html; do
   fi
 done
 
-caddy run --config /etc/caddy/Caddyfile --adapter caddyfile
+exec caddy run --config /etc/caddy/Caddyfile --adapter caddyfile
