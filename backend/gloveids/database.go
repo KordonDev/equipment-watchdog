@@ -31,7 +31,7 @@ func (gdb *gloveIdDB) getNextAvailableId() (string, error) {
 	}
 
 	for id := 1; id < 1000; id++ {
-		if usedGloveIdMap[uint64(id)] {
+		if !usedGloveIdMap[uint64(id)] {
 			return fmt.Sprintf("%d", id), nil
 		}
 	}
