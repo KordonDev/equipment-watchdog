@@ -5,6 +5,7 @@ import (
 
 	"github.com/cloudflare/cfssl/log"
 	"github.com/gin-gonic/gin"
+	"github.com/kordondev/equipment-watchdog/audit"
 	"github.com/kordondev/equipment-watchdog/models"
 	"github.com/kordondev/equipment-watchdog/url"
 )
@@ -194,9 +195,21 @@ func (ctrl Controller) createEquipmentFromOrder(c *gin.Context) {
 		return
 	}
 
+	audit.LogCtx(c, "http.order.fulfill",
+		audit.F("orderId", order.ID),
+		audit.F("memberId", order.MemberID),
+		audit.F("type", order.Type),
+		audit.F("size", order.Size),
+		audit.F("registrationCode", registrationCode),
+	)
+
 	equipment, oldEquip, err := ctrl.service.fulfill(order, registrationCode)
 	if err != nil {
 		log.Error(err)
+		audit.LogCtx(c, "http.order.fulfill.failed",
+			audit.F("orderId", order.ID),
+			audit.F("error", err.Error()),
+		)
 		c.AbortWithError(http.StatusInternalServerError, err)
 		return
 	}
@@ -205,6 +218,13 @@ func (ctrl Controller) createEquipmentFromOrder(c *gin.Context) {
 	if oldEquip != nil {
 		oldEquipId = oldEquip.Id
 	}
+
+	audit.LogCtx(c, "http.order.fulfill.done",
+		audit.F("orderId", order.ID),
+		audit.F("memberId", equipment.MemberID),
+		audit.F("equipmentId", equipment.Id),
+		audit.F("oldEquipmentId", oldEquipId),
+	)
 
 	ctrl.changeWriter.Save(models.Change{
 		Action:         models.OrderToEquipment,

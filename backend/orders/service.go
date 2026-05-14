@@ -3,6 +3,7 @@ package orders
 import (
 	"time"
 
+	"github.com/kordondev/equipment-watchdog/audit"
 	"github.com/kordondev/equipment-watchdog/models"
 	"gorm.io/gorm"
 )
@@ -76,22 +77,53 @@ func (s OrderService) GetForIds(ids []uint64) ([]models.Order, error) {
 }
 
 func (s OrderService) fulfill(order models.Order, registrationCode string) (*models.Equipment, *models.Equipment, error) {
+	audit.Log("order.fulfill.start", "system",
+		audit.F("orderId", order.ID),
+		audit.F("memberId", order.MemberID),
+		audit.F("type", order.Type),
+		audit.F("size", order.Size),
+		audit.F("registrationCode", registrationCode),
+	)
+
 	equipment, err := s.equipmentService.CreateEquipmentFromOrder(order, registrationCode)
 	if err != nil {
+		audit.Log("order.fulfill.failed", "system",
+			audit.F("stage", "createEquipment"),
+			audit.F("orderId", order.ID),
+			audit.F("error", err.Error()),
+		)
 		return nil, nil, err
 	}
 
 	equipment.MemberID = order.MemberID
 	_, oldEquip, err := s.equipmentService.ReplaceEquipmentForMember(*equipment)
 	if err != nil {
+		audit.Log("order.fulfill.failed", "system",
+			audit.F("stage", "replaceEquipment"),
+			audit.F("orderId", order.ID),
+			audit.F("equipmentId", equipment.Id),
+			audit.F("error", err.Error()),
+		)
 		return nil, nil, err
 	}
 
 	order.FulfilledAt = time.Now()
 	_, err = s.update(order.ID, order)
 	if err != nil {
+		audit.Log("order.fulfill.failed", "system",
+			audit.F("stage", "markFulfilled"),
+			audit.F("orderId", order.ID),
+			audit.F("error", err.Error()),
+		)
 		return nil, nil, err
 	}
+
+	audit.Log("order.fulfill.done", "system",
+		audit.F("orderId", order.ID),
+		audit.F("memberId", order.MemberID),
+		audit.F("newEquipment", audit.EquipmentBrief(equipment)),
+		audit.F("oldEquipment", audit.EquipmentBrief(oldEquip)),
+	)
 
 	return equipment, oldEquip, err
 }

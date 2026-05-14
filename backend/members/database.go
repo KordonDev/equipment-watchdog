@@ -3,6 +3,7 @@ package members
 import (
 	"fmt"
 
+	"github.com/kordondev/equipment-watchdog/audit"
 	"github.com/kordondev/equipment-watchdog/models"
 
 	"gorm.io/gorm"
@@ -58,8 +59,39 @@ func (mdb *memberDB) getMemberById(id uint64) (*models.Member, error) {
 
 func (mdb *memberDB) saveMember(member *models.Member) error {
 	dbm := member.ToDB()
+
+	// This is the single most dangerous call in the codebase: with a
+	// nullable has-many FK, GORM's Association.Replace will set
+	// member_id = NULL on every equipment row not present in dbm.Equipment.
+	// We log the slice we are about to pass so we can correlate any sudden
+	// equipment loss with the actual saveMember invocation that caused it.
+	ids := make([]uint64, 0, len(dbm.Equipment))
+	for _, e := range dbm.Equipment {
+		if e == nil {
+			continue
+		}
+		ids = append(ids, e.ID)
+	}
+	audit.Log("memberDB.saveMember", "system",
+		audit.F("memberId", dbm.ID),
+		audit.F("name", dbm.Name),
+		audit.F("equipmentCount", len(dbm.Equipment)),
+		audit.F("equipmentIds", fmt.Sprintf("%v", ids)),
+	)
+
 	err := mdb.Save(dbm).Error
-	mdb.Model(dbm).Association("Equipment").Replace(dbm.Equipment)
+	if err != nil {
+		audit.Log("memberDB.saveMember.saveFailed", "system",
+			audit.F("memberId", dbm.ID),
+			audit.F("error", err.Error()),
+		)
+	}
+	if assocErr := mdb.Model(dbm).Association("Equipment").Replace(dbm.Equipment); assocErr != nil {
+		audit.Log("memberDB.saveMember.replaceFailed", "system",
+			audit.F("memberId", dbm.ID),
+			audit.F("error", assocErr.Error()),
+		)
+	}
 	return err
 }
 

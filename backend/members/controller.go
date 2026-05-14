@@ -5,6 +5,7 @@ import (
 
 	"github.com/cloudflare/cfssl/log"
 	"github.com/gin-gonic/gin"
+	"github.com/kordondev/equipment-watchdog/audit"
 	"github.com/kordondev/equipment-watchdog/models"
 	"github.com/kordondev/equipment-watchdog/url"
 )
@@ -114,8 +115,19 @@ func (ctrl Controller) updateMember(c *gin.Context) {
 		return
 	}
 
+	audit.LogCtx(c, "http.member.update",
+		audit.F("memberId", id),
+		audit.F("name", um.Name),
+		audit.F("group", um.Group),
+		audit.F("equipmentInRequest", audit.EquipmentSnapshot(&um)),
+	)
+
 	err = ctrl.service.updateMember(id, &um)
 	if err != nil {
+		audit.LogCtx(c, "http.member.update.failed",
+			audit.F("memberId", id),
+			audit.F("error", err.Error()),
+		)
 		c.AbortWithError(http.StatusInternalServerError, err)
 		return
 	}
@@ -129,6 +141,8 @@ func (ctrl Controller) deleteMemberById(c *gin.Context) {
 		c.AbortWithError(http.StatusNotFound, err)
 		return
 	}
+
+	audit.LogCtx(c, "http.member.delete", audit.F("memberId", id))
 
 	if err = ctrl.service.deleteMemberById(id); err != nil {
 		log.Error(err)
@@ -163,18 +177,34 @@ func (ctrl Controller) saveEquipmentForMember(c *gin.Context) {
 		return
 	}
 
+	audit.LogCtx(c, "http.member.equipment.assign",
+		audit.F("memberId", id),
+		audit.F("type", equipmentType),
+		audit.F("incoming", audit.EquipmentBrief(&equipment)),
+	)
+
 	savedEquipment, oldEquip, err := ctrl.service.saveEquipmentForMember(id, models.EquipmentType(equipmentType), equipment)
 	if err != nil {
 		log.Error(err)
+		audit.LogCtx(c, "http.member.equipment.assign.failed",
+			audit.F("memberId", id),
+			audit.F("type", equipmentType),
+			audit.F("error", err.Error()),
+		)
 		c.AbortWithError(http.StatusInternalServerError, err)
 		return
+	}
+
+	var oldEquipId uint64 = 0
+	if oldEquip != nil {
+		oldEquipId = oldEquip.Id
 	}
 
 	ctrl.changeWriter.Save(models.Change{
 		Action:         models.UpdateEquipmentOnMember,
 		MemberId:       id,
 		EquipmentId:    savedEquipment.Id,
-		OldEquipmentId: oldEquip.Id,
+		OldEquipmentId: oldEquipId,
 	}, c)
 
 	c.JSON(http.StatusOK, savedEquipment)
@@ -193,9 +223,19 @@ func (ctrl Controller) removeEquipmentFromMember(c *gin.Context) {
 		return
 	}
 
+	audit.LogCtx(c, "http.member.equipment.remove",
+		audit.F("memberId", id),
+		audit.F("type", equipmentType),
+	)
+
 	oldEquip, err := ctrl.service.removeEquipmentFromMember(id, models.EquipmentType(equipmentType))
 	if err != nil {
 		log.Error(err)
+		audit.LogCtx(c, "http.member.equipment.remove.failed",
+			audit.F("memberId", id),
+			audit.F("type", equipmentType),
+			audit.F("error", err.Error()),
+		)
 		c.AbortWithError(http.StatusInternalServerError, err)
 		return
 	}
