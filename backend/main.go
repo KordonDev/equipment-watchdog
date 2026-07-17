@@ -22,6 +22,7 @@ import (
 	"github.com/kordondev/equipment-watchdog/orders"
 	"github.com/kordondev/equipment-watchdog/registrationcodes"
 	"github.com/kordondev/equipment-watchdog/security"
+	"github.com/kordondev/equipment-watchdog/tasks"
 	"github.com/kordondev/equipment-watchdog/users"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
@@ -91,6 +92,9 @@ func main() {
 	changes.NewController(api, changeService)
 
 	gloveids.NewController(api, gloveIdService)
+
+	taskService := tasks.NewTaskService(db)
+	tasks.NewController(api, taskService)
 
 	_ = router.Run(":8080")
 }
